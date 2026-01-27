@@ -1,4 +1,640 @@
-value),lng=parseFloat(document.getElementById('searchLng').value),radius=parseInt(document.getElementById('searchRadius').value)||50;if(isNaN(lat)||isNaN(lng)){r.innerHTML='<div class="alert alert-danger">Get location first</div>';return}markers.forEach(m=>helpersMap.removeLayer(m));markers=[];const um=L.marker([lat,lng],{icon:L.divIcon({className:'',html:'<div style="background:#3b82f6;color:white;padding:10px 14px;border-radius:25px;font-weight:600">📍 You</div>',iconAnchor:[30,20]})}).addTo(helpersMap);markers.push(um);let q=db.from('user_availability').select('*, profiles(id, email)').eq('is_available',true).neq('user_id',currentUser.id);if(document.getElementById('needPickup').checked)q=q.eq('can_pickup',true);if(document.getElementById('needGarage').checked)q=q.eq('can_provide_garage',true);if(document.getElementById('needStay').checked)q=q.eq('can_provide_accommodation',true);if(document.getElementById('needMeet').checked)q=q.eq('can_meet_for_drinks',true);const{data,error}=await q;if(error){r.innerHTML='<div class="alert alert-danger">'+error.message+'</div>';return}currentHelpers=(data||[]).filter(h=>{if(!h.latitude)return false;h.distance=getDistance(lat,lng,h.latitude,h.longitude);return h.distance<=radius}).sort((a,b)=>a.distance-b.distance);if(!currentHelpers.length){r.innerHTML='<div class="alert alert-info">No helpers found.</div>';return}currentHelpers.forEach((h,i)=>{const e=h.profiles?.email||'unknown',dn=generateAnonymousName(e),av=generateAvatarData(e);const m=L.marker([h.latitude,h.longitude],{icon:L.divIcon({className:'',html:`<div style="background:${av.color};color:white;padding:8px 14px;border-radius:20px;font-weight:600">${av.icon}</div>`,iconAnchor:[20,20]})}).addTo(helpersMap);m.bindPopup(`<strong>${dn}</strong><br>📍 ${h.distance.toFixed(1)} km<br><button onclick="openContactModal(${i})" style="margin-top:8px;padding:8px 16px;background:#1F4788;color:white;border:none;border-radius:8px;cursor:pointer">📨 Contact</button>`);markers.push(m)});helpersMap.fitBounds(L.featureGroup(markers).getBounds().pad(0.1));r.innerHTML=`<h4>${currentHelpers.length} helper(s)</h4>`+currentHelpers.map((h,i)=>{const e=h.profiles?.email||'unknown',dn=generateAnonymousName(e),av=generateAvatarData(e);return`<div class="request-card" onclick="focusHelper(${i})" style="cursor:pointer"><div class="request-user"><div class="request-avatar" style="background:${av.color}">${av.icon}</div><div class="request-info"><h4>${dn}</h4><p>📍 ${h.distance.toFixed(1)} km</p></div></div><button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openContactModal(${i})">📨 Contact</button></div>`}).join('')}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Obonato - I exist because you exist</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1F4788; --primary-dark: #163560; --accent: #f59e0b; --accent-dark: #d97706;
+            --success: #10b981; --success-light: #d1fae5; --warning: #f59e0b; --warning-light: #fef3c7;
+            --danger: #ef4444; --danger-light: #fee2e2; --bg: #f8fafc; --bg-alt: #f1f5f9;
+            --card: #ffffff; --border: #e2e8f0; --text: #1e293b; --text-light: #64748b; --w3w: #e11f26;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.6; }
+        header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 0 24px; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+        .header-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; height: 70px; }
+        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: white; }
+        .logo-icon { font-size: 32px; }
+        .logo-text h1 { font-size: 24px; font-weight: 800; }
+        .logo-text span { font-size: 11px; opacity: 0.8; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .status-badge { padding: 8px 16px; border-radius: 25px; font-size: 13px; font-weight: 600; }
+        .status-connected { background: var(--success); }
+        .status-disconnected { background: var(--danger); }
+        .pending-badge { background: var(--danger); color: white; padding: 8px 16px; border-radius: 25px; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .user-info { display: flex; align-items: center; gap: 12px; }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white; border: 2px solid rgba(255,255,255,0.3); }
+        .btn-signout { background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.3); color: white; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+        .tabs { display: flex; background: var(--card); border-radius: 16px 16px 0 0; overflow-x: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-bottom: 2px solid var(--border); }
+        .tab { padding: 18px 28px; border: none; background: transparent; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--text-light); white-space: nowrap; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+        .tab:hover { color: var(--primary); background: var(--bg); }
+        .tab.active { color: var(--primary); border-bottom-color: var(--accent); background: white; }
+        .tab-content { display: none; background: var(--card); padding: 32px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); min-height: 500px; }
+        .tab-content.active { display: block; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 28px; margin-bottom: 24px; }
+        .card h3 { font-size: 20px; font-weight: 700; margin-bottom: 20px; color: var(--primary); }
+        .card h4 { font-size: 16px; font-weight: 700; margin: 28px 0 16px; color: var(--text); padding-bottom: 10px; border-bottom: 2px solid var(--border); }
+        .card h4:first-of-type { margin-top: 0; }
+        .auth-container { max-width: 450px; margin: 0 auto; }
+        .auth-card { background: var(--card); border-radius: 20px; padding: 40px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); border: 2px solid var(--border); }
+        .auth-card.signin { border-color: var(--primary); }
+        .auth-card.signup { border-color: var(--accent); }
+        .auth-card .card-header { text-align: center; margin-bottom: 32px; }
+        .auth-card .card-icon { font-size: 56px; margin-bottom: 16px; }
+        .auth-card .card-title { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+        .auth-card.signin .card-title { color: var(--primary); }
+        .auth-card.signup .card-title { color: var(--accent-dark); }
+        .auth-card .card-subtitle { color: var(--text-light); }
+        .auth-toggle { text-align: center; margin-top: 24px; padding-top: 24px; border-top: 2px solid var(--border); }
+        .auth-toggle a { color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: underline; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; }
+        .form-control { width: 100%; padding: 14px 18px; border: 2px solid var(--border); border-radius: 10px; font-size: 15px; font-family: inherit; background: var(--bg); }
+        .form-control:focus { outline: none; border-color: var(--primary); background: white; }
+        .btn { padding: 14px 28px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; }
+        .btn-accent { background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-secondary { background: var(--bg-alt); color: var(--text); border: 2px solid var(--border); }
+        .btn-sm { padding: 10px 18px; font-size: 13px; }
+        .btn-xs { padding: 6px 12px; font-size: 12px; }
+        .btn-block { width: 100%; }
+        .alert { padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; font-weight: 500; display: flex; align-items: center; gap: 12px; }
+        .alert-success { background: var(--success-light); color: #065f46; }
+        .alert-danger { background: var(--danger-light); color: #991b1b; }
+        .alert-warning { background: var(--warning-light); color: #92400e; }
+        .alert-info { background: #dbeafe; color: #1e40af; }
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 24px; }
+        .stat-card { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 24px; border-radius: 16px; text-align: center; }
+        .stat-card.accent { background: linear-gradient(135deg, var(--accent), var(--accent-dark)); }
+        .stat-card.success { background: linear-gradient(135deg, var(--success), #059669); }
+        .stat-card.danger { background: linear-gradient(135deg, var(--danger), #dc2626); }
+        .stat-card .stat-value { font-size: 36px; font-weight: 800; }
+        .stat-card .stat-label { font-size: 14px; opacity: 0.9; }
+        .request-card { background: var(--card); border: 2px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 16px; }
+        .request-card:hover { border-color: var(--primary); }
+        .request-card.urgent { border-color: var(--danger); background: var(--danger-light); }
+        .request-card.high { border-color: var(--warning); background: var(--warning-light); }
+        .request-user { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .request-avatar { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white; }
+        .request-info h4 { font-size: 16px; margin: 0; padding: 0; border: none; }
+        .request-info p { font-size: 13px; color: var(--text-light); margin: 0; }
+        .vehicle-card { background: var(--bg); border: 2px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+        .vehicle-card.inactive { opacity: 0.6; }
+        .vehicle-card .vehicle-header { display: flex; justify-content: space-between; margin-bottom: 12px; }
+        .vehicle-card .vehicle-icon { font-size: 32px; }
+        .vehicle-card .vehicle-status { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+        .vehicle-card .vehicle-status.active { background: var(--success-light); color: #065f46; }
+        .vehicle-card .vehicle-status.inactive { background: var(--bg-alt); color: var(--text-light); }
+        .vehicle-card h5 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+        .vehicle-card .vehicle-details { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px; color: var(--text-light); }
+        .add-vehicle-card { background: var(--bg); border: 2px dashed var(--border); border-radius: 12px; padding: 32px; text-align: center; cursor: pointer; }
+        .add-vehicle-card:hover { border-color: var(--primary); }
+        .traveler-card { background: var(--card); border: 2px solid var(--border); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+        .traveler-avatar { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; color: white; }
+        .gps-display-box { background: var(--bg); border: 2px solid var(--border); border-radius: 16px; padding: 20px; margin-top: 16px; }
+        .gps-display-box.has-location { border-color: var(--success); background: var(--success-light); }
+        .gps-format-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .gps-format-tab { padding: 8px 16px; border: 2px solid var(--border); border-radius: 8px; background: white; cursor: pointer; font-size: 13px; font-weight: 600; }
+        .gps-format-tab:hover { border-color: var(--primary); }
+        .gps-format-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .gps-value-row { display: flex; align-items: center; gap: 12px; padding: 12px; background: white; border-radius: 8px; margin-bottom: 8px; font-family: monospace; font-size: 14px; }
+        .gps-value-row .label { font-weight: 600; color: var(--text-light); min-width: 50px; font-family: 'Inter'; }
+        .gps-value-row .value { flex: 1; word-break: break-all; }
+        .gps-value-row .copy-btn { padding: 6px 12px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; }
+        .gps-value-row .copy-btn.copied { background: var(--success); }
+        .w3w-row { display: flex; align-items: center; gap: 12px; padding: 12px; background: white; border-radius: 8px; border: 2px solid var(--w3w); }
+        .w3w-row .w3w-logo { width: 24px; height: 24px; background: var(--w3w); color: white; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; }
+        .w3w-row .value { flex: 1; font-weight: 600; color: var(--w3w); font-size: 15px; }
+        .w3w-row .copy-btn { padding: 6px 12px; background: var(--w3w); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; }
+        .location-btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+        .location-btn { padding: 12px 20px; border: 2px solid var(--border); border-radius: 10px; background: white; cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .location-btn:hover { border-color: var(--primary); background: var(--bg); }
+        .location-btn.primary { background: var(--primary); color: white; border-color: var(--primary); }
+        .map-container { height: 400px; border-radius: 16px; overflow: hidden; border: 2px solid var(--border); margin-bottom: 24px; }
+        .map-container.small { height: 200px; }
+        .checkbox-group { display: flex; flex-wrap: wrap; gap: 16px; }
+        .checkbox-item { display: flex; align-items: center; gap: 10px; background: var(--bg); padding: 12px 16px; border-radius: 10px; border: 2px solid var(--border); cursor: pointer; }
+        .checkbox-item:hover { border-color: var(--primary); }
+        .checkbox-item input { width: 20px; height: 20px; accent-color: var(--primary); }
+        .checkbox-item label { cursor: pointer; font-size: 14px; font-weight: 500; }
+        .radio-group { display: flex; gap: 16px; flex-wrap: wrap; }
+        .radio-item { display: flex; align-items: center; gap: 10px; background: var(--bg); padding: 14px 20px; border-radius: 10px; border: 2px solid var(--border); cursor: pointer; }
+        .radio-item.selected { border-color: var(--primary); background: #eef2ff; }
+        .sos-container { text-align: center; padding: 48px; background: linear-gradient(180deg, #fef2f2, #fee2e2); border-radius: 20px; margin-bottom: 24px; }
+        .sos-button { width: 200px; height: 200px; border-radius: 50%; background: linear-gradient(145deg, #ef4444, #b91c1c); border: 6px solid #fca5a5; color: white; font-size: 32px; font-weight: 800; cursor: pointer; box-shadow: 0 0 0 8px rgba(239,68,68,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto; font-family: inherit; }
+        .sos-button.holding { transform: scale(0.95); }
+        .sos-button span { font-size: 13px; margin-top: 8px; opacity: 0.9; }
+        .sos-progress { width: 200px; height: 10px; background: rgba(255,255,255,0.5); border-radius: 5px; margin: 24px auto; overflow: hidden; }
+        .sos-progress-bar { height: 100%; background: linear-gradient(90deg, #fca5a5, #ef4444); width: 0%; transition: width 0.1s linear; }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.7); z-index: 1000; align-items: center; justify-content: center; padding: 24px; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; border-radius: 24px; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { padding: 24px 28px; border-bottom: 2px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h2 { font-size: 22px; font-weight: 700; color: var(--primary); }
+        .modal-close { background: var(--bg); border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 24px; cursor: pointer; }
+        .modal-body { padding: 28px; }
+        .modal-footer { padding: 20px 28px; border-top: 2px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; background: var(--bg); border-radius: 0 0 24px 24px; }
+        .rating-buttons { display: flex; gap: 16px; justify-content: center; margin: 28px 0; }
+        .rating-btn { padding: 24px 32px; border: 3px solid var(--border); border-radius: 16px; background: white; cursor: pointer; text-align: center; }
+        .rating-btn.selected { border-width: 3px; }
+        .rating-btn.positive.selected { border-color: var(--success); background: var(--success-light); }
+        .rating-btn.neutral.selected { border-color: var(--warning); background: var(--warning-light); }
+        .rating-btn.negative.selected { border-color: var(--danger); background: var(--danger-light); }
+        .rating-btn .emoji { font-size: 42px; display: block; margin-bottom: 10px; }
+        .rating-btn .label { font-size: 14px; font-weight: 700; }
+        .hidden { display: none !important; }
+        .loading { text-align: center; padding: 48px; color: var(--text-light); }
+        .back-link { display: inline-flex; align-items: center; gap: 8px; color: var(--text-light); text-decoration: none; font-size: 14px; font-weight: 600; margin-bottom: 20px; padding: 8px 16px; border-radius: 8px; }
+        .back-link:hover { color: var(--primary); background: var(--bg); }
+        @media (max-width: 768px) {
+            .header-content { flex-direction: column; height: auto; padding: 16px 0; gap: 12px; }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .map-container { height: 300px; }
+            .rating-buttons { flex-direction: column; }
+            .sos-button { width: 160px; height: 160px; font-size: 26px; }
+            .location-btn-group { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <a href="index.html" class="logo"><span class="logo-icon">🌍</span><div class="logo-text"><h1>Obonato</h1><span>I exist because you exist</span></div></a>
+            <div class="header-right">
+                <span id="connectionStatus" class="status-badge status-disconnected">Connecting...</span>
+                <span id="pendingBadge" class="pending-badge hidden">⚠️ 0</span>
+                <div id="userArea" class="hidden user-info">
+                    <div id="userAvatar" class="user-avatar">?</div>
+                    <span id="userDisplayName">User</span>
+                    <button class="btn-signout" onclick="handleSignOut()">Sign Out</button>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Home</a>
+        
+        <div class="tabs">
+            <button class="tab active" data-tab="auth" onclick="showTab('auth', this)">🔐 Welcome</button>
+            <button class="tab hidden" data-tab="dashboard" onclick="showTab('dashboard', this)">📊 Dashboard</button>
+            <button class="tab hidden" data-tab="profile" onclick="showTab('profile', this)">👤 Profile</button>
+            <button class="tab hidden" data-tab="availability" onclick="showTab('availability', this)">📍 Availability</button>
+            <button class="tab hidden" data-tab="helpers" onclick="showTab('helpers', this)">🗺️ Find Helpers</button>
+            <button class="tab hidden" data-tab="activity" onclick="showTab('activity', this)">📋 Activity</button>
+            <button class="tab hidden" data-tab="sos" onclick="showTab('sos', this)">🚨 SOS</button>
+        </div>
+        
+        <!-- Auth Tab -->
+        <div id="auth" class="tab-content active">
+            <div class="auth-container">
+                <div id="signInCard" class="auth-card signin">
+                    <div class="card-header"><div class="card-icon">👋</div><h3 class="card-title">Welcome Back!</h3><p class="card-subtitle">Sign in to your account</p></div>
+                    <div class="form-group"><label>Email</label><input type="email" class="form-control" id="signInEmail" placeholder="your@email.com"></div>
+                    <div class="form-group"><label>Password</label><input type="password" class="form-control" id="signInPassword"></div>
+                    <button class="btn btn-primary btn-block" onclick="handleSignIn()">Sign In →</button>
+                    <div id="signInResult" style="margin-top: 16px;"></div>
+                    <div class="auth-toggle">Don't have an account? <a onclick="showSignUp()">Create one</a></div>
+                </div>
+                <div id="signUpCard" class="auth-card signup hidden">
+                    <div class="card-header"><div class="card-icon">🚀</div><h3 class="card-title">Join Obonato</h3><p class="card-subtitle">Create your free account</p></div>
+                    <div class="form-group"><label>Email</label><input type="email" class="form-control" id="signUpEmail" placeholder="your@email.com"></div>
+                    <div class="form-group"><label>Password</label><input type="password" class="form-control" id="signUpPassword" placeholder="Min 6 characters"></div>
+                    <div class="alert alert-info">🎭 Your anonymous name will be auto-generated for privacy.</div>
+                    <button class="btn btn-accent btn-block" onclick="handleSignUp()">Create Account →</button>
+                    <div id="signUpResult" style="margin-top: 16px;"></div>
+                    <div class="auth-toggle">Have an account? <a onclick="showSignIn()">Sign in</a></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content">
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-value" id="statNearbyRequests">0</div><div class="stat-label">Nearby Requests</div></div>
+                <div class="stat-card accent"><div class="stat-value" id="statNearbyTravelers">0</div><div class="stat-label">Travelers Nearby</div></div>
+                <div class="stat-card success"><div class="stat-value" id="statHelpGiven">0</div><div class="stat-label">Help Given</div></div>
+                <div class="stat-card danger" onclick="showTab('activity', document.querySelector('[data-tab=activity]'))"><div class="stat-value" id="statPendingFeedback">0</div><div class="stat-label">Pending Feedback</div></div>
+            </div>
+            <div class="grid-2">
+                <div class="card"><h3>🆘 Help Requests Near You</h3><div id="nearbyRequests"><p class="loading">Loading...</p></div></div>
+                <div>
+                    <div class="card"><h3>🗺️ Your Area</h3><div class="map-container small"><div id="dashboardMap"></div></div></div>
+                    <div class="card"><h3>👥 Travelers Nearby</h3><div id="nearbyTravelers"><p class="loading">Loading...</p></div></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Profile Tab -->
+        <div id="profile" class="tab-content">
+            <div class="card">
+                <h3>👤 Your Profile</h3>
+                <div style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 24px; border-radius: 16px; margin-bottom: 24px; display: flex; align-items: center; gap: 20px;">
+                    <div id="profileAvatar" class="user-avatar" style="width: 80px; height: 80px; font-size: 36px;">?</div>
+                    <div><div style="font-size: 12px; opacity: 0.8;">Your Anonymous Identity</div><div id="profileDisplayName" style="font-size: 24px; font-weight: 800;">Loading...</div></div>
+                </div>
+                
+                <h4>📋 Personal Information</h4>
+                <div class="grid-3">
+                    <div class="form-group"><label>First Name</label><input type="text" class="form-control" id="profileFirstName"></div>
+                    <div class="form-group"><label>Surname</label><input type="text" class="form-control" id="profileSurname"></div>
+                    <div class="form-group"><label>Mobile</label><input type="tel" class="form-control" id="profileMobile"></div>
+                </div>
+                
+                <h4>🏠 Home Address</h4>
+                <div class="grid-2">
+                    <div class="form-group"><label>Suburb</label><input type="text" class="form-control" id="profileSuburb"></div>
+                    <div class="form-group"><label>City</label><input type="text" class="form-control" id="profileCity"></div>
+                </div>
+                <div class="grid-3">
+                    <div class="form-group"><label>Country</label><input type="text" class="form-control" id="profileCountry"></div>
+                    <div class="form-group"><label>Post Code</label><input type="text" class="form-control" id="profilePostCode"></div>
+                </div>
+                
+                <h4>📍 Home Location (GPS)</h4>
+                <div class="grid-2">
+                    <div>
+                        <div class="location-btn-group">
+                            <button class="location-btn primary" onclick="captureHomeGPS()">📍 Device GPS</button>
+                            <button class="location-btn" onclick="toggleManualEntry('home')">✏️ Manual</button>
+                        </div>
+                        <div id="homeManualEntry" class="hidden" style="margin-bottom: 16px;">
+                            <div class="grid-2"><input type="text" class="form-control" id="profileHomeLat" placeholder="Latitude" onchange="updateGPSDisplay('home')"><input type="text" class="form-control" id="profileHomeLng" placeholder="Longitude" onchange="updateGPSDisplay('home')"></div>
+                        </div>
+                        <div id="homeGPSDisplay" class="gps-display-box hidden">
+                            <div class="gps-format-tabs">
+                                <button class="gps-format-tab active" onclick="setGPSFormat('home','dd')">DD</button>
+                                <button class="gps-format-tab" onclick="setGPSFormat('home','dms')">DMS</button>
+                                <button class="gps-format-tab" onclick="setGPSFormat('home','ddm')">DDM</button>
+                            </div>
+                            <div id="homeGPSValues"></div>
+                            <div id="homeW3W" class="w3w-row hidden" style="margin-top: 8px;"><div class="w3w-logo">///</div><span class="value" id="homeW3WValue">loading...</span><button class="copy-btn" onclick="copyValue('homeW3WValue',this)">Copy</button></div>
+                        </div>
+                    </div>
+                    <div class="map-container small"><div id="homeMap"></div></div>
+                </div>
+                
+                <h4>🚗 Traveler Type</h4>
+                <div class="checkbox-group">
+                    <div class="checkbox-item"><input type="checkbox" id="typeMoto"><label for="typeMoto">🏍️ Motorcyclist</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="typeCyclist"><label for="typeCyclist">🚴 Cyclist</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="type4wd"><label for="type4wd">🚙 4WD</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="typeYacht"><label for="typeYacht">⛵ Sailor</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="typeHiker"><label for="typeHiker">🥾 Hiker</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="typeTrucker"><label for="typeTrucker">🚛 Trucker</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="typeRV"><label for="typeRV">🚐 RV</label></div>
+                </div>
+                
+                <h4>🚙 My Vehicles</h4>
+                <div id="vehiclesList"></div>
+                <div class="add-vehicle-card" onclick="openVehicleModal()"><span style="font-size: 32px;">➕</span><p style="color: var(--text-light); margin-top: 8px;">Add Vehicle</p></div>
+                
+                <h4>🚨 Emergency Contact</h4>
+                <div class="grid-3">
+                    <div class="form-group"><label>Name</label><input type="text" class="form-control" id="emergencyName"></div>
+                    <div class="form-group"><label>Phone</label><input type="tel" class="form-control" id="emergencyPhone"></div>
+                    <div class="form-group"><label>Email</label><input type="email" class="form-control" id="emergencyEmail"></div>
+                </div>
+                
+                <h4>⚙️ Preferences</h4>
+                <div class="grid-2">
+                    <div class="form-group"><label>Distance</label><div class="radio-group"><div class="radio-item selected" onclick="selectRadio('unitDistance','km')"><input type="radio" name="unitDistance" value="km" checked><label>km</label></div><div class="radio-item" onclick="selectRadio('unitDistance','miles')"><input type="radio" name="unitDistance" value="miles"><label>miles</label></div></div></div>
+                    <div class="form-group"><label>Temperature</label><div class="radio-group"><div class="radio-item selected" onclick="selectRadio('unitTemp','celsius')"><input type="radio" name="unitTemp" value="celsius" checked><label>°C</label></div><div class="radio-item" onclick="selectRadio('unitTemp','fahrenheit')"><input type="radio" name="unitTemp" value="fahrenheit"><label>°F</label></div></div></div>
+                </div>
+                
+                <button class="btn btn-primary" onclick="handleSaveProfile()" style="margin-top: 24px;">💾 Save Profile</button>
+                <div id="profileResult" style="margin-top: 16px;"></div>
+            </div>
+        </div>
+        
+        <!-- Availability Tab -->
+        <div id="availability" class="tab-content">
+            <div class="card">
+                <h3>📍 Your Availability</h3>
+                <div class="checkbox-item" style="background: var(--success-light); border-color: var(--success); margin-bottom: 24px;"><input type="checkbox" id="availActive" checked><label for="availActive" style="font-weight: 700; color: #065f46;">I am available to help others</label></div>
+                
+                <h4>📍 Current Location</h4>
+                <div class="grid-2">
+                    <div>
+                        <div class="location-btn-group">
+                            <button class="location-btn primary" onclick="getLocation('avail','gps')">📍 Device GPS</button>
+                            <button class="location-btn" onclick="getLocation('avail','home')">🏠 Use Home</button>
+                            <button class="location-btn" onclick="toggleManualEntry('avail')">✏️ Manual</button>
+                        </div>
+                        <div id="availManualEntry" class="hidden" style="margin-bottom: 16px;">
+                            <div class="grid-2"><input type="text" class="form-control" id="availLat" placeholder="Latitude" onchange="updateGPSDisplay('avail')"><input type="text" class="form-control" id="availLng" placeholder="Longitude" onchange="updateGPSDisplay('avail')"></div>
+                        </div>
+                        <div class="form-group"><label>Location Name</label><input type="text" class="form-control" id="availLocation" placeholder="Auckland CBD"></div>
+                        <div id="availGPSDisplay" class="gps-display-box hidden">
+                            <div class="gps-format-tabs">
+                                <button class="gps-format-tab active" onclick="setGPSFormat('avail','dd')">DD</button>
+                                <button class="gps-format-tab" onclick="setGPSFormat('avail','dms')">DMS</button>
+                                <button class="gps-format-tab" onclick="setGPSFormat('avail','ddm')">DDM</button>
+                            </div>
+                            <div id="availGPSValues"></div>
+                            <div id="availW3W" class="w3w-row hidden" style="margin-top: 8px;"><div class="w3w-logo">///</div><span class="value" id="availW3WValue">loading...</span><button class="copy-btn" onclick="copyValue('availW3WValue',this)">Copy</button></div>
+                        </div>
+                    </div>
+                    <div class="map-container small"><div id="availMap"></div></div>
+                </div>
+                
+                <h4>🤝 Services You Offer</h4>
+                <div class="checkbox-group">
+                    <div class="checkbox-item"><input type="checkbox" id="canPickup"><label for="canPickup">🚗 Pickup/Trailer</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="canGarage"><label for="canGarage">🔧 Workshop</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="canStay"><label for="canStay">🏠 Accommodation</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="canMeet"><label for="canMeet">🍺 Meetup</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="canAdvice"><label for="canAdvice">💡 Advice</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="canHelp"><label for="canHelp">🆘 Help</label></div>
+                </div>
+                
+                <div class="form-group" style="margin-top: 24px; max-width: 200px;"><label>Max Radius (km)</label><input type="number" class="form-control" id="availRadius" value="50"></div>
+                <button class="btn btn-primary" onclick="handleSaveAvailability()">💾 Save</button>
+                <div id="availResult" style="margin-top: 16px;"></div>
+            </div>
+        </div>
+        
+        <!-- Find Helpers Tab -->
+        <div id="helpers" class="tab-content">
+            <div class="card">
+                <h3>🗺️ Find Nearby Helpers</h3>
+                <div class="grid-2" style="margin-bottom: 24px;">
+                    <div>
+                        <div class="location-btn-group">
+                            <button class="location-btn primary" onclick="getLocation('search','gps')">📍 Current GPS</button>
+                            <button class="location-btn" onclick="getLocation('search','home')">🏠 Use Home</button>
+                        </div>
+                        <div class="grid-2"><input type="text" class="form-control" id="searchLat" placeholder="Latitude"><input type="text" class="form-control" id="searchLng" placeholder="Longitude"></div>
+                    </div>
+                    <div class="form-group"><label>Radius (km)</label><input type="number" class="form-control" id="searchRadius" value="50"></div>
+                </div>
+                <div class="checkbox-group" style="margin-bottom: 24px;">
+                    <div class="checkbox-item"><input type="checkbox" id="needPickup"><label>🚗 Pickup</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="needGarage"><label>🔧 Garage</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="needStay"><label>🏠 Stay</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="needMeet"><label>🍺 Meetup</label></div>
+                </div>
+                <button class="btn btn-primary" onclick="handleSearchHelpers()">🔍 Search</button>
+            </div>
+            <div class="map-container"><div id="helpersMap"></div></div>
+            <div id="helperResults" style="margin-top: 24px;"><p class="loading">Enter location to find helpers...</p></div>
+        </div>
+        
+        <!-- Activity Tab -->
+        <div id="activity" class="tab-content">
+            <div class="card">
+                <h3>📋 Your Activity</h3>
+                <div id="pendingFeedbackAlert" class="alert alert-warning hidden">⚠️ Feedback Required</div>
+                <h4>⏳ Pending Feedback</h4><div id="pendingInteractions"><p class="loading">Loading...</p></div>
+                <h4>📜 Recent Activity</h4><div id="recentActivity"><p class="loading">Loading...</p></div>
+            </div>
+        </div>
+        
+        <!-- SOS Tab -->
+        <div id="sos" class="tab-content">
+            <div class="alert alert-warning">⚠️ <strong>Emergency:</strong> Call 111 (NZ) / 000 (AU) / 911 (US) first!</div>
+            <div class="sos-container">
+                <button class="sos-button" id="sosButton" onmousedown="startSOS()" onmouseup="cancelSOS()" onmouseleave="cancelSOS()" ontouchstart="startSOS()" ontouchend="cancelSOS()">🚨 SOS<span>Hold 3 seconds</span></button>
+                <div class="sos-progress"><div class="sos-progress-bar" id="sosProgress"></div></div>
+                <p id="sosStatus" style="font-size: 16px; font-weight: 600;"></p>
+            </div>
+            <div class="card">
+                <h3>📝 Help Request</h3>
+                <div class="form-group"><label>Vehicle</label><select class="form-control" id="sosVehicle"><option value="">-- Not vehicle related --</option></select></div>
+                <div class="grid-2">
+                    <div class="form-group"><label>Type</label><select class="form-control" id="sosType"><option value="breakdown">🔧 Breakdown</option><option value="accident">💥 Accident</option><option value="medical">🏥 Medical</option><option value="stuck">🚙 Stuck</option><option value="fuel">⛽ Fuel</option><option value="unsafe">⚠️ Unsafe</option><option value="other">❓ Other</option></select></div>
+                    <div class="form-group"><label>Severity</label><select class="form-control" id="sosSeverity"><option value="low">🟢 Low</option><option value="medium">🟡 Medium</option><option value="high">🟠 High</option><option value="critical">🔴 Critical</option></select></div>
+                </div>
+                <div class="form-group"><label>Description</label><textarea class="form-control" id="sosDescription" rows="3"></textarea></div>
+                
+                <h4>📍 Your Location</h4>
+                <div class="location-btn-group">
+                    <button class="location-btn primary" onclick="getLocation('sos','gps')">📍 Current GPS</button>
+                    <button class="location-btn" onclick="getLocation('sos','home')">🏠 Use Home</button>
+                </div>
+                <div class="grid-2" style="margin-bottom: 16px;"><input type="text" class="form-control" id="sosLat" placeholder="Lat" onchange="updateGPSDisplay('sos')"><input type="text" class="form-control" id="sosLng" placeholder="Lng" onchange="updateGPSDisplay('sos')"></div>
+                <div id="sosGPSDisplay" class="gps-display-box hidden">
+                    <div class="gps-format-tabs">
+                        <button class="gps-format-tab active" onclick="setGPSFormat('sos','dd')">DD</button>
+                        <button class="gps-format-tab" onclick="setGPSFormat('sos','dms')">DMS</button>
+                        <button class="gps-format-tab" onclick="setGPSFormat('sos','ddm')">DDM</button>
+                    </div>
+                    <div id="sosGPSValues"></div>
+                    <div id="sosW3W" class="w3w-row hidden" style="margin-top: 8px;"><div class="w3w-logo">///</div><span class="value" id="sosW3WValue">loading...</span><button class="copy-btn" onclick="copyValue('sosW3WValue',this)">Copy</button></div>
+                </div>
+                <button class="btn btn-danger" onclick="handleCreateSOS()" style="margin-top: 16px;">🚨 Send Request</button>
+                <div id="sosResult" style="margin-top: 16px;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Vehicle Modal -->
+    <div class="modal-overlay" id="vehicleModal">
+        <div class="modal">
+            <div class="modal-header"><h2 id="vehicleModalTitle">Add Vehicle</h2><button class="modal-close" onclick="closeVehicleModal()">×</button></div>
+            <div class="modal-body">
+                <input type="hidden" id="vehicleEditId">
+                <div class="form-group"><label>Type</label><select class="form-control" id="vehicleType"><option value="motorcycle">🏍️ Motorcycle</option><option value="car">🚗 Car</option><option value="4wd">🚙 4WD</option><option value="truck">🚛 Truck</option><option value="rv">🚐 RV</option><option value="bicycle">🚴 Bicycle</option><option value="boat">⛵ Boat</option></select></div>
+                <div class="grid-2"><div class="form-group"><label>Make</label><input type="text" class="form-control" id="vehicleMake"></div><div class="form-group"><label>Model</label><input type="text" class="form-control" id="vehicleModel"></div></div>
+                <div class="grid-2"><div class="form-group"><label>Year</label><input type="number" class="form-control" id="vehicleYear"></div><div class="form-group"><label>Fuel</label><select class="form-control" id="vehicleFuel"><option value="">--</option><option value="91">91</option><option value="95">95</option><option value="98">98</option><option value="diesel">Diesel</option><option value="lpg">LPG</option><option value="electric">Electric</option></select></div></div>
+                <div class="grid-2"><div class="form-group"><label>Colour</label><input type="text" class="form-control" id="vehicleColour"></div><div class="form-group"><label>Rego</label><input type="text" class="form-control" id="vehicleRego"></div></div>
+                <div class="form-group"><label>Notes</label><textarea class="form-control" id="vehicleNotes" rows="2"></textarea></div>
+                <div class="checkbox-item"><input type="checkbox" id="vehicleActive" checked><label for="vehicleActive">Active</label></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" onclick="closeVehicleModal()">Cancel</button><button class="btn btn-danger hidden" id="vehicleDeleteBtn" onclick="deleteVehicle()">🗑️</button><button class="btn btn-primary" onclick="saveVehicle()">💾 Save</button></div>
+        </div>
+    </div>
+    
+    <!-- Feedback Modal -->
+    <div class="modal-overlay" id="feedbackModal">
+        <div class="modal">
+            <div class="modal-header"><h2>⭐ Rate Interaction</h2><button class="modal-close" onclick="closeFeedbackModal()">×</button></div>
+            <div class="modal-body">
+                <p style="text-align: center; margin-bottom: 24px;">Experience with <strong id="feedbackUserName">user</strong>?</p>
+                <div class="rating-buttons">
+                    <button class="rating-btn positive" onclick="selectRatingBtn('positive')"><span class="emoji">😊</span><span class="label">Positive</span></button>
+                    <button class="rating-btn neutral" onclick="selectRatingBtn('neutral')"><span class="emoji">😐</span><span class="label">Neutral</span></button>
+                    <button class="rating-btn negative" onclick="selectRatingBtn('negative')"><span class="emoji">😞</span><span class="label">Negative</span></button>
+                </div>
+                <div class="form-group"><label>Comments</label><textarea class="form-control" id="feedbackComment" rows="3"></textarea></div>
+                <div class="checkbox-item"><input type="checkbox" id="feedbackWouldAgain" checked><label for="feedbackWouldAgain">Would interact again</label></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" onclick="closeFeedbackModal()">Cancel</button><button class="btn btn-primary" onclick="submitFeedback()">Submit</button></div>
+        </div>
+    </div>
+    
+    <!-- Contact Modal -->
+    <div class="modal-overlay" id="contactModal">
+        <div class="modal">
+            <div class="modal-header"><h2>📨 Contact Helper</h2><button class="modal-close" onclick="closeContactModal()">×</button></div>
+            <div class="modal-body">
+                <div id="contactHelperInfo"></div>
+                <div class="form-group"><label>Type</label><select class="form-control" id="contactType"><option value="breakdown">🔧 Breakdown</option><option value="accommodation">🏠 Stay</option><option value="meetup">🍺 Meetup</option><option value="advice">💡 Advice</option></select></div>
+                <div class="form-group"><label>Message</label><textarea class="form-control" id="contactMessage" rows="4"></textarea></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" onclick="closeContactModal()">Cancel</button><button class="btn btn-primary" onclick="sendContactRequest()">Send</button></div>
+        </div>
+    </div>
+    
+    <!-- Respond Modal -->
+    <div class="modal-overlay" id="respondModal">
+        <div class="modal">
+            <div class="modal-header"><h2>🤝 Respond</h2><button class="modal-close" onclick="closeRespondModal()">×</button></div>
+            <div class="modal-body">
+                <div id="respondRequestInfo"></div>
+                <div class="form-group"><label>Response</label><textarea class="form-control" id="respondMessage" rows="4"></textarea></div>
+                <div class="form-group"><label>ETA</label><input type="text" class="form-control" id="respondETA" placeholder="30 minutes"></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" onclick="closeRespondModal()">Cancel</button><button class="btn btn-success" onclick="sendResponse()">✅ I'll Help!</button></div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://mozbpccxzfcoswvxjuym.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vemJwY2N4emZjb3N3dnhqdXltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwODY4NTQsImV4cCI6MjA4NDY2Mjg1NH0.lfOM5ojN2B1MV6wMsntGWmI7OWL7fhUJV5E8b6I48N0';
+        const W3W_API_KEY = 'X6FXORRH';
+        
+        let db=null,currentUser=null,userProfile=null,helpersMap=null,homeMap=null,availMap=null,dashboardMap=null;
+        let markers=[],currentHelpers=[],selectedHelper=null,currentInteractionId=null,selectedRating=null;
+        let homeMarker=null,availMarker=null,userVehicles=[],sosTimer=null,sosStartTime=null,currentRespondRequest=null;
+        let gpsFormats={home:'dd',avail:'dd',sos:'dd'},gpsCoords={home:null,avail:null,sos:null};
+        
+        const ADJECTIVES=['Swift','Brave','Clever','Dusty','Epic','Fierce','Golden','Happy','Iron','Jolly','Keen','Lucky','Mighty','Noble','Ocean','Proud','Quick','Rusty','Shadow','Thunder','Urban','Velvet','Wild','Alpine','Blazing','Coastal','Desert','Eastern','Forest','Glacier','Harbor','Island','Jungle','Lunar','Misty','Nordic','Outback','Prairie','River','Solar','Tropic','Valley','Western','Azure','Crimson','Emerald'];
+        const NOUNS=['Rider','Nomad','Voyager','Wanderer','Explorer','Traveler','Pioneer','Ranger','Scout','Drifter','Adventurer','Roamer','Trekker','Cruiser','Rambler','Wayfarer','Pilgrim','Pathfinder','Navigator','Hawk','Wolf','Bear','Eagle','Fox','Lion','Tiger','Falcon','Raven','Phoenix','Dragon','Panther','Cobra','Viper','Shark','Stallion','Mustang','Thunder','Storm','Blaze','Frost','Shadow','Phantom','Ghost','Knight','Warrior','Hunter','Seeker','Guardian'];
+        const AVATAR_COLORS=['#ef4444','#f97316','#f59e0b','#84cc16','#22c55e','#14b8a6','#06b6d4','#0ea5e9','#3b82f6','#6366f1','#8b5cf6','#a855f7','#d946ef','#ec4899','#f43f5e'];
+        const AVATAR_ICONS=['🦊','🐺','🦁','🐯','🦅','🦉','🐍','🦈','🐻','🐼','🦌','🦏','🐘','🦒','🐆','🦇','🐲','🦋','🦩','🐧','🐢','🦀','🐙','🦑','🐬','🐳','🦭','🐎','🦄','🐗'];
+        
+        // GPS Format Functions
+        function convertToDD(lat,lng){return{lat:lat.toFixed(6),lng:lng.toFixed(6)}}
+        function convertToDMS(lat,lng){
+            function toDMS(c,isLat){const a=Math.abs(c),d=Math.floor(a),mf=(a-d)*60,m=Math.floor(mf),s=((mf-m)*60).toFixed(1),dir=isLat?(c>=0?'N':'S'):(c>=0?'E':'W');return`${d}°${m}'${s}"${dir}`}
+            return{lat:toDMS(lat,true),lng:toDMS(lng,false)}
+        }
+        function convertToDDM(lat,lng){
+            function toDDM(c,isLat){const a=Math.abs(c),d=Math.floor(a),m=((a-d)*60).toFixed(3),dir=isLat?(c>=0?'N':'S'):(c>=0?'E':'W');return`${d}°${m}'${dir}`}
+            return{lat:toDDM(lat,true),lng:toDDM(lng,false)}
+        }
+        function formatGPS(lat,lng,fmt){return fmt==='dms'?convertToDMS(lat,lng):fmt==='ddm'?convertToDDM(lat,lng):convertToDD(lat,lng)}
+        
+        function renderGPSDisplay(target,lat,lng){
+            gpsCoords[target]={lat,lng};const fmt=gpsFormats[target],f=formatGPS(lat,lng,fmt);
+            document.getElementById(`${target}GPSValues`).innerHTML=`<div class="gps-value-row"><span class="label">Lat:</span><span class="value" id="${target}LatV">${f.lat}</span><button class="copy-btn" onclick="copyValue('${target}LatV',this)">Copy</button></div><div class="gps-value-row"><span class="label">Lng:</span><span class="value" id="${target}LngV">${f.lng}</span><button class="copy-btn" onclick="copyValue('${target}LngV',this)">Copy</button></div>`;
+            document.getElementById(`${target}GPSDisplay`).classList.remove('hidden');
+            document.getElementById(`${target}GPSDisplay`).classList.add('has-location');
+            fetchW3W(lat,lng,target);
+        }
+        
+        function setGPSFormat(target,fmt){
+            gpsFormats[target]=fmt;
+            document.querySelectorAll(`#${target}GPSDisplay .gps-format-tab`).forEach(t=>{t.classList.remove('active');if(t.textContent.toLowerCase()===fmt)t.classList.add('active')});
+            if(gpsCoords[target])renderGPSDisplay(target,gpsCoords[target].lat,gpsCoords[target].lng);
+        }
+        
+        // Real What3Words API Integration
+        async function fetchW3W(lat,lng,target){
+            const w3wDiv = document.getElementById(`${target}W3W`);
+            const w3wValue = document.getElementById(`${target}W3WValue`);
+            w3wValue.textContent = 'loading...';
+            w3wDiv.classList.remove('hidden');
+            
+            try {
+                const response = await fetch(`https://api.what3words.com/v3/convert-to-3wa?coordinates=${lat},${lng}&key=${W3W_API_KEY}`);
+                const data = await response.json();
+                if (data.words) {
+                    w3wValue.textContent = `///${data.words}`;
+                } else if (data.error) {
+                    w3wValue.textContent = 'Error: ' + (data.error.message || 'API error');
+                }
+            } catch (e) {
+                console.log('W3W error:', e);
+                w3wValue.textContent = 'Unable to load';
+            }
+        }
+        
+        function copyValue(id,btn){navigator.clipboard.writeText(document.getElementById(id).textContent).then(()=>{btn.textContent='✓';btn.classList.add('copied');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('copied')},2000)})}
+        function updateGPSDisplay(target){const lat=parseFloat(document.getElementById(target==='home'?'profileHomeLat':`${target}Lat`).value),lng=parseFloat(document.getElementById(target==='home'?'profileHomeLng':`${target}Lng`).value);if(!isNaN(lat)&&!isNaN(lng))renderGPSDisplay(target,lat,lng)}
+        
+        // Initialization
+        window.onload=function(){initDatabase();checkURLParams();setTimeout(initMaps,100)};
+        function checkURLParams(){if(new URLSearchParams(window.location.search).get('mode')==='signup')showSignUp();else showSignIn()}
+        function initDatabase(){try{db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);updateConnectionStatus(true);checkAuth()}catch(e){updateConnectionStatus(false)}}
+        function initMaps(){const v=[-36.8485,174.7633];helpersMap=L.map('helpersMap').setView(v,10);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(helpersMap);homeMap=L.map('homeMap').setView(v,10);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(homeMap);availMap=L.map('availMap').setView(v,10);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(availMap);dashboardMap=L.map('dashboardMap').setView(v,10);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(dashboardMap)}
+        function updateConnectionStatus(c){const b=document.getElementById('connectionStatus');b.textContent=c?'Connected':'Disconnected';b.className='status-badge '+(c?'status-connected':'status-disconnected')}
+        
+        // Anonymous Name
+        function generateAnonymousName(e){let h=0;for(let i=0;i<e.length;i++){h=((h<<5)-h)+e.charCodeAt(i);h=h&h}h=Math.abs(h);return`${ADJECTIVES[h%ADJECTIVES.length]}${NOUNS[(h>>8)%NOUNS.length]}${(h%999)+1}`}
+        function generateAvatarData(e){let h=0;for(let i=0;i<e.length;i++){h=((h<<5)-h)+e.charCodeAt(i);h=h&h}h=Math.abs(h);return{color:AVATAR_COLORS[h%AVATAR_COLORS.length],icon:AVATAR_ICONS[(h>>4)%AVATAR_ICONS.length]}}
+        function renderAvatar(e,el){const d=generateAvatarData(e);el.style.background=d.color;el.textContent=d.icon}
+        
+        // Auth
+        function showSignIn(){document.getElementById('signInCard').classList.remove('hidden');document.getElementById('signUpCard').classList.add('hidden')}
+        function showSignUp(){document.getElementById('signInCard').classList.add('hidden');document.getElementById('signUpCard').classList.remove('hidden')}
+        function showTab(tabId,btn){document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById(tabId).classList.add('active');btn.classList.add('active');setTimeout(()=>{if(tabId==='helpers'&&helpersMap)helpersMap.invalidateSize();if(tabId==='profile'&&homeMap)homeMap.invalidateSize();if(tabId==='availability'&&availMap)availMap.invalidateSize();if(tabId==='dashboard'&&dashboardMap)dashboardMap.invalidateSize()},100);if(tabId==='activity')loadActivity();if(tabId==='dashboard')loadDashboard()}
+        function showLoggedInTabs(){document.querySelectorAll('.tab[data-tab]').forEach(t=>{if(t.dataset.tab!=='auth')t.classList.remove('hidden')});document.querySelector('.tab[data-tab="auth"]').classList.add('hidden')}
+        async function checkAuth(){if(!db)return;const{data}=await db.auth.getUser();if(data&&data.user){currentUser=data.user;await onUserLoggedIn()}}
+        async function onUserLoggedIn(){const dn=generateAnonymousName(currentUser.email);document.getElementById('userArea').classList.remove('hidden');document.getElementById('userDisplayName').textContent=dn;renderAvatar(currentUser.email,document.getElementById('userAvatar'));document.getElementById('profileDisplayName').textContent=dn;renderAvatar(currentUser.email,document.getElementById('profileAvatar'));showLoggedInTabs();showTab('dashboard',document.querySelector('[data-tab="dashboard"]'));await loadProfile();await loadAvailability();await loadVehicles();await checkPendingFeedback();await loadDashboard()}
+        async function handleSignIn(){const e=document.getElementById('signInEmail').value,p=document.getElementById('signInPassword').value,r=document.getElementById('signInResult');if(!e||!p){r.innerHTML='<div class="alert alert-danger">Enter credentials</div>';return}r.innerHTML='<div class="alert alert-info">Signing in...</div>';const{data,error}=await db.auth.signInWithPassword({email:e,password:p});if(error)r.innerHTML='<div class="alert alert-danger">❌ '+error.message+'</div>';else{currentUser=data.user;r.innerHTML='<div class="alert alert-success">✅ Welcome!</div>';await onUserLoggedIn()}}
+        async function handleSignUp(){const e=document.getElementById('signUpEmail').value,p=document.getElementById('signUpPassword').value,r=document.getElementById('signUpResult');if(!e||!p){r.innerHTML='<div class="alert alert-danger">Enter credentials</div>';return}const dn=generateAnonymousName(e);r.innerHTML='<div class="alert alert-info">Creating...</div>';const{error}=await db.auth.signUp({email:e,password:p,options:{data:{display_name:dn}}});r.innerHTML=error?'<div class="alert alert-danger">❌ '+error.message+'</div>':`<div class="alert alert-success">✅ Created! Name: <strong>${dn}</strong>. Check email.</div>`}
+        async function handleSignOut(){await db.auth.signOut();currentUser=null;userProfile=null;document.getElementById('userArea').classList.add('hidden');document.querySelectorAll('.tab[data-tab]').forEach(t=>{if(t.dataset.tab!=='auth')t.classList.add('hidden')});document.querySelector('.tab[data-tab="auth"]').classList.remove('hidden');showTab('auth',document.querySelector('[data-tab="auth"]'));showSignIn()}
+        
+        // Location
+        function toggleManualEntry(t){document.getElementById(`${t}ManualEntry`).classList.toggle('hidden')}
+        function captureHomeGPS(){if(navigator.geolocation)navigator.geolocation.getCurrentPosition(p=>{const lat=p.coords.latitude,lng=p.coords.longitude;document.getElementById('profileHomeLat').value=lat.toFixed(6);document.getElementById('profileHomeLng').value=lng.toFixed(6);document.getElementById('homeManualEntry').classList.remove('hidden');renderGPSDisplay('home',lat,lng);homeMap.setView([lat,lng],14);if(homeMarker)homeMap.removeLayer(homeMarker);homeMarker=L.marker([lat,lng]).addTo(homeMap)},e=>alert('Error: '+e.message),{enableHighAccuracy:true})}
+        function getLocation(target,source){
+            if(source==='home'&&userProfile&&userProfile.home_latitude){
+                const lat=userProfile.home_latitude,lng=userProfile.home_longitude;
+                if(target==='avail'){document.getElementById('availLat').value=lat;document.getElementById('availLng').value=lng;document.getElementById('availLocation').value=`${userProfile.suburb||''}, ${userProfile.city||''}`.replace(/^,|,$/g,'').trim();renderGPSDisplay('avail',lat,lng);availMap.setView([lat,lng],12);if(availMarker)availMap.removeLayer(availMarker);availMarker=L.marker([lat,lng]).addTo(availMap)}
+                else if(target==='search'){document.getElementById('searchLat').value=lat;document.getElementById('searchLng').value=lng;helpersMap.setView([lat,lng],11)}
+                else if(target==='sos'){document.getElementById('sosLat').value=lat;document.getElementById('sosLng').value=lng;renderGPSDisplay('sos',lat,lng)}
+            }else if(source==='gps'&&navigator.geolocation){
+                navigator.geolocation.getCurrentPosition(p=>{const lat=p.coords.latitude.toFixed(6),lng=p.coords.longitude.toFixed(6);
+                    if(target==='avail'){document.getElementById('availLat').value=lat;document.getElementById('availLng').value=lng;renderGPSDisplay('avail',parseFloat(lat),parseFloat(lng));availMap.setView([lat,lng],12);if(availMarker)availMap.removeLayer(availMarker);availMarker=L.marker([lat,lng]).addTo(availMap)}
+                    else if(target==='search'){document.getElementById('searchLat').value=lat;document.getElementById('searchLng').value=lng;helpersMap.setView([lat,lng],11)}
+                    else if(target==='sos'){document.getElementById('sosLat').value=lat;document.getElementById('sosLng').value=lng;renderGPSDisplay('sos',parseFloat(lat),parseFloat(lng))}
+                },e=>alert('Error: '+e.message),{enableHighAccuracy:true})
+            }
+        }
+        
+        // Profile
+        async function loadProfile(){if(!currentUser)return;const{data}=await db.from('profiles').select('*').eq('id',currentUser.id).single();if(data){userProfile=data;document.getElementById('profileFirstName').value=data.first_name||'';document.getElementById('profileSurname').value=data.last_name||'';document.getElementById('profileMobile').value=data.phone||'';document.getElementById('profileCountry').value=data.country||'';document.getElementById('profileSuburb').value=data.suburb||'';document.getElementById('profileCity').value=data.city||'';document.getElementById('profilePostCode').value=data.post_code||'';document.getElementById('emergencyName').value=data.emergency_contact_name||'';document.getElementById('emergencyPhone').value=data.emergency_contact_phone||'';document.getElementById('emergencyEmail').value=data.emergency_contact_email||'';if(data.home_latitude&&data.home_longitude){document.getElementById('profileHomeLat').value=data.home_latitude;document.getElementById('profileHomeLng').value=data.home_longitude;document.getElementById('homeManualEntry').classList.remove('hidden');renderGPSDisplay('home',data.home_latitude,data.home_longitude);homeMap.setView([data.home_latitude,data.home_longitude],14);if(homeMarker)homeMap.removeLayer(homeMarker);homeMarker=L.marker([data.home_latitude,data.home_longitude]).addTo(homeMap)}if(data.unit_distance)selectRadio('unitDistance',data.unit_distance);if(data.unit_temperature)selectRadio('unitTemp',data.unit_temperature)}}
+        async function handleSaveProfile(){if(!currentUser)return;const r=document.getElementById('profileResult');r.innerHTML='<div class="alert alert-info">Saving...</div>';const lat=parseFloat(document.getElementById('profileHomeLat').value),lng=parseFloat(document.getElementById('profileHomeLng').value);const d={id:currentUser.id,display_name:generateAnonymousName(currentUser.email),first_name:document.getElementById('profileFirstName').value,last_name:document.getElementById('profileSurname').value,phone:document.getElementById('profileMobile').value,country:document.getElementById('profileCountry').value,suburb:document.getElementById('profileSuburb').value,city:document.getElementById('profileCity').value,post_code:document.getElementById('profilePostCode').value,home_latitude:isNaN(lat)?null:lat,home_longitude:isNaN(lng)?null:lng,emergency_contact_name:document.getElementById('emergencyName').value,emergency_contact_phone:document.getElementById('emergencyPhone').value,emergency_contact_email:document.getElementById('emergencyEmail').value,unit_distance:document.querySelector('input[name="unitDistance"]:checked')?.value||'km',unit_temperature:document.querySelector('input[name="unitTemp"]:checked')?.value||'celsius',updated_at:new Date().toISOString()};const{error}=await db.from('profiles').upsert(d);userProfile=d;r.innerHTML=error?'<div class="alert alert-danger">❌ '+error.message+'</div>':'<div class="alert alert-success">✅ Saved!</div>'}
+        function selectRadio(name,val){document.querySelectorAll(`input[name="${name}"]`).forEach(r=>{r.checked=r.value===val;r.closest('.radio-item').classList.toggle('selected',r.checked)})}
+        
+        // Vehicles
+        async function loadVehicles(){if(!currentUser)return;const{data}=await db.from('user_vehicles').select('*').eq('user_id',currentUser.id).order('is_active',{ascending:false});userVehicles=data||[];renderVehicles();populateVehicleDropdown()}
+        function renderVehicles(){const div=document.getElementById('vehiclesList');if(userVehicles.length===0){div.innerHTML='<p style="color:var(--text-light)">No vehicles.</p>';return}const icons={motorcycle:'🏍️',car:'🚗','4wd':'🚙',truck:'🚛',rv:'🚐',bicycle:'🚴',boat:'⛵'};div.innerHTML=userVehicles.map(v=>`<div class="vehicle-card ${v.is_active?'':'inactive'}"><div class="vehicle-header"><span class="vehicle-icon">${icons[v.vehicle_type]||'🚗'}</span><span class="vehicle-status ${v.is_active?'active':'inactive'}">${v.is_active?'Active':'Inactive'}</span></div><h5>${v.year||''} ${v.make} ${v.model}</h5><div class="vehicle-details"><span>⛽ ${v.fuel_type||'-'}</span><span>🎨 ${v.colour||'-'}</span></div><button class="btn btn-secondary btn-xs" onclick="editVehicle('${v.id}')" style="margin-top:12px">✏️ Edit</button></div>`).join('')}
+        function populateVehicleDropdown(){const s=document.getElementById('sosVehicle');s.innerHTML='<option value="">-- Not vehicle related --</option>';userVehicles.filter(v=>v.is_active).forEach(v=>{s.innerHTML+=`<option value="${v.id}">${v.year||''} ${v.make} ${v.model}</option>`})}
+        function openVehicleModal(){document.getElementById('vehicleModalTitle').textContent='Add Vehicle';document.getElementById('vehicleEditId').value='';document.getElementById('vehicleType').value='motorcycle';document.getElementById('vehicleMake').value='';document.getElementById('vehicleModel').value='';document.getElementById('vehicleYear').value='';document.getElementById('vehicleFuel').value='';document.getElementById('vehicleColour').value='';document.getElementById('vehicleRego').value='';document.getElementById('vehicleNotes').value='';document.getElementById('vehicleActive').checked=true;document.getElementById('vehicleDeleteBtn').classList.add('hidden');document.getElementById('vehicleModal').classList.add('active')}
+        function editVehicle(id){const v=userVehicles.find(x=>x.id===id);if(!v)return;document.getElementById('vehicleModalTitle').textContent='Edit Vehicle';document.getElementById('vehicleEditId').value=v.id;document.getElementById('vehicleType').value=v.vehicle_type||'car';document.getElementById('vehicleMake').value=v.make||'';document.getElementById('vehicleModel').value=v.model||'';document.getElementById('vehicleYear').value=v.year||'';document.getElementById('vehicleFuel').value=v.fuel_type||'';document.getElementById('vehicleColour').value=v.colour||'';document.getElementById('vehicleRego').value=v.registration||'';document.getElementById('vehicleNotes').value=v.notes||'';document.getElementById('vehicleActive').checked=v.is_active;document.getElementById('vehicleDeleteBtn').classList.remove('hidden');document.getElementById('vehicleModal').classList.add('active')}
+        function closeVehicleModal(){document.getElementById('vehicleModal').classList.remove('active')}
+        async function saveVehicle(){const editId=document.getElementById('vehicleEditId').value,d={user_id:currentUser.id,vehicle_type:document.getElementById('vehicleType').value,make:document.getElementById('vehicleMake').value,model:document.getElementById('vehicleModel').value,year:parseInt(document.getElementById('vehicleYear').value)||null,fuel_type:document.getElementById('vehicleFuel').value,colour:document.getElementById('vehicleColour').value,registration:document.getElementById('vehicleRego').value,notes:document.getElementById('vehicleNotes').value,is_active:document.getElementById('vehicleActive').checked,updated_at:new Date().toISOString()};const{error}=editId?await db.from('user_vehicles').update(d).eq('id',editId):await db.from('user_vehicles').insert(d);if(error)alert('Error: '+error.message);else{closeVehicleModal();await loadVehicles()}}
+        async function deleteVehicle(){const id=document.getElementById('vehicleEditId').value;if(!id||!confirm('Delete?'))return;const{error}=await db.from('user_vehicles').delete().eq('id',id);if(error)alert('Error: '+error.message);else{closeVehicleModal();await loadVehicles()}}
+        
+        // Availability
+        async function loadAvailability(){if(!currentUser)return;const{data}=await db.from('user_availability').select('*').eq('user_id',currentUser.id).single();if(data){document.getElementById('availActive').checked=data.is_available;document.getElementById('availLocation').value=data.current_location_name||'';document.getElementById('availRadius').value=data.max_help_radius_km||50;document.getElementById('canPickup').checked=data.can_pickup;document.getElementById('canGarage').checked=data.can_provide_garage;document.getElementById('canStay').checked=data.can_provide_accommodation;document.getElementById('canMeet').checked=data.can_meet_for_drinks;document.getElementById('canAdvice').checked=data.can_provide_local_advice;document.getElementById('canHelp').checked=data.can_provide_help;if(data.latitude&&data.longitude){document.getElementById('availLat').value=data.latitude;document.getElementById('availLng').value=data.longitude;renderGPSDisplay('avail',data.latitude,data.longitude);availMap.setView([data.latitude,data.longitude],12);if(availMarker)availMap.removeLayer(availMarker);availMarker=L.marker([data.latitude,data.longitude]).addTo(availMap)}}}
+        async function handleSaveAvailability(){if(!currentUser)return;const r=document.getElementById('availResult');r.innerHTML='<div class="alert alert-info">Saving...</div>';const lat=parseFloat(document.getElementById('availLat').value),lng=parseFloat(document.getElementById('availLng').value);const d={user_id:currentUser.id,is_available:document.getElementById('availActive').checked,current_location_name:document.getElementById('availLocation').value,latitude:isNaN(lat)?null:lat,longitude:isNaN(lng)?null:lng,max_help_radius_km:parseInt(document.getElementById('availRadius').value)||50,can_pickup:document.getElementById('canPickup').checked,can_provide_garage:document.getElementById('canGarage').checked,can_provide_accommodation:document.getElementById('canStay').checked,can_meet_for_drinks:document.getElementById('canMeet').checked,can_provide_local_advice:document.getElementById('canAdvice').checked,can_provide_help:document.getElementById('canHelp').checked,updated_at:new Date().toISOString()};const{error}=await db.from('user_availability').upsert(d,{onConflict:'user_id'});r.innerHTML=error?'<div class="alert alert-danger">❌ '+error.message+'</div>':'<div class="alert alert-success">✅ Saved!</div>'}
+        
+        // Dashboard
+        async function loadDashboard(){if(!currentUser)return;const{data:avail}=await db.from('user_availability').select('*').eq('user_id',currentUser.id).single();if(avail&&avail.latitude)dashboardMap.setView([avail.latitude,avail.longitude],11);await loadNearbyRequests(avail);await loadNearbyTravelers(avail);await loadDashboardStats()}
+        async function loadNearbyRequests(avail){const div=document.getElementById('nearbyRequests');if(!avail||!avail.latitude){div.innerHTML='<p style="color:var(--text-light)">Set your location first.</p>';return}const{data:reqs}=await db.from('sos_alerts').select('*, profiles(id, email)').eq('status','active');const nearby=(reqs||[]).filter(r=>{if(!r.latitude)return false;r.distance=getDistance(avail.latitude,avail.longitude,r.latitude,r.longitude);return r.distance<=(avail.max_help_radius_km||50)}).sort((a,b)=>a.distance-b.distance);document.getElementById('statNearbyRequests').textContent=nearby.length;if(!nearby.length){div.innerHTML='<p style="color:var(--text-light)">No requests nearby. 🎉</p>';return}div.innerHTML=nearby.map(r=>{const e=r.profiles?.email||'unknown',dn=generateAnonymousName(e),av=generateAvatarData(e);return`<div class="request-card ${r.severity==='critical'?'urgent':r.severity==='high'?'high':''}"><div class="request-user"><div class="request-avatar" style="background:${av.color}">${av.icon}</div><div class="request-info"><h4>${dn}</h4><p>📍 ${r.distance.toFixed(1)} km</p></div></div><p style="margin:12px 0;color:var(--text-light)">${r.description||r.alert_type}</p><button class="btn btn-success btn-sm" onclick="openRespondModal('${r.id}','${dn}','${r.alert_type}')">✅ Help</button></div>`}).join('')}
+        async function loadNearbyTravelers(avail){const div=document.getElementById('nearbyTravelers');if(!avail||!avail.latitude){div.innerHTML='<p style="color:var(--text-light)">Set location first.</p>';return}const{data:travelers}=await db.from('user_availability').select('*, profiles(id, email)').eq('is_available',true).neq('user_id',currentUser.id);const nearby=(travelers||[]).filter(t=>{if(!t.latitude)return false;t.distance=getDistance(avail.latitude,avail.longitude,t.latitude,t.longitude);return t.distance<=(avail.max_help_radius_km||50)}).sort((a,b)=>a.distance-b.distance).slice(0,5);document.getElementById('statNearbyTravelers').textContent=nearby.length;if(!nearby.length){div.innerHTML='<p style="color:var(--text-light)">No travelers nearby.</p>';return}div.innerHTML=nearby.map(t=>{const e=t.profiles?.email||'unknown',dn=generateAnonymousName(e),av=generateAvatarData(e);return`<div class="traveler-card"><div class="traveler-avatar" style="background:${av.color}">${av.icon}</div><div><h5 style="font-size:15px;margin:0 0 4px">${dn}</h5><p style="font-size:13px;color:var(--text-light);margin:0">📍 ${t.distance.toFixed(1)} km</p></div></div>`}).join('')}
+        async function loadDashboardStats(){const{count}=await db.from('interactions').select('*',{count:'exact',head:true}).eq('helper_id',currentUser.id).eq('status','completed');document.getElementById('statHelpGiven').textContent=count||0;const{data}=await db.from('interactions').select('*').or(`requester_id.eq.${currentUser.id},helper_id.eq.${currentUser.id}`).eq('status','completed');const pending=(data||[]).filter(i=>(i.requester_id===currentUser.id&&!i.requester_feedback_given)||(i.helper_id===currentUser.id&&!i.helper_feedback_given));document.getElementById('statPendingFeedback').textContent=pending.length}
+        
+        // Search Helpers
+        async function handleSearchHelpers(){const r=document.getElementById('helperResults');r.innerHTML='<p class="loading">🔍 Searching...</p>';const lat=parseFloat(document.getElementById('searchLat').value),lng=parseFloat(document.getElementById('searchLng').value),radius=parseInt(document.getElementById('searchRadius').value)||50;if(isNaN(lat)||isNaN(lng)){r.innerHTML='<div class="alert alert-danger">Get location first</div>';return}markers.forEach(m=>helpersMap.removeLayer(m));markers=[];const um=L.marker([lat,lng],{icon:L.divIcon({className:'',html:'<div style="background:#3b82f6;color:white;padding:10px 14px;border-radius:25px;font-weight:600">📍 You</div>',iconAnchor:[30,20]})}).addTo(helpersMap);markers.push(um);let q=db.from('user_availability').select('*, profiles(id, email)').eq('is_available',true).neq('user_id',currentUser.id);if(document.getElementById('needPickup').checked)q=q.eq('can_pickup',true);if(document.getElementById('needGarage').checked)q=q.eq('can_provide_garage',true);if(document.getElementById('needStay').checked)q=q.eq('can_provide_accommodation',true);if(document.getElementById('needMeet').checked)q=q.eq('can_meet_for_drinks',true);const{data,error}=await q;if(error){r.innerHTML='<div class="alert alert-danger">'+error.message+'</div>';return}currentHelpers=(data||[]).filter(h=>{if(!h.latitude)return false;h.distance=getDistance(lat,lng,h.latitude,h.longitude);return h.distance<=radius}).sort((a,b)=>a.distance-b.distance);if(!currentHelpers.length){r.innerHTML='<div class="alert alert-info">No helpers found.</div>';return}currentHelpers.forEach((h,i)=>{const e=h.profiles?.email||'unknown',dn=generateAnonymousName(e),av=generateAvatarData(e);const m=L.marker([h.latitude,h.longitude],{icon:L.divIcon({className:'',html:`<div style="background:${av.color};color:white;padding:8px 14px;border-radius:20px;font-weight:600">${av.icon}</div>`,iconAnchor:[20,20]})}).addTo(helpersMap);m.bindPopup(`<strong>${dn}</strong><br>📍 ${h.distance.toFixed(1)} km<br><button onclick="openContactModal(${i})" style="margin-top:8px;padding:8px 16px;background:#1F4788;color:white;border:none;border-radius:8px;cursor:pointer">📨 Contact</button>`);markers.push(m)});helpersMap.fitBounds(L.featureGroup(markers).getBounds().pad(0.1));r.innerHTML=`<h4>${currentHelpers.length} helper(s)</h4>`+currentHelpers.map((h,i)=>{const e=h.profiles?.email||'unknown',dn=generateAnonymousName(e),av=generateAvatarData(e);return`<div class="request-card" onclick="focusHelper(${i})" style="cursor:pointer"><div class="request-user"><div class="request-avatar" style="background:${av.color}">${av.icon}</div><div class="request-info"><h4>${dn}</h4><p>📍 ${h.distance.toFixed(1)} km</p></div></div><button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openContactModal(${i})">📨 Contact</button></div>`}).join('')}
         function focusHelper(i){const h=currentHelpers[i];helpersMap.setView([h.latitude,h.longitude],14);markers[i+1].openPopup()}
         
         // Contact & Respond
