@@ -265,14 +265,16 @@
                 </div>
                 
                 <h4>📍 Home Location (GPS)</h4>
+                <p style="font-size: 13px; color: var(--text-light); margin-bottom: 16px;">Get GPS coordinates from your address above, your device, or enter manually.</p>
                 <div class="grid-2">
                     <div>
                         <div class="location-btn-group">
-                            <button class="location-btn primary" onclick="captureHomeGPS()">📍 Device GPS</button>
+                            <button class="location-btn primary" onclick="geocodeHomeAddress()">🏠 From Address</button>
+                            <button class="location-btn" onclick="captureHomeGPS()">📍 Device GPS</button>
                             <button class="location-btn" onclick="toggleManualEntry('home')">✏️ Manual</button>
                         </div>
-                        <div id="homeManualEntry" class="hidden" style="margin-bottom: 16px;">
-                            <div class="grid-2"><input type="text" class="form-control" id="profileHomeLat" placeholder="Latitude" onchange="updateGPSDisplay('home')"><input type="text" class="form-control" id="profileHomeLng" placeholder="Longitude" onchange="updateGPSDisplay('home')"></div>
+                        <div id="homeManualEntry" class="hidden" style="margin-bottom: 16px; margin-top: 16px;">
+                            <div class="grid-2"><input type="text" class="form-control" id="profileHomeLat" placeholder="Latitude (e.g. -36.8485)" onchange="updateGPSDisplay('home')"><input type="text" class="form-control" id="profileHomeLng" placeholder="Longitude (e.g. 174.7633)" onchange="updateGPSDisplay('home')"></div>
                         </div>
                         <div id="homeGPSDisplay" class="gps-display-box hidden">
                             <div class="gps-format-tabs">
@@ -281,7 +283,7 @@
                                 <button class="gps-format-tab" onclick="setGPSFormat('home','ddm')">DDM</button>
                             </div>
                             <div id="homeGPSValues"></div>
-                            <div id="homeW3W" class="w3w-row hidden" style="margin-top: 8px;"><div class="w3w-logo">///</div><span class="value" id="homeW3WValue">loading...</span><button class="copy-btn" onclick="copyValue('homeW3WValue',this)">Copy</button></div>
+                            <div id="homeW3W" class="w3w-row" style="margin-top: 12px;"><div class="w3w-logo">///</div><span class="value" id="homeW3WValue">loading...</span><button class="copy-btn" onclick="copyValue('homeW3WValue',this)">Copy</button></div>
                         </div>
                     </div>
                     <div class="map-container small"><div id="homeMap"></div></div>
@@ -345,7 +347,7 @@
                                 <button class="gps-format-tab" onclick="setGPSFormat('avail','ddm')">DDM</button>
                             </div>
                             <div id="availGPSValues"></div>
-                            <div id="availW3W" class="w3w-row hidden" style="margin-top: 8px;"><div class="w3w-logo">///</div><span class="value" id="availW3WValue">loading...</span><button class="copy-btn" onclick="copyValue('availW3WValue',this)">Copy</button></div>
+                            <div id="availW3W" class="w3w-row" style="margin-top: 12px;"><div class="w3w-logo">///</div><span class="value" id="availW3WValue">loading...</span><button class="copy-btn" onclick="copyValue('availW3WValue',this)">Copy</button></div>
                         </div>
                     </div>
                     <div class="map-container small"><div id="availMap"></div></div>
@@ -433,7 +435,7 @@
                         <button class="gps-format-tab" onclick="setGPSFormat('sos','ddm')">DDM</button>
                     </div>
                     <div id="sosGPSValues"></div>
-                    <div id="sosW3W" class="w3w-row hidden" style="margin-top: 8px;"><div class="w3w-logo">///</div><span class="value" id="sosW3WValue">loading...</span><button class="copy-btn" onclick="copyValue('sosW3WValue',this)">Copy</button></div>
+                    <div id="sosW3W" class="w3w-row" style="margin-top: 12px;"><div class="w3w-logo">///</div><span class="value" id="sosW3WValue">loading...</span><button class="copy-btn" onclick="copyValue('sosW3WValue',this)">Copy</button></div>
                 </div>
                 <button class="btn btn-danger" onclick="handleCreateSOS()" style="margin-top: 16px;">🚨 Send Request</button>
                 <div id="sosResult" style="margin-top: 16px;"></div>
@@ -592,6 +594,48 @@
         
         // Location
         function toggleManualEntry(t){document.getElementById(`${t}ManualEntry`).classList.toggle('hidden')}
+        
+        async function geocodeHomeAddress(){
+            const suburb = document.getElementById('profileSuburb').value;
+            const city = document.getElementById('profileCity').value;
+            const country = document.getElementById('profileCountry').value;
+            const postCode = document.getElementById('profilePostCode').value;
+            
+            const addressParts = [suburb, city, postCode, country].filter(p => p && p.trim());
+            if (addressParts.length < 2) {
+                alert('Please enter at least City and Country in the Home Address section above.');
+                return;
+            }
+            
+            const address = addressParts.join(', ');
+            
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`, {
+                    headers: { 'User-Agent': 'Obonato App' }
+                });
+                const data = await response.json();
+                
+                if (data && data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lng = parseFloat(data[0].lon);
+                    
+                    document.getElementById('profileHomeLat').value = lat.toFixed(6);
+                    document.getElementById('profileHomeLng').value = lng.toFixed(6);
+                    document.getElementById('homeManualEntry').classList.remove('hidden');
+                    
+                    renderGPSDisplay('home', lat, lng);
+                    homeMap.setView([lat, lng], 14);
+                    if (homeMarker) homeMap.removeLayer(homeMarker);
+                    homeMarker = L.marker([lat, lng]).addTo(homeMap);
+                } else {
+                    alert('Could not find coordinates for this address. Try adding more details or use Device GPS.');
+                }
+            } catch (e) {
+                console.error('Geocoding error:', e);
+                alert('Error looking up address. Please try Device GPS or enter coordinates manually.');
+            }
+        }
+        
         function captureHomeGPS(){if(navigator.geolocation)navigator.geolocation.getCurrentPosition(p=>{const lat=p.coords.latitude,lng=p.coords.longitude;document.getElementById('profileHomeLat').value=lat.toFixed(6);document.getElementById('profileHomeLng').value=lng.toFixed(6);document.getElementById('homeManualEntry').classList.remove('hidden');renderGPSDisplay('home',lat,lng);homeMap.setView([lat,lng],14);if(homeMarker)homeMap.removeLayer(homeMarker);homeMarker=L.marker([lat,lng]).addTo(homeMap)},e=>alert('Error: '+e.message),{enableHighAccuracy:true})}
         function getLocation(target,source){
             if(source==='home'&&userProfile&&userProfile.home_latitude){
