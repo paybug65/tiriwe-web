@@ -184,6 +184,7 @@
         .btn-primary:hover { background: var(--primary-dark); }
         .btn-success { background: var(--success); color: white; }
         .btn-danger { background: var(--danger); color: white; }
+        .btn-warning { background: var(--warning); color: black; }
         .btn-secondary { background: var(--border); color: var(--text); }
         .btn-secondary:hover { background: var(--bg-hover); }
         .btn-sm { padding: 6px 12px; font-size: 12px; }
@@ -207,10 +208,87 @@
         
         .loading { text-align: center; padding: 40px; color: var(--text-light); }
         
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        
+        .modal {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+        }
+        
+        .modal h2 {
+            color: var(--accent);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .detail-row {
+            display: flex;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .detail-label {
+            width: 140px;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+        .detail-value {
+            flex: 1;
+            color: var(--text);
+        }
+        
+        .severity-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .severity-low { background: #166534; color: #bbf7d0; }
+        .severity-medium { background: #854d0e; color: #fef08a; }
+        .severity-high { background: #c2410c; color: #fed7aa; }
+        .severity-critical { background: #991b1b; color: #fecaca; }
+        
+        .status-active { color: var(--danger); }
+        .status-resolved { color: var(--success); }
+        .status-cancelled { color: var(--text-light); }
+        
         @media (max-width: 768px) {
             .tabs { flex-wrap: nowrap; }
             .tab { padding: 12px 16px; font-size: 13px; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .modal { padding: 20px; }
         }
     </style>
 </head>
@@ -263,6 +341,40 @@
                 </div>
                 
                 <div id="connectionResult" style="margin-top: 20px;"></div>
+            </div>
+            
+            <div class="card">
+                <h3>📧 Email Notifications (Optional)</h3>
+                <div class="alert alert-info">
+                    Set up EmailJS to send email notifications when SOS alerts are created. 
+                    <a href="https://www.emailjs.com/" target="_blank" style="color: #93c5fd;">Get free account →</a>
+                </div>
+                
+                <div class="form-group">
+                    <label>EmailJS Service ID</label>
+                    <input type="text" class="form-control" id="emailServiceId" placeholder="service_xxxxxxx">
+                </div>
+                
+                <div class="form-group">
+                    <label>EmailJS Template ID</label>
+                    <input type="text" class="form-control" id="emailTemplateId" placeholder="template_xxxxxxx">
+                </div>
+                
+                <div class="form-group">
+                    <label>EmailJS Public Key</label>
+                    <input type="text" class="form-control" id="emailPublicKey" placeholder="xxxxxxxxxxxxxxx">
+                </div>
+                
+                <div class="form-group">
+                    <label>Admin Email (receives notifications)</label>
+                    <input type="email" class="form-control" id="adminEmail" placeholder="admin@example.com">
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="saveEmailSettings()">💾 Save Email Settings</button>
+                    <button class="btn btn-secondary" onclick="testEmail()">📧 Send Test Email</button>
+                </div>
+                <div id="emailResult" style="margin-top: 16px;"></div>
             </div>
             
             <div class="card">
@@ -336,6 +448,19 @@
                     <button class="btn btn-primary" onclick="loadSOSAlerts()">🔄 Refresh</button>
                     <button class="btn btn-danger" onclick="createTestSOS()">➕ Create Test SOS</button>
                 </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="margin-right: 16px;">
+                        <input type="checkbox" id="filterActive" checked onchange="loadSOSAlerts()"> Active
+                    </label>
+                    <label style="margin-right: 16px;">
+                        <input type="checkbox" id="filterResolved" onchange="loadSOSAlerts()"> Resolved
+                    </label>
+                    <label>
+                        <input type="checkbox" id="filterCancelled" onchange="loadSOSAlerts()"> Cancelled
+                    </label>
+                </div>
+                
                 <div id="sosList">
                     <p class="loading">Click refresh to load alerts...</p>
                 </div>
@@ -355,9 +480,29 @@
             </div>
         </div>
     </div>
+    
+    <!-- SOS Detail Modal -->
+    <div class="modal-overlay" id="sosModal">
+        <div class="modal">
+            <h2>🚨 SOS Alert Details</h2>
+            <div id="sosModalContent"></div>
+        </div>
+    </div>
+    
+    <!-- User Detail Modal -->
+    <div class="modal-overlay" id="userModal">
+        <div class="modal">
+            <h2>👤 User Details</h2>
+            <div id="userModalContent"></div>
+        </div>
+    </div>
 
+    <!-- EmailJS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    
     <script>
         let db = null;
+        let currentSOSAlert = null;
         
         // Tab navigation
         function showTab(tabId, btn) {
@@ -367,6 +512,17 @@
             btn.classList.add('active');
             
             if (tabId === 'dashboard') loadDashboard();
+        }
+        
+        // Close modals when clicking outside
+        document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) closeModals();
+            });
+        });
+        
+        function closeModals() {
+            document.querySelectorAll('.modal-overlay').forEach(function(m) { m.classList.remove('active'); });
         }
         
         // Load saved credentials
@@ -379,6 +535,12 @@
                 document.getElementById('supabaseKey').value = savedKey;
                 initDatabase(savedUrl, savedKey);
             }
+            
+            // Load email settings
+            document.getElementById('emailServiceId').value = localStorage.getItem('obonato_email_service') || '';
+            document.getElementById('emailTemplateId').value = localStorage.getItem('obonato_email_template') || '';
+            document.getElementById('emailPublicKey').value = localStorage.getItem('obonato_email_key') || '';
+            document.getElementById('adminEmail').value = localStorage.getItem('obonato_admin_email') || '';
         };
         
         // Initialize database
@@ -450,6 +612,44 @@
             var badge = document.getElementById('connectionStatus');
             badge.textContent = connected ? 'Connected' : 'Not Connected';
             badge.className = 'status-badge ' + (connected ? 'status-connected' : 'status-disconnected');
+        }
+        
+        // Email settings
+        function saveEmailSettings() {
+            localStorage.setItem('obonato_email_service', document.getElementById('emailServiceId').value);
+            localStorage.setItem('obonato_email_template', document.getElementById('emailTemplateId').value);
+            localStorage.setItem('obonato_email_key', document.getElementById('emailPublicKey').value);
+            localStorage.setItem('obonato_admin_email', document.getElementById('adminEmail').value);
+            document.getElementById('emailResult').innerHTML = '<div class="alert alert-success">✅ Email settings saved!</div>';
+        }
+        
+        function testEmail() {
+            var serviceId = document.getElementById('emailServiceId').value;
+            var templateId = document.getElementById('emailTemplateId').value;
+            var publicKey = document.getElementById('emailPublicKey').value;
+            var adminEmail = document.getElementById('adminEmail').value;
+            
+            if (!serviceId || !templateId || !publicKey || !adminEmail) {
+                document.getElementById('emailResult').innerHTML = '<div class="alert alert-danger">Please fill in all email settings</div>';
+                return;
+            }
+            
+            emailjs.init(publicKey);
+            
+            emailjs.send(serviceId, templateId, {
+                to_email: adminEmail,
+                subject: 'Obonato Test Email',
+                message: 'This is a test email from Obonato Admin Portal. If you received this, email notifications are working!',
+                alert_type: 'Test',
+                severity: 'Low',
+                location: 'Test Location',
+                user_name: 'Admin',
+                time: new Date().toLocaleString()
+            }).then(function() {
+                document.getElementById('emailResult').innerHTML = '<div class="alert alert-success">✅ Test email sent! Check your inbox.</div>';
+            }).catch(function(error) {
+                document.getElementById('emailResult').innerHTML = '<div class="alert alert-danger">❌ Email failed: ' + error.text + '</div>';
+            });
         }
         
         // Load table status
@@ -550,7 +750,10 @@
                     html += '<td>' + (u.phone || '-') + '</td>';
                     html += '<td>' + (u.country || '-') + '</td>';
                     html += '<td>' + (u.created_at ? new Date(u.created_at).toLocaleDateString() : '-') + '</td>';
-                    html += '<td><button class="btn btn-sm btn-danger" onclick="deleteUser(\'' + u.id + '\')">🗑️</button></td>';
+                    html += '<td>';
+                    html += '<button class="btn btn-sm btn-primary" onclick="viewUser(\'' + u.id + '\')">👁️ View</button> ';
+                    html += '<button class="btn btn-sm btn-danger" onclick="deleteUser(\'' + u.id + '\')">🗑️</button>';
+                    html += '</td>';
                     html += '</tr>';
                 });
                 html += '</table>';
@@ -558,6 +761,30 @@
             } catch (error) {
                 div.innerHTML = '<div class="alert alert-danger">Error: ' + error.message + '</div>';
             }
+        }
+        
+        // View user details
+        async function viewUser(id) {
+            if (!db) return;
+            
+            var response = await db.from('profiles').select('*').eq('id', id).single();
+            if (response.error) {
+                alert('Error loading user: ' + response.error.message);
+                return;
+            }
+            
+            var u = response.data;
+            var html = '';
+            html += '<div class="detail-row"><div class="detail-label">Name</div><div class="detail-value">' + (u.first_name || '') + ' ' + (u.last_name || '') + '</div></div>';
+            html += '<div class="detail-row"><div class="detail-label">Display Name</div><div class="detail-value">' + (u.display_name || '-') + '</div></div>';
+            html += '<div class="detail-row"><div class="detail-label">Phone</div><div class="detail-value">' + (u.phone || '-') + '</div></div>';
+            html += '<div class="detail-row"><div class="detail-label">Country</div><div class="detail-value">' + (u.country || '-') + '</div></div>';
+            html += '<div class="detail-row"><div class="detail-label">Emergency Contact</div><div class="detail-value">' + (u.emergency_contact_name || '-') + ' - ' + (u.emergency_contact_phone || '-') + '</div></div>';
+            html += '<div class="detail-row"><div class="detail-label">Created</div><div class="detail-value">' + new Date(u.created_at).toLocaleString() + '</div></div>';
+            html += '<div style="margin-top: 20px;"><button class="btn btn-secondary" onclick="closeModals()">Close</button></div>';
+            
+            document.getElementById('userModalContent').innerHTML = html;
+            document.getElementById('userModal').classList.add('active');
         }
         
         // Load helpers
@@ -570,7 +797,7 @@
             try {
                 var response = await db
                     .from('user_availability')
-                    .select('*, profiles(display_name, first_name)')
+                    .select('*, profiles(display_name, first_name, phone)')
                     .order('updated_at', { ascending: false });
                 
                 if (response.error) throw response.error;
@@ -581,7 +808,7 @@
                     return;
                 }
                 
-                var html = '<table><tr><th>User</th><th>Location</th><th>Available</th><th>Services</th><th>Radius</th></tr>';
+                var html = '<table><tr><th>User</th><th>Location</th><th>Available</th><th>Services</th><th>Radius</th><th>Actions</th></tr>';
                 data.forEach(function(h) {
                     var services = [];
                     if (h.can_pickup) services.push('🚗');
@@ -598,6 +825,11 @@
                     html += '<td>' + (h.is_available ? '✅' : '❌') + '</td>';
                     html += '<td>' + (services.join(' ') || '-') + '</td>';
                     html += '<td>' + (h.max_help_radius_km || '-') + ' km</td>';
+                    html += '<td>';
+                    if (h.latitude && h.longitude) {
+                        html += '<a href="https://www.google.com/maps?q=' + h.latitude + ',' + h.longitude + '" target="_blank" class="btn btn-sm btn-secondary">🗺️ Map</a>';
+                    }
+                    html += '</td>';
                     html += '</tr>';
                 });
                 html += '</table>';
@@ -615,32 +847,48 @@
             div.innerHTML = '<p class="loading">Loading...</p>';
             
             try {
-                var response = await db
+                var query = db
                     .from('sos_alerts')
-                    .select('*, profiles(display_name)')
+                    .select('*, profiles(display_name, phone)')
                     .order('created_at', { ascending: false });
+                
+                // Apply filters
+                var statuses = [];
+                if (document.getElementById('filterActive').checked) statuses.push('active');
+                if (document.getElementById('filterResolved').checked) statuses.push('resolved');
+                if (document.getElementById('filterCancelled').checked) statuses.push('cancelled');
+                
+                if (statuses.length > 0) {
+                    query = query.in('status', statuses);
+                }
+                
+                var response = await query;
                 
                 if (response.error) throw response.error;
                 
                 var data = response.data;
                 if (!data || data.length === 0) {
-                    div.innerHTML = '<div class="alert alert-info">No SOS alerts.</div>';
+                    div.innerHTML = '<div class="alert alert-info">No SOS alerts found.</div>';
                     return;
                 }
                 
                 var html = '<table><tr><th>Time</th><th>User</th><th>Type</th><th>Severity</th><th>Status</th><th>Actions</th></tr>';
                 data.forEach(function(a) {
-                    var sevColor = a.severity === 'critical' ? 'var(--danger)' : (a.severity === 'high' ? 'var(--warning)' : 'inherit');
-                    var userName = (a.profiles && a.profiles.display_name) || '-';
+                    var userName = (a.profiles && a.profiles.display_name) || 'Unknown';
+                    var sevClass = 'severity-' + a.severity;
+                    var statusClass = 'status-' + a.status;
                     
                     html += '<tr>';
                     html += '<td>' + new Date(a.created_at).toLocaleString() + '</td>';
                     html += '<td>' + userName + '</td>';
                     html += '<td>' + a.alert_type + '</td>';
-                    html += '<td style="color: ' + sevColor + '">' + a.severity + '</td>';
-                    html += '<td>' + a.status + '</td>';
+                    html += '<td><span class="severity-badge ' + sevClass + '">' + a.severity + '</span></td>';
+                    html += '<td class="' + statusClass + '">' + a.status + '</td>';
                     html += '<td>';
-                    html += '<button class="btn btn-sm btn-success" onclick="resolveAlert(\'' + a.id + '\')">✅</button> ';
+                    html += '<button class="btn btn-sm btn-primary" onclick="viewSOSAlert(\'' + a.id + '\')">👁️ View</button> ';
+                    if (a.status === 'active') {
+                        html += '<button class="btn btn-sm btn-success" onclick="resolveAlert(\'' + a.id + '\')">✅</button> ';
+                    }
                     html += '<button class="btn btn-sm btn-danger" onclick="deleteAlert(\'' + a.id + '\')">🗑️</button>';
                     html += '</td>';
                     html += '</tr>';
@@ -650,6 +898,115 @@
             } catch (error) {
                 div.innerHTML = '<div class="alert alert-danger">Error: ' + error.message + '</div>';
             }
+        }
+        
+        // View SOS Alert Details
+        async function viewSOSAlert(id) {
+            if (!db) return;
+            
+            var response = await db.from('sos_alerts').select('*, profiles(display_name, first_name, phone, emergency_contact_name, emergency_contact_phone)').eq('id', id).single();
+            if (response.error) {
+                alert('Error loading alert: ' + response.error.message);
+                return;
+            }
+            
+            currentSOSAlert = response.data;
+            var a = currentSOSAlert;
+            
+            var sevClass = 'severity-' + a.severity;
+            var statusClass = 'status-' + a.status;
+            
+            var html = '';
+            
+            // Alert info
+            html += '<div class="detail-row"><div class="detail-label">Alert ID</div><div class="detail-value" style="font-family: monospace; font-size: 12px;">' + a.id + '</div></div>';
+            html += '<div class="detail-row"><div class="detail-label">Type</div><div class="detail-value">' + a.alert_type + '</div></div>';
+            html += '<div class="detail-row"><div class="detail-label">Severity</div><div class="detail-value"><span class="severity-badge ' + sevClass + '">' + a.severity + '</span></div></div>';
+            html += '<div class="detail-row"><div class="detail-label">Status</div><div class="detail-value"><select class="form-control" id="editStatus" style="width: auto; display: inline-block;">';
+            html += '<option value="active"' + (a.status === 'active' ? ' selected' : '') + '>Active</option>';
+            html += '<option value="resolved"' + (a.status === 'resolved' ? ' selected' : '') + '>Resolved</option>';
+            html += '<option value="cancelled"' + (a.status === 'cancelled' ? ' selected' : '') + '>Cancelled</option>';
+            html += '</select></div></div>';
+            html += '<div class="detail-row"><div class="detail-label">Created</div><div class="detail-value">' + new Date(a.created_at).toLocaleString() + '</div></div>';
+            html += '<div class="detail-row"><div class="detail-label">Description</div><div class="detail-value">' + (a.description || '-') + '</div></div>';
+            
+            // Location
+            if (a.latitude && a.longitude) {
+                html += '<div class="detail-row"><div class="detail-label">Location</div><div class="detail-value">';
+                html += a.latitude.toFixed(6) + ', ' + a.longitude.toFixed(6) + ' ';
+                html += '<a href="https://www.google.com/maps?q=' + a.latitude + ',' + a.longitude + '" target="_blank" class="btn btn-sm btn-secondary">🗺️ View on Map</a>';
+                html += '</div></div>';
+            }
+            
+            // User info
+            html += '<h3 style="margin-top: 20px; color: var(--accent);">👤 User Contact</h3>';
+            if (a.profiles) {
+                html += '<div class="detail-row"><div class="detail-label">Name</div><div class="detail-value">' + (a.profiles.display_name || a.profiles.first_name || '-') + '</div></div>';
+                html += '<div class="detail-row"><div class="detail-label">Phone</div><div class="detail-value">';
+                if (a.profiles.phone) {
+                    html += '<a href="tel:' + a.profiles.phone + '" class="btn btn-sm btn-success">📞 ' + a.profiles.phone + '</a>';
+                } else {
+                    html += '-';
+                }
+                html += '</div></div>';
+                html += '<div class="detail-row"><div class="detail-label">Emergency Contact</div><div class="detail-value">';
+                if (a.profiles.emergency_contact_phone) {
+                    html += a.profiles.emergency_contact_name + ' - <a href="tel:' + a.profiles.emergency_contact_phone + '" class="btn btn-sm btn-warning">📞 ' + a.profiles.emergency_contact_phone + '</a>';
+                } else {
+                    html += '-';
+                }
+                html += '</div></div>';
+            } else {
+                html += '<div class="detail-row"><div class="detail-value">No user linked to this alert</div></div>';
+            }
+            
+            // Admin notes
+            html += '<h3 style="margin-top: 20px; color: var(--accent);">📝 Admin Notes</h3>';
+            html += '<textarea class="form-control" id="editNotes" rows="3" placeholder="Add notes about this alert...">' + (a.admin_notes || '') + '</textarea>';
+            
+            // Action buttons
+            html += '<div style="margin-top: 20px;" class="btn-group">';
+            html += '<button class="btn btn-success" onclick="saveSOSChanges()">💾 Save Changes</button>';
+            if (a.status === 'active') {
+                html += '<button class="btn btn-warning" onclick="quickResolve()">✅ Mark Resolved</button>';
+            }
+            html += '<button class="btn btn-secondary" onclick="closeModals()">Close</button>';
+            html += '</div>';
+            
+            document.getElementById('sosModalContent').innerHTML = html;
+            document.getElementById('sosModal').classList.add('active');
+        }
+        
+        // Save SOS changes
+        async function saveSOSChanges() {
+            if (!db || !currentSOSAlert) return;
+            
+            var newStatus = document.getElementById('editStatus').value;
+            var newNotes = document.getElementById('editNotes').value;
+            
+            var updateData = {
+                status: newStatus,
+                admin_notes: newNotes
+            };
+            
+            if (newStatus === 'resolved' && currentSOSAlert.status !== 'resolved') {
+                updateData.responded_at = new Date().toISOString();
+            }
+            
+            var response = await db.from('sos_alerts').update(updateData).eq('id', currentSOSAlert.id);
+            
+            if (response.error) {
+                alert('Error saving: ' + response.error.message);
+            } else {
+                closeModals();
+                loadSOSAlerts();
+            }
+        }
+        
+        // Quick resolve
+        async function quickResolve() {
+            document.getElementById('editStatus').value = 'resolved';
+            await saveSOSChanges();
         }
         
         // Load feedback
@@ -693,7 +1050,7 @@
         
         // Delete user
         async function deleteUser(id) {
-            if (!confirm('Delete this user?')) return;
+            if (!confirm('Delete this user? This will also delete their availability, alerts, and feedback.')) return;
             var response = await db.from('profiles').delete().eq('id', id);
             if (response.error) alert('Error: ' + response.error.message);
             else loadUsers();
@@ -701,7 +1058,7 @@
         
         // Resolve alert
         async function resolveAlert(id) {
-            var response = await db.from('sos_alerts').update({ status: 'resolved' }).eq('id', id);
+            var response = await db.from('sos_alerts').update({ status: 'resolved', responded_at: new Date().toISOString() }).eq('id', id);
             if (response.error) alert('Error: ' + response.error.message);
             else loadSOSAlerts();
         }
