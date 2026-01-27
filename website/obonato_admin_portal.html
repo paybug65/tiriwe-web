@@ -5,37 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Obonato Admin Portal</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #7c3aed;
-            --primary-dark: #5b21b6;
-            --accent: #8b5cf6;
+            --primary: #1F4788;
+            --primary-dark: #163560;
+            --primary-light: #2d5aa3;
+            --accent: #f59e0b;
+            --accent-dark: #d97706;
             --success: #10b981;
+            --success-light: #d1fae5;
             --warning: #f59e0b;
+            --warning-light: #fef3c7;
             --danger: #ef4444;
-            --bg: #0f172a;
-            --bg-card: #1e293b;
-            --bg-hover: #334155;
-            --border: #334155;
-            --text: #f1f5f9;
-            --text-light: #94a3b8;
+            --danger-light: #fee2e2;
+            --bg: #f8fafc;
+            --bg-alt: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-hover: #f1f5f9;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text-light: #64748b;
         }
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
+            line-height: 1.6;
         }
         
         header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            padding: 0 20px;
+            padding: 0 24px;
             position: sticky;
             top: 0;
             z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
         }
         
         .header-content {
@@ -44,76 +54,91 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            height: 64px;
+            height: 70px;
         }
         
-        .logo h1 { font-size: 22px; font-weight: 700; color: white; }
+        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .logo h1 { font-size: 24px; font-weight: 800; color: white; }
         .logo span { font-size: 11px; opacity: 0.8; color: white; }
         
         .header-right { display: flex; align-items: center; gap: 16px; }
         
         .status-badge {
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 12px;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 13px;
             font-weight: 600;
             color: white;
         }
         .status-connected { background: var(--success); }
         .status-disconnected { background: var(--danger); }
         
+        .admin-badge {
+            background: var(--accent);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 24px;
         }
         
         .tabs {
             display: flex;
             background: var(--bg-card);
-            border-radius: 12px 12px 0 0;
+            border-radius: 16px 16px 0 0;
             overflow-x: auto;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 2px solid var(--border);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
         
         .tab {
-            padding: 16px 24px;
+            padding: 18px 28px;
             border: none;
             background: transparent;
             cursor: pointer;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
             color: var(--text-light);
             white-space: nowrap;
             transition: all 0.2s;
             border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
         }
-        .tab:hover { color: var(--text); background: var(--bg-hover); }
+        .tab:hover { color: var(--primary); background: var(--bg); }
         .tab.active {
-            color: var(--accent);
+            color: var(--primary);
             border-bottom-color: var(--accent);
+            background: white;
         }
         
         .tab-content {
             display: none;
             background: var(--bg-card);
-            padding: 30px;
-            border-radius: 0 0 12px 12px;
+            padding: 32px;
+            border-radius: 0 0 16px 16px;
             min-height: 600px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
         .tab-content.active { display: block; }
         
         .card {
-            background: var(--bg);
+            background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 20px;
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
         }
         .card h3 {
-            font-size: 18px;
-            margin-bottom: 16px;
-            color: var(--accent);
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--primary);
         }
         
         .stats-grid {
@@ -123,21 +148,23 @@
             margin-bottom: 30px;
         }
         .stat-card {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 16px;
             padding: 24px;
             text-align: center;
+            color: white;
         }
+        .stat-card.accent { background: linear-gradient(135deg, var(--accent), var(--accent-dark)); }
+        .stat-card.success { background: linear-gradient(135deg, var(--success), #059669); }
+        .stat-card.danger { background: linear-gradient(135deg, var(--danger), #dc2626); }
         .stat-card .number {
             font-size: 36px;
-            font-weight: 700;
-            color: var(--accent);
+            font-weight: 800;
         }
         .stat-card .label {
-            color: var(--text-light);
             font-size: 14px;
             margin-top: 8px;
+            opacity: 0.9;
         }
         
         .form-group { margin-bottom: 20px; }
@@ -146,21 +173,23 @@
             margin-bottom: 8px;
             font-weight: 600;
             font-size: 14px;
-            color: var(--text-light);
+            color: var(--text);
         }
         .form-control {
             width: 100%;
-            padding: 12px 16px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 14px;
+            padding: 14px 18px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 15px;
             background: var(--bg);
             color: var(--text);
             transition: border-color 0.2s;
+            font-family: inherit;
         }
         .form-control:focus {
             outline: none;
-            border-color: var(--accent);
+            border-color: var(--primary);
+            background: white;
         }
         .form-hint {
             font-size: 12px;
@@ -169,44 +198,53 @@
         }
         
         .btn {
-            padding: 10px 20px;
+            padding: 14px 28px;
             border: none;
-            border-radius: 8px;
-            font-size: 14px;
+            border-radius: 10px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            font-family: inherit;
         }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(31,71,136,0.3); }
         .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #059669; }
         .btn-danger { background: var(--danger); color: white; }
-        .btn-warning { background: var(--warning); color: black; }
-        .btn-secondary { background: var(--border); color: var(--text); }
-        .btn-secondary:hover { background: var(--bg-hover); }
-        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-warning:hover { background: var(--accent-dark); }
+        .btn-secondary { background: var(--bg-alt); color: var(--text); border: 2px solid var(--border); }
+        .btn-secondary:hover { background: var(--bg-hover); border-color: var(--primary); }
+        .btn-sm { padding: 10px 18px; font-size: 13px; }
+        .btn-xs { padding: 6px 12px; font-size: 12px; }
         
         .btn-group { display: flex; gap: 12px; flex-wrap: wrap; }
         
         .alert {
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 16px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        .alert-success { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
-        .alert-danger { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
-        .alert-warning { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
-        .alert-info { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .alert-success { background: var(--success-light); color: #065f46; }
+        .alert-danger { background: var(--danger-light); color: #991b1b; }
+        .alert-warning { background: var(--warning-light); color: #92400e; }
+        .alert-info { background: #dbeafe; color: #1e40af; }
         
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
-        th { background: var(--bg-hover); font-weight: 600; font-size: 13px; color: var(--text-light); }
-        tr:hover { background: var(--bg-hover); }
+        th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: var(--bg-alt); font-weight: 600; font-size: 13px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+        tr:hover { background: var(--bg-alt); }
         
-        .loading { text-align: center; padding: 40px; color: var(--text-light); }
+        .loading { text-align: center; padding: 48px; color: var(--text-light); }
         
         /* Modal Styles */
         .modal-overlay {
@@ -216,52 +254,79 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(15, 23, 42, 0.7);
             z-index: 1000;
             align-items: center;
             justify-content: center;
+            padding: 24px;
         }
         .modal-overlay.active { display: flex; }
         
         .modal {
             background: var(--bg-card);
-            border-radius: 16px;
-            padding: 30px;
+            border-radius: 24px;
+            padding: 0;
             max-width: 600px;
-            width: 90%;
+            width: 100%;
             max-height: 90vh;
             overflow-y: auto;
-            border: 1px solid var(--border);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
         }
         
-        .modal h2 {
-            color: var(--accent);
-            margin-bottom: 20px;
+        .modal-header {
+            padding: 24px 28px;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h2 {
+            color: var(--primary);
+            font-size: 22px;
+            font-weight: 700;
             display: flex;
             align-items: center;
             gap: 10px;
+            margin: 0;
+        }
+        
+        .modal-body {
+            padding: 28px;
+        }
+        
+        .modal-footer {
+            padding: 20px 28px;
+            border-top: 2px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: var(--bg);
+            border-radius: 0 0 24px 24px;
         }
         
         .modal-close {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: none;
+            background: var(--bg-alt);
             border: none;
-            color: var(--text-light);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
             font-size: 24px;
             cursor: pointer;
+            color: var(--text-light);
         }
+        .modal-close:hover { background: var(--border); color: var(--text); }
         
         .detail-row {
             display: flex;
-            padding: 12px 0;
+            padding: 14px 0;
             border-bottom: 1px solid var(--border);
         }
         .detail-label {
             width: 140px;
             font-weight: 600;
             color: var(--text-light);
+            font-size: 14px;
         }
         .detail-value {
             flex: 1;
@@ -270,18 +335,18 @@
         
         .severity-badge {
             display: inline-block;
-            padding: 4px 12px;
+            padding: 6px 14px;
             border-radius: 20px;
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 700;
         }
-        .severity-low { background: #166534; color: #bbf7d0; }
-        .severity-medium { background: #854d0e; color: #fef08a; }
-        .severity-high { background: #c2410c; color: #fed7aa; }
-        .severity-critical { background: #991b1b; color: #fecaca; }
+        .severity-low { background: var(--success-light); color: #065f46; }
+        .severity-medium { background: var(--warning-light); color: #92400e; }
+        .severity-high { background: #fed7aa; color: #c2410c; }
+        .severity-critical { background: var(--danger-light); color: #991b1b; }
         
-        .status-active { color: var(--danger); }
-        .status-resolved { color: var(--success); }
+        .status-active { color: var(--danger); font-weight: 600; }
+        .status-resolved { color: var(--success); font-weight: 600; }
         .status-cancelled { color: var(--text-light); }
         
         @media (max-width: 768px) {
@@ -295,11 +360,15 @@
 <body>
     <header>
         <div class="header-content">
-            <div class="logo">
-                <h1>🔐 Obonato Admin</h1>
-                <span>Database Management Portal</span>
-            </div>
+            <a href="index.html" class="logo">
+                <span style="font-size: 32px;">🔐</span>
+                <div>
+                    <h1>Obonato Admin</h1>
+                    <span>Database Management Portal</span>
+                </div>
+            </a>
             <div class="header-right">
+                <span class="admin-badge">ADMIN</span>
                 <span id="connectionStatus" class="status-badge status-disconnected">Not Connected</span>
             </div>
         </div>
@@ -347,7 +416,7 @@
                 <h3>📧 Email Notifications (Optional)</h3>
                 <div class="alert alert-info">
                     Set up EmailJS to send email notifications when SOS alerts are created. 
-                    <a href="https://www.emailjs.com/" target="_blank" style="color: #93c5fd;">Get free account →</a>
+                    <a href="https://www.emailjs.com/" target="_blank" style="color: #1e40af; font-weight: 600;">Get free account →</a>
                 </div>
                 
                 <div class="form-group">
