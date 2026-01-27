@@ -3,82 +3,938 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Obonato - I exist because you exist</title>
+    <title>Obonato - I exist because you exist | Community Safety Network for Travellers</title>
+    <meta name="description" content="Obonato connects adventure travellers with local helpers for emergencies, breakdowns, and social meetups. Join our community-powered safety network.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #1F4788;
+            --primary-dark: #163560;
+            --primary-light: #2d5aa3;
+            --accent: #f59e0b;
+            --accent-dark: #d97706;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #ffffff;
+            --bg-alt: #f8fafc;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+        }
+        
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1F4788 0%, #0f172a 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--primary);
+        }
+        .nav-logo-icon {
+            font-size: 32px;
+        }
+        .nav-logo-text h1 {
+            font-size: 24px;
+            font-weight: 800;
+        }
+        .nav-logo-text span {
+            font-size: 11px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+        
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 500;
+            font-size: 15px;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--primary); }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        .btn-accent {
+            background: var(--accent);
+            color: white;
+        }
+        .btn-accent:hover {
+            background: var(--accent-dark);
+        }
+        .btn-large {
+            padding: 16px 32px;
+            font-size: 17px;
+        }
+        
+        /* Hero Section */
+        .hero {
             min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            display: flex;
+            align-items: center;
+            padding: 120px 24px 80px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.5;
+        }
+        
+        .hero-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .hero-content {
+            color: white;
+        }
+        
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+        
+        .hero h1 {
+            font-size: 56px;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+        
+        .hero-tagline {
+            font-size: 20px;
+            opacity: 0.9;
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .hero-stats {
+            display: flex;
+            gap: 40px;
+            margin-top: 48px;
+            padding-top: 32px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+        .hero-stat {
+            text-align: center;
+        }
+        .hero-stat-number {
+            font-size: 36px;
+            font-weight: 800;
+        }
+        .hero-stat-label {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .hero-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .hero-phone {
+            background: white;
+            border-radius: 40px;
+            padding: 12px;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.3);
+            transform: perspective(1000px) rotateY(-5deg);
+        }
+        .hero-phone-screen {
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 32px;
+            width: 280px;
+            height: 560px;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .phone-sos-btn {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #ef4444, #dc2626);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 36px;
+            font-weight: 800;
+            margin-top: 60px;
+            box-shadow: 0 0 0 8px rgba(239,68,68,0.3), 0 20px 40px rgba(0,0,0,0.3);
+        }
+        .phone-sos-btn span {
+            font-size: 12px;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+        .phone-status {
+            color: #10b981;
+            font-size: 14px;
+            margin-top: 30px;
+        }
+        .phone-helpers {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 20px;
+            width: 100%;
+        }
+        .phone-helper-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+            font-size: 13px;
+            padding: 8px 0;
+        }
+        .phone-helper-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary);
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
         }
-        .container {
-            background: white;
-            border-radius: 20px;
-            padding: 50px;
-            max-width: 600px;
-            width: 100%;
+        
+        /* Features Section */
+        .features {
+            padding: 100px 24px;
+            background: var(--bg-alt);
+        }
+        
+        .section-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .section-header {
             text-align: center;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            max-width: 700px;
+            margin: 0 auto 60px;
         }
-        .logo { font-size: 48px; margin-bottom: 10px; }
-        h1 { color: #1F4788; font-size: 36px; margin-bottom: 10px; }
-        .tagline { color: #64748b; font-size: 18px; margin-bottom: 40px; }
-        .buttons { display: flex; flex-direction: column; gap: 16px; }
-        .btn {
-            display: block;
-            padding: 20px 40px;
-            border-radius: 12px;
-            text-decoration: none;
+        .section-header h2 {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            color: var(--primary);
+        }
+        .section-header p {
             font-size: 18px;
-            font-weight: 600;
-            transition: transform 0.2s, box-shadow 0.2s;
+            color: var(--text-light);
         }
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
         }
-        .btn-user {
-            background: linear-gradient(135deg, #1F4788, #3b82f6);
+        
+        .feature-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        
+        .feature-card h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+        .feature-card p {
+            color: var(--text-light);
+            font-size: 15px;
+        }
+        
+        /* How It Works */
+        .how-it-works {
+            padding: 100px 24px;
+            background: white;
+        }
+        
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 32px;
+            margin-top: 60px;
+        }
+        
+        .step {
+            text-align: center;
+            position: relative;
+        }
+        .step::after {
+            content: '→';
+            position: absolute;
+            right: -20px;
+            top: 40px;
+            font-size: 24px;
+            color: var(--border);
+        }
+        .step:last-child::after { display: none; }
+        
+        .step-number {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
             color: white;
+            font-size: 32px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
         }
-        .btn-admin {
-            background: linear-gradient(135deg, #7c3aed, #a855f7);
-            color: white;
+        .step h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
         }
-        .note {
-            margin-top: 40px;
-            padding: 20px;
-            background: #f1f5f9;
-            border-radius: 12px;
+        .step p {
             font-size: 14px;
-            color: #64748b;
+            color: var(--text-light);
         }
-        .note strong { color: #1F4788; }
+        
+        /* Traveler Types */
+        .traveler-types {
+            padding: 100px 24px;
+            background: var(--primary);
+            color: white;
+        }
+        
+        .traveler-types .section-header h2 {
+            color: white;
+        }
+        .traveler-types .section-header p {
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .types-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+        
+        .type-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        .type-card:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.3);
+            transform: translateY(-4px);
+        }
+        
+        .type-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        .type-card h3 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        /* CTA Section */
+        .cta {
+            padding: 100px 24px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+            text-align: center;
+            color: white;
+        }
+        
+        .cta h2 {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+        .cta p {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 32px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-white {
+            background: white;
+            color: var(--accent-dark);
+        }
+        .btn-white:hover {
+            background: #f8fafc;
+        }
+        
+        /* Footer */
+        footer {
+            background: #0f172a;
+            color: white;
+            padding: 60px 24px 30px;
+        }
+        
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .footer-brand h3 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        .footer-brand p {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .footer-column h4 {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+            color: #94a3b8;
+        }
+        .footer-column a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            font-size: 15px;
+            padding: 6px 0;
+            transition: color 0.2s;
+        }
+        .footer-column a:hover { color: var(--accent); }
+        
+        .footer-bottom {
+            border-top: 1px solid #1e293b;
+            padding-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #64748b;
+            font-size: 14px;
+        }
+        
+        /* Mobile Menu */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero-container { grid-template-columns: 1fr; text-align: center; }
+            .hero-visual { display: none; }
+            .hero h1 { font-size: 42px; }
+            .hero-buttons { justify-content: center; }
+            .hero-stats { justify-content: center; }
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
+            .steps { grid-template-columns: repeat(2, 1fr); }
+            .step::after { display: none; }
+            .types-grid { grid-template-columns: repeat(2, 1fr); }
+            .footer-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .nav-buttons { display: none; }
+            .mobile-menu-btn { display: block; }
+            .hero { padding: 100px 24px 60px; }
+            .hero h1 { font-size: 32px; }
+            .hero-tagline { font-size: 16px; }
+            .hero-stats { flex-direction: column; gap: 20px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .steps { grid-template-columns: 1fr; }
+            .types-grid { grid-template-columns: 1fr; }
+            .section-header h2 { font-size: 32px; }
+            .cta h2 { font-size: 28px; }
+            .footer-grid { grid-template-columns: 1fr; }
+            .footer-bottom { flex-direction: column; gap: 16px; text-align: center; }
+        }
+        
+        /* Mobile Menu Overlay */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+            z-index: 2000;
+            padding: 24px;
+            flex-direction: column;
+        }
+        .mobile-menu.active { display: flex; }
+        .mobile-menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+        .mobile-menu-close {
+            background: none;
+            border: none;
+            font-size: 32px;
+            cursor: pointer;
+        }
+        .mobile-menu-links {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .mobile-menu-links a {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text);
+            text-decoration: none;
+        }
+        .mobile-menu-buttons {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="logo">🌍</div>
-        <h1>Obonato</h1>
-        <p class="tagline">I exist because you exist</p>
-        
-        <div class="buttons">
-            <a href="obonato_user_portal.html" class="btn btn-user">
-                👤 User Portal
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="#" class="nav-logo">
+                <span class="nav-logo-icon">🌍</span>
+                <div class="nav-logo-text">
+                    <h1>Obonato</h1>
+                    <span>I exist because you exist</span>
+                </div>
             </a>
-            <a href="obonato_admin_portal.html" class="btn btn-admin">
-                🔐 Admin Portal
-            </a>
+            
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#travelers">For Travelers</a>
+                <a href="#about">About</a>
+            </div>
+            
+            <div class="nav-buttons">
+                <a href="obonato_user_portal.html" class="btn btn-outline">Sign In</a>
+                <a href="obonato_user_portal.html" class="btn btn-primary">Get Started</a>
+            </div>
+            
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
         </div>
-        
-        <div class="note">
-            <strong>Beta Testing Version</strong><br>
-            This is a test environment for the Obonato community support network.
+    </nav>
+    
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-header">
+            <span style="font-size: 24px; font-weight: 800; color: var(--primary);">🌍 Obonato</span>
+            <button class="mobile-menu-close" onclick="toggleMobileMenu()">×</button>
+        </div>
+        <div class="mobile-menu-links">
+            <a href="#features" onclick="toggleMobileMenu()">Features</a>
+            <a href="#how-it-works" onclick="toggleMobileMenu()">How It Works</a>
+            <a href="#travelers" onclick="toggleMobileMenu()">For Travelers</a>
+            <a href="#about" onclick="toggleMobileMenu()">About</a>
+        </div>
+        <div class="mobile-menu-buttons">
+            <a href="obonato_user_portal.html" class="btn btn-outline btn-large" style="justify-content: center;">Sign In</a>
+            <a href="obonato_user_portal.html" class="btn btn-primary btn-large" style="justify-content: center;">Get Started Free</a>
         </div>
     </div>
+    
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="hero-badge">🚀 Now in Beta Testing</div>
+                <h1>Your Global Safety Network for Adventure Travel</h1>
+                <p class="hero-tagline">
+                    Connect with local helpers anywhere in the world. Whether you're broken down, 
+                    need a place to stay, or just want to meet fellow travelers — Obonato has your back.
+                </p>
+                <div class="hero-buttons">
+                    <a href="obonato_user_portal.html" class="btn btn-accent btn-large">Get Started Free →</a>
+                    <a href="#how-it-works" class="btn btn-outline btn-large" style="border-color: white; color: white;">See How It Works</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <div class="hero-stat-number">24/7</div>
+                        <div class="hero-stat-label">Community Support</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-number">100%</div>
+                        <div class="hero-stat-label">Free Safety Features</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-number">🌍</div>
+                        <div class="hero-stat-label">Global Network</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="hero-visual">
+                <div class="hero-phone">
+                    <div class="hero-phone-screen">
+                        <div class="phone-sos-btn">
+                            🚨 SOS
+                            <span>Hold for 3 seconds</span>
+                        </div>
+                        <div class="phone-status">● 5 helpers nearby</div>
+                        <div class="phone-helpers">
+                            <div class="phone-helper-item">
+                                <div class="phone-helper-avatar">👤</div>
+                                <div>
+                                    <div style="font-weight: 600;">Mike S.</div>
+                                    <div style="opacity: 0.7; font-size: 11px;">2.3 km • Has trailer</div>
+                                </div>
+                            </div>
+                            <div class="phone-helper-item">
+                                <div class="phone-helper-avatar">👤</div>
+                                <div>
+                                    <div style="font-weight: 600;">Sarah T.</div>
+                                    <div style="opacity: 0.7; font-size: 11px;">4.1 km • Garage space</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="section-container">
+            <div class="section-header">
+                <h2>Everything You Need on the Road</h2>
+                <p>Obonato connects you with a community of travelers and locals ready to help — wherever your adventure takes you.</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🚨</div>
+                    <h3>Emergency SOS</h3>
+                    <p>One-touch SOS alerts nearby helpers with your location. Get help fast when you need it most.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🔧</div>
+                    <h3>Breakdown Assistance</h3>
+                    <p>Find locals with trailers, workshops, or mechanical skills to get you back on the road.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🏠</div>
+                    <h3>Accommodation</h3>
+                    <p>Connect with community members offering camping spots, spare rooms, or local advice.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🍺</div>
+                    <h3>Social Meetups</h3>
+                    <p>Never travel alone. Find fellow adventurers for a drink, dinner, or local exploration.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">💡</div>
+                    <h3>Local Knowledge</h3>
+                    <p>Get insider tips on routes, mechanics, great roads, and hidden gems from locals who know.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">⭐</div>
+                    <h3>Verified Community</h3>
+                    <p>Every interaction is reviewed. Build trust through real-world connections and feedback.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- How It Works -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="section-container">
+            <div class="section-header">
+                <h2>How Obonato Works</h2>
+                <p>Getting help or helping others is simple. Here's how our community-powered network operates.</p>
+            </div>
+            
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Create Profile</h3>
+                    <p>Sign up and tell us about yourself, your vehicle, and what help you can offer.</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Set Availability</h3>
+                    <p>Mark yourself available when you can help, with the services you can provide.</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Find or Get Help</h3>
+                    <p>Search for nearby helpers or send an SOS when you need assistance.</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>Give Feedback</h3>
+                    <p>Rate your experience to build community trust and help others find great helpers.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Traveler Types -->
+    <section class="traveler-types" id="travelers">
+        <div class="section-container">
+            <div class="section-header">
+                <h2>Built for Every Adventure</h2>
+                <p>Whether you ride, cycle, sail, or hike — Obonato connects you with the right community.</p>
+            </div>
+            
+            <div class="types-grid">
+                <div class="type-card">
+                    <div class="type-icon">🏍️</div>
+                    <h3>Motorcyclists</h3>
+                </div>
+                <div class="type-card">
+                    <div class="type-icon">🚴</div>
+                    <h3>Cyclists</h3>
+                </div>
+                <div class="type-card">
+                    <div class="type-icon">🚙</div>
+                    <h3>Overlanders</h3>
+                </div>
+                <div class="type-card">
+                    <div class="type-icon">⛵</div>
+                    <h3>Sailors</h3>
+                </div>
+                <div class="type-card">
+                    <div class="type-icon">🥾</div>
+                    <h3>Hikers</h3>
+                </div>
+                <div class="type-card">
+                    <div class="type-icon">🚛</div>
+                    <h3>Truck Drivers</h3>
+                </div>
+                <div class="type-card">
+                    <div class="type-icon">🚐</div>
+                    <h3>RV / Campervan</h3>
+                </div>
+                <div class="type-card">
+                    <div class="type-icon">👍</div>
+                    <h3>Hitchhikers</h3>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="section-container">
+            <h2>Ready to Join the Community?</h2>
+            <p>Start connecting with fellow travelers and local helpers today. It's free to join and free to use for all safety features.</p>
+            <div class="cta-buttons">
+                <a href="obonato_user_portal.html" class="btn btn-white btn-large">Get Started Free →</a>
+                <a href="obonato_user_portal.html" class="btn btn-outline btn-large" style="border-color: white; color: white;">Sign In</a>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer id="about">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <h3>🌍 Obonato</h3>
+                    <p>"I exist because you exist"</p>
+                    <p>A community-powered safety network inspired by the Ubuntu philosophy of mutual support and human connection.</p>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Product</h4>
+                    <a href="#features">Features</a>
+                    <a href="#how-it-works">How It Works</a>
+                    <a href="#travelers">For Travelers</a>
+                    <a href="obonato_user_portal.html">Sign Up</a>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Support</h4>
+                    <a href="#">Help Center</a>
+                    <a href="#">Safety Tips</a>
+                    <a href="#">Contact Us</a>
+                    <a href="#">Report Issue</a>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Legal</h4>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cookie Policy</a>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <div>© 2026 Obonato. All rights reserved.</div>
+                <div>Made with ❤️ in New Zealand</div>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        function toggleMobileMenu() {
+            document.getElementById('mobileMenu').classList.toggle('active');
+        }
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
 </body>
 </html>
