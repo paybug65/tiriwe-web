@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Obonato - I exist because you exist</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #1F4788;
+            --primary-dark: #163560;
+            --accent: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text-light: #64748b;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 0 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 64px;
+        }
+        
+        .logo h1 { font-size: 24px; font-weight: 700; }
+        .logo span { font-size: 11px; opacity: 0.8; display: block; }
+        
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-connected { background: var(--success); }
+        .status-disconnected { background: var(--danger); }
+        
+        .user-info { font-size: 14px; }
+        .btn-signout {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .btn-signout:hover { background: rgba(255,255,255,0.3); }
+        
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: var(--card);
+            border-radius: 12px 12px 0 0;
+            overflow-x: auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .tab {
+            padding: 16px 24px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-light);
+            white-space: nowrap;
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+        .tab:hover { color: var(--primary); background: #f1f5f9; }
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: white;
+        }
+        
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            background: var(--card);
+            padding: 30px;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            min-height: 500px;
+        }
+        .tab-content.active { display: block; }
+        
+        /* Cards */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .card h3 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: var(--primary);
+        }
+        
+        /* Forms */
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .form-hint {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 6px;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { opacity: 0.9; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { opacity: 0.9; }
+        .btn-secondary { background: var(--border); color: var(--text); }
+        .btn-secondary:hover { background: #cbd5e1; }
+        
+        .btn-group { display: flex; gap: 12px; flex-wrap: wrap; }
+        
+        /* Alerts */
+        .alert {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .alert-warning { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .alert-info { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+        
+        /* Grid */
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        
+        /* SOS Button */
+        .sos-container { text-align: center; padding: 40px; }
+        .sos-button {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #ff4444, #cc0000);
+            border: none;
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 10px 40px rgba(255,0,0,0.4);
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+        .sos-button:hover { transform: scale(1.05); }
+        .sos-button.holding {
+            background: linear-gradient(145deg, #ff6666, #ff0000);
+            transform: scale(0.95);
+        }
+        .sos-button span { font-size: 14px; margin-top: 8px; font-weight: normal; }
+        .sos-progress {
+            width: 200px;
+            height: 8px;
+            background: #ddd;
+            border-radius: 4px;
+            margin: 20px auto;
+            overflow: hidden;
+        }
+        .sos-progress-bar {
+            height: 100%;
+            background: var(--danger);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        
+        /* Helper Cards */
+        .helper-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        .helper-card h4 { margin-bottom: 8px; }
+        .helper-card .distance { color: var(--text-light); font-size: 14px; }
+        .helper-card .services { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+        .helper-card .service-tag {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        
+        /* Checkbox group */
+        .checkbox-group { display: flex; flex-wrap: wrap; gap: 16px; }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checkbox-item input { width: 18px; height: 18px; cursor: pointer; }
+        .checkbox-item label { cursor: pointer; font-size: 14px; }
+        
+        /* Table */
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: #f8fafc; font-weight: 600; font-size: 13px; color: var(--text-light); }
+        
+        /* Hide/Show */
+        .hidden { display: none !important; }
+        
+        /* Loading */
+        .loading { text-align: center; padding: 40px; color: var(--text-light); }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .tabs { flex-wrap: nowrap; }
+            .tab { padding: 12px 16px; font-size: 13px; }
+            .grid-2 { grid-template-columns: 1fr; }
+            .header-content { flex-direction: column; height: auto; padding: 12px 0; gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <h1>🌍 Obonato</h1>
+                <span>I exist because you exist</span>
+            </div>
+            <div class="header-right">
+                <span id="connectionStatus" class="status-badge status-disconnected">Not Connected</span>
+                <div id="userArea" class="hidden">
+                    <span class="user-info" id="userEmail"></span>
+                    <button class="btn-signout" onclick="signOut()">Sign Out</button>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Navigation Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('settings')">⚙️ Settings</button>
+            <button class="tab" onclick="showTab('auth')">🔐 Sign In</button>
+            <button class="tab" onclick="showTab('profile')">👤 Profile</button>
+            <button class="tab" onclick="showTab('availability')">📍 Availability</button>
+            <button class="tab" onclick="showTab('helpers')">🔍 Find Helpers</button>
+            <button class="tab" onclick="showTab('sos')">🚨 SOS</button>
+            <button class="tab" onclick="showTab('messages')">💬 Messages</button>
+        </div>
+        
+        <!-- Settings Tab -->
+        <div id="settings" class="tab-content active">
+            <div class="card">
+                <h3>⚙️ Database Connection</h3>
+                <div class="alert alert-info">
+                    <strong>Setup Instructions:</strong><br>
+                    1. Go to <a href="https://supabase.com" target="_blank">supabase.com</a> → Your Project<br>
+                    2. Click <strong>Settings</strong> → <strong>API</strong><br>
+                    3. Copy the <strong>Project URL</strong> and <strong>anon public key</strong>
+                </div>
+                
+                <div class="form-group">
+                    <label>Supabase Project URL</label>
+                    <input type="text" class="form-control" id="supabaseUrl" placeholder="https://xxxxx.supabase.co">
+                </div>
+                
+                <div class="form-group">
+                    <label>Supabase Anon Key</label>
+                    <input type="password" class="form-control" id="supabaseKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+                    <div class="form-hint">This is the "anon" public key - safe to use in browsers</div>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="testConnection()">🔍 Test Connection</button>
+                    <button class="btn btn-success" onclick="saveConnection()">💾 Save & Connect</button>
+                    <button class="btn btn-secondary" onclick="clearConnection()">🗑️ Clear Saved</button>
+                </div>
+                
+                <div id="connectionResult" style="margin-top: 20px;"></div>
+            </div>
+            
+            <div class="card">
+                <h3>📊 Database Status</h3>
+                <div id="dbStatus">
+                    <p class="loading">Connect to database to see status...</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Auth Tab -->
+        <div id="auth" class="tab-content">
+            <div class="grid-2">
+                <div class="card">
+                    <h3>🔐 Sign In</h3>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" class="form-control" id="signInEmail" placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" class="form-control" id="signInPassword" placeholder="Your password">
+                    </div>
+                    <button class="btn btn-primary" onclick="signIn()">Sign In</button>
+                    <div id="signInResult" style="margin-top: 16px;"></div>
+                </div>
+                
+                <div class="card">
+                    <h3>📝 Sign Up</h3>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" class="form-control" id="signUpEmail" placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" class="form-control" id="signUpPassword" placeholder="Min 6 characters">
+                    </div>
+                    <div class="form-group">
+                        <label>Display Name</label>
+                        <input type="text" class="form-control" id="signUpName" placeholder="How others will see you">
+                    </div>
+                    <button class="btn btn-success" onclick="signUp()">Create Account</button>
+                    <div id="signUpResult" style="margin-top: 16px;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Profile Tab -->
+        <div id="profile" class="tab-content">
+            <div class="card">
+                <h3>👤 Your Profile</h3>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input type="text" class="form-control" id="profileFirstName">
+                    </div>
+                    <div class="form-group">
+                        <label>Surname</label>
+                        <input type="text" class="form-control" id="profileSurname">
+                    </div>
+                    <div class="form-group">
+                        <label>Known As / Display Name</label>
+                        <input type="text" class="form-control" id="profileKnownAs">
+                    </div>
+                    <div class="form-group">
+                        <label>Mobile Phone</label>
+                        <input type="tel" class="form-control" id="profileMobile">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" class="form-control" id="profileEmail" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Country</label>
+                        <input type="text" class="form-control" id="profileCountry">
+                    </div>
+                </div>
+                
+                <h4 style="margin: 24px 0 16px;">🚗 Traveler Type</h4>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="typeMoto">
+                        <label for="typeMoto">🏍️ Motorcyclist</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="typeCyclist">
+                        <label for="typeCyclist">🚴 Cyclist</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="type4wd">
+                        <label for="type4wd">🚙 4WD / Overlander</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="typeYacht">
+                        <label for="typeYacht">⛵ Yachtie / Sailor</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="typeHiker">
+                        <label for="typeHiker">🥾 Hiker / Backpacker</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="typeTrucker">
+                        <label for="typeTrucker">🚛 Truck Driver</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="typeRV">
+                        <label for="typeRV">🚐 RV / Campervan</label>
+                    </div>
+                </div>
+                
+                <h4 style="margin: 24px 0 16px;">🚨 Emergency Contact</h4>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Emergency Contact Name</label>
+                        <input type="text" class="form-control" id="emergencyName">
+                    </div>
+                    <div class="form-group">
+                        <label>Emergency Contact Phone</label>
+                        <input type="tel" class="form-control" id="emergencyPhone">
+                    </div>
+                </div>
+                
+                <h4 style="margin: 24px 0 16px;">🏥 Medical Information</h4>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Allergies</label>
+                        <textarea class="form-control" id="profileAllergies" rows="2" placeholder="Any allergies helpers should know about"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Medical Conditions</label>
+                        <textarea class="form-control" id="profileMedical" rows="2" placeholder="Any conditions helpers should know about"></textarea>
+                    </div>
+                </div>
+                
+                <div class="btn-group" style="margin-top: 24px;">
+                    <button class="btn btn-primary" onclick="saveProfile()">💾 Save Profile</button>
+                </div>
+                <div id="profileResult" style="margin-top: 16px;"></div>
+            </div>
+        </div>
+        
+        <!-- Availability Tab -->
+        <div id="availability" class="tab-content">
+            <div class="card">
+                <h3>📍 Your Location & Availability</h3>
+                
+                <div class="form-group">
+                    <label>Current Location</label>
+                    <div class="btn-group" style="margin-bottom: 12px;">
+                        <button class="btn btn-secondary" onclick="getCurrentLocation()">📍 Use My Current Location</button>
+                    </div>
+                    <div class="grid-2">
+                        <input type="text" class="form-control" id="availLat" placeholder="Latitude (e.g., -36.8485)">
+                        <input type="text" class="form-control" id="availLng" placeholder="Longitude (e.g., 174.7633)">
+                    </div>
+                    <div class="form-hint">Your location helps others find you when they need assistance</div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Location Description</label>
+                    <input type="text" class="form-control" id="availLocation" placeholder="e.g., Auckland, New Zealand">
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="availActive" checked> I am available to help others
+                    </label>
+                </div>
+                
+                <h4 style="margin: 24px 0 16px;">🤝 Services You Can Provide</h4>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="canPickup">
+                        <label for="canPickup">🚗 Pickup / Rescue / Trailer</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="canGarage">
+                        <label for="canGarage">🔧 Garage / Workshop Space</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="canStay">
+                        <label for="canStay">🏠 Accommodation / Camping</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="canMeet">
+                        <label for="canMeet">🍺 Meet for Drinks / Dinner</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="canAdvice">
+                        <label for="canAdvice">💡 Local Knowledge / Advice</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="canHelp">
+                        <label for="canHelp">🆘 General Help (fuel, directions)</label>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-top: 24px;">
+                    <label>Maximum Help Radius (km)</label>
+                    <input type="number" class="form-control" id="availRadius" value="50" style="width: 150px;">
+                </div>
+                
+                <div class="form-group">
+                    <label>Additional Notes</label>
+                    <textarea class="form-control" id="availNotes" rows="3" placeholder="Anything else helpers should know..."></textarea>
+                </div>
+                
+                <button class="btn btn-primary" onclick="saveAvailability()">💾 Update Availability</button>
+                <div id="availResult" style="margin-top: 16px;"></div>
+            </div>
+        </div>
+        
+        <!-- Find Helpers Tab -->
+        <div id="helpers" class="tab-content">
+            <div class="card">
+                <h3>🔍 Find Nearby Helpers</h3>
+                
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Your Location</label>
+                        <button class="btn btn-secondary" onclick="getSearchLocation()">📍 Use Current Location</button>
+                        <div class="grid-2" style="margin-top: 12px;">
+                            <input type="text" class="form-control" id="searchLat" placeholder="Latitude">
+                            <input type="text" class="form-control" id="searchLng" placeholder="Longitude">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Search Radius (km)</label>
+                        <input type="number" class="form-control" id="searchRadius" value="50">
+                    </div>
+                </div>
+                
+                <h4 style="margin: 16px 0;">Filter by Service Needed</h4>
+                <div class="checkbox-group" style="margin-bottom: 20px;">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="needPickup">
+                        <label for="needPickup">🚗 Pickup / Rescue</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="needGarage">
+                        <label for="needGarage">🔧 Garage / Workshop</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="needStay">
+                        <label for="needStay">🏠 Accommodation</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="needMeet">
+                        <label for="needMeet">🍺 Social Meetup</label>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" onclick="searchHelpers()">🔍 Search for Helpers</button>
+            </div>
+            
+            <div id="helperResults">
+                <p class="loading">Enter your location and click search to find helpers...</p>
+            </div>
+        </div>
+        
+        <!-- SOS Tab -->
+        <div id="sos" class="tab-content">
+            <div class="card">
+                <h3>🚨 Emergency SOS</h3>
+                <div class="alert alert-warning">
+                    <strong>Important:</strong> For life-threatening emergencies, always call local emergency services first (000, 111, 911, etc.)
+                </div>
+                
+                <div class="sos-container">
+                    <button class="sos-button" id="sosButton" 
+                            onmousedown="startSOS()" 
+                            onmouseup="cancelSOS()" 
+                            onmouseleave="cancelSOS()"
+                            ontouchstart="startSOS()" 
+                            ontouchend="cancelSOS()">
+                        🚨 SOS
+                        <span>Hold for 3 seconds</span>
+                    </button>
+                    <div class="sos-progress">
+                        <div class="sos-progress-bar" id="sosProgress"></div>
+                    </div>
+                    <p id="sosStatus" style="margin-top: 16px; color: var(--text-light);"></p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>📝 Create Help Request</h3>
+                <div class="form-group">
+                    <label>Type of Help Needed</label>
+                    <select class="form-control" id="sosType">
+                        <option value="breakdown">🔧 Breakdown</option>
+                        <option value="accident">💥 Accident</option>
+                        <option value="medical">🏥 Medical</option>
+                        <option value="stuck">🚙 Stuck (mud/sand)</option>
+                        <option value="fuel">⛽ Out of Fuel</option>
+                        <option value="lost">🗺️ Lost / Need Directions</option>
+                        <option value="unsafe">⚠️ Feeling Unsafe</option>
+                        <option value="other">❓ Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Severity</label>
+                    <select class="form-control" id="sosSeverity">
+                        <option value="low">Low - Not urgent</option>
+                        <option value="medium">Medium - Need help today</option>
+                        <option value="high">High - Need help soon</option>
+                        <option value="critical">Critical - Emergency</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea class="form-control" id="sosDescription" rows="3" placeholder="Describe your situation..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Your Location</label>
+                    <button class="btn btn-secondary" onclick="getSOSLocation()" style="margin-bottom: 12px;">📍 Get Current Location</button>
+                    <div class="grid-2">
+                        <input type="text" class="form-control" id="sosLat" placeholder="Latitude">
+                        <input type="text" class="form-control" id="sosLng" placeholder="Longitude">
+                    </div>
+                </div>
+                <button class="btn btn-danger" onclick="createSOSAlert()">🚨 Send Help Request</button>
+                <div id="sosResult" style="margin-top: 16px;"></div>
+            </div>
+            
+            <div class="card">
+                <h3>📋 Active SOS Alerts Nearby</h3>
+                <button class="btn btn-secondary" onclick="loadNearbyAlerts()" style="margin-bottom: 16px;">🔄 Refresh Alerts</button>
+                <div id="alertsList">
+                    <p class="loading">Click refresh to load nearby alerts...</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Messages Tab -->
+        <div id="messages" class="tab-content">
+            <div class="card">
+                <h3>💬 Messages</h3>
+                <div class="alert alert-info">
+                    Messaging allows you to communicate with helpers without sharing personal contact details.
+                </div>
+                <div id="messagesList">
+                    <p class="loading">Sign in to view your messages...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let supabase = null;
+        let currentUser = null;
+        let sosTimer = null;
+        let sosStartTime = null;
+        
+        // Tab navigation
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        // Load saved credentials on page load
+        window.onload = function() {
+            const savedUrl = localStorage.getItem('obonato_supabase_url');
+            const savedKey = localStorage.getItem('obonato_supabase_key');
+            
+            if (savedUrl && savedKey) {
+                document.getElementById('supabaseUrl').value = savedUrl;
+                document.getElementById('supabaseKey').value = savedKey;
+                initSupabase(savedUrl, savedKey);
+            }
+        };
+        
+        // Initialize Supabase
+        function initSupabase(url, key) {
+            try {
+                supabase = window.supabase.createClient(url, key);
+                updateConnectionStatus(true);
+                checkAuth();
+                loadDatabaseStatus();
+                return true;
+            } catch (error) {
+                console.error('Supabase init error:', error);
+                updateConnectionStatus(false);
+                return false;
+            }
+        }
+        
+        // Test connection
+        async function testConnection() {
+            const url = document.getElementById('supabaseUrl').value.trim();
+            const key = document.getElementById('supabaseKey').value.trim();
+            const resultDiv = document.getElementById('connectionResult');
+            
+            if (!url || !key) {
+                resultDiv.innerHTML = '<div class="alert alert-danger">Please enter both URL and Key</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div class="alert alert-info">Testing connection...</div>';
+            
+            try {
+                const testClient = window.supabase.createClient(url, key);
+                const { data, error } = await testClient.from('profiles').select('count', { count: 'exact', head: true });
+                
+                if (error && !error.message.includes('does not exist')) {
+                    throw error;
+                }
+                
+                resultDiv.innerHTML = '<div class="alert alert-success">✅ Connection successful! Click "Save & Connect" to continue.</div>';
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="alert alert-danger">❌ Connection failed: ${error.message}</div>`;
+            }
+        }
+        
+        // Save connection
+        function saveConnection() {
+            const url = document.getElementById('supabaseUrl').value.trim();
+            const key = document.getElementById('supabaseKey').value.trim();
+            const resultDiv = document.getElementById('connectionResult');
+            
+            if (!url || !key) {
+                resultDiv.innerHTML = '<div class="alert alert-danger">Please enter both URL and Key</div>';
+                return;
+            }
+            
+            localStorage.setItem('obonato_supabase_url', url);
+            localStorage.setItem('obonato_supabase_key', key);
+            
+            if (initSupabase(url, key)) {
+                resultDiv.innerHTML = '<div class="alert alert-success">✅ Connected and saved! You can now sign in.</div>';
+            }
+        }
+        
+        // Clear connection
+        function clearConnection() {
+            localStorage.removeItem('obonato_supabase_url');
+            localStorage.removeItem('obonato_supabase_key');
+            document.getElementById('supabaseUrl').value = '';
+            document.getElementById('supabaseKey').value = '';
+            supabase = null;
+            updateConnectionStatus(false);
+            document.getElementById('connectionResult').innerHTML = '<div class="alert alert-info">Credentials cleared.</div>';
+        }
+        
+        // Update connection status
+        function updateConnectionStatus(connected) {
+            const badge = document.getElementById('connectionStatus');
+            if (connected) {
+                badge.textContent = 'Connected';
+                badge.className = 'status-badge status-connected';
+            } else {
+                badge.textContent = 'Not Connected';
+                badge.className = 'status-badge status-disconnected';
+            }
+        }
+        
+        // Load database status
+        async function loadDatabaseStatus() {
+            if (!supabase) return;
+            
+            const statusDiv = document.getElementById('dbStatus');
+            statusDiv.innerHTML = '<p class="loading">Loading database status...</p>';
+            
+            try {
+                const tables = ['profiles', 'user_availability', 'sos_alerts', 'messages', 'feedback'];
+                let html = '<table><tr><th>Table</th><th>Status</th><th>Records</th></tr>';
+                
+                for (const table of tables) {
+                    try {
+                        const { count, error } = await supabase.from(table).select('*', { count: 'exact', head: true });
+                        if (error) {
+                            html += `<tr><td>${table}</td><td>❌ Error</td><td>-</td></tr>`;
+                        } else {
+                            html += `<tr><td>${table}</td><td>✅ OK</td><td>${count || 0}</td></tr>`;
+                        }
+                    } catch (e) {
+                        html += `<tr><td>${table}</td><td>❌ Not Found</td><td>-</td></tr>`;
+                    }
+                }
+                
+                html += '</table>';
+                statusDiv.innerHTML = html;
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="alert alert-danger">Error loading status: ${error.message}</div>`;
+            }
+        }
+        
+        // Check authentication
+        async function checkAuth() {
+            if (!supabase) return;
+            
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                currentUser = user;
+                document.getElementById('userArea').classList.remove('hidden');
+                document.getElementById('userEmail').textContent = user.email;
+                document.getElementById('profileEmail').value = user.email;
+                loadProfile();
+                loadAvailability();
+            }
+        }
+        
+        // Sign In
+        async function signIn() {
+            if (!supabase) {
+                alert('Please connect to database first');
+                return;
+            }
+            
+            const email = document.getElementById('signInEmail').value;
+            const password = document.getElementById('signInPassword').value;
+            const resultDiv = document.getElementById('signInResult');
+            
+            resultDiv.innerHTML = '<div class="alert alert-info">Signing in...</div>';
+            
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            
+            if (error) {
+                resultDiv.innerHTML = `<div class="alert alert-danger">❌ ${error.message}</div>`;
+            } else {
+                currentUser = data.user;
+                document.getElementById('userArea').classList.remove('hidden');
+                document.getElementById('userEmail').textContent = data.user.email;
+                document.getElementById('profileEmail').value = data.user.email;
+                resultDiv.innerHTML = '<div class="alert alert-success">✅ Signed in successfully!</div>';
+                loadProfile();
+                loadAvailability();
+            }
+        }
+        
+        // Sign Up
+        async function signUp() {
+            if (!supabase) {
+                alert('Please connect to database first');
+                return;
+            }
+            
+            const email = document.getElementById('signUpEmail').value;
+            const password = document.getElementById('signUpPassword').value;
+            const displayName = document.getElementById('signUpName').value;
+            const resultDiv = document.getElementById('signUpResult');
+            
+            resultDiv.innerHTML = '<div class="alert alert-info">Creating account...</div>';
+            
+            const { data, error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: { display_name: displayName }
+                }
+            });
+            
+            if (error) {
+                resultDiv.innerHTML = `<div class="alert alert-danger">❌ ${error.message}</div>`;
+            } else {
+                resultDiv.innerHTML = '<div class="alert alert-success">✅ Account created! Check your email for verification link, then sign in.</div>';
+            }
+        }
+        
+        // Sign Out
+        async function signOut() {
+            if (!supabase) return;
+            await supabase.auth.signOut();
+            currentUser = null;
+            document.getElementById('userArea').classList.add('hidden');
+            document.getElementById('userEmail').textContent = '';
+        }
+        
+        // Get current location
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        document.getElementById('availLat').value = position.coords.latitude.toFixed(6);
+                        document.getElementById('availLng').value = position.coords.longitude.toFixed(6);
+                    },
+                    (error) => alert('Could not get location: ' + error.message)
+                );
+            } else {
+                alert('Geolocation not supported');
+            }
+        }
+        
+        function getSearchLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        document.getElementById('searchLat').value = position.coords.latitude.toFixed(6);
+                        document.getElementById('searchLng').value = position.coords.longitude.toFixed(6);
+                    },
+                    (error) => alert('Could not get location: ' + error.message)
+                );
+            }
+        }
+        
+        function getSOSLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        document.getElementById('sosLat').value = position.coords.latitude.toFixed(6);
+                        document.getElementById('sosLng').value = position.coords.longitude.toFixed(6);
+                    },
+                    (error) => alert('Could not get location: ' + error.message)
+                );
+            }
+        }
+        
+        // Load profile
+        async function loadProfile() {
+            if (!supabase || !currentUser) return;
+            
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+            
+            if (data) {
+                document.getElementById('profileFirstName').value = data.first_name || '';
+                document.getElementById('profileSurname').value = data.last_name || '';
+                document.getElementById('profileKnownAs').value = data.display_name || '';
+                document.getElementById('profileMobile').value = data.phone || '';
+                document.getElementById('profileCountry').value = data.country || '';
+                document.getElementById('emergencyName').value = data.emergency_contact_name || '';
+                document.getElementById('emergencyPhone').value = data.emergency_contact_phone || '';
+                document.getElementById('profileAllergies').value = data.allergies || '';
+                document.getElementById('profileMedical').value = data.medical_conditions || '';
+            }
+        }
+        
+        // Save profile
+        async function saveProfile() {
+            if (!supabase || !currentUser) {
+                alert('Please sign in first');
+                return;
+            }
+            
+            const resultDiv = document.getElementById('profileResult');
+            resultDiv.innerHTML = '<div class="alert alert-info">Saving...</div>';
+            
+            const profileData = {
+                id: currentUser.id,
+                first_name: document.getElementById('profileFirstName').value,
+                last_name: document.getElementById('profileSurname').value,
+                display_name: document.getElementById('profileKnownAs').value,
+                phone: document.getElementById('profileMobile').value,
+                country: document.getElementById('profileCountry').value,
+                emergency_contact_name: document.getElementById('emergencyName').value,
+                emergency_contact_phone: document.getElementById('emergencyPhone').value,
+                allergies: document.getElementById('profileAllergies').value,
+                medical_conditions: document.getElementById('profileMedical').value,
+                updated_at: new Date().toISOString()
+            };
+            
+            const { error } = await supabase
+                .from('profiles')
+                .upsert(profileData);
+            
+            if (error) {
+                resultDiv.innerHTML = `<div class="alert alert-danger">❌ ${error.message}</div>`;
+            } else {
+                resultDiv.innerHTML = '<div class="alert alert-success">✅ Profile saved!</div>';
+            }
+        }
+        
+        // Load availability
+        async function loadAvailability() {
+            if (!supabase || !currentUser) return;
+            
+            const { data, error } = await supabase
+                .from('user_availability')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .single();
+            
+            if (data) {
+                document.getElementById('availActive').checked = data.is_available;
+                document.getElementById('availLocation').value = data.current_location_name || '';
+                document.getElementById('availRadius').value = data.max_help_radius_km || 50;
+                document.getElementById('availNotes').value = data.notes || '';
+                document.getElementById('canPickup').checked = data.can_pickup;
+                document.getElementById('canGarage').checked = data.can_provide_garage;
+                document.getElementById('canStay').checked = data.can_provide_accommodation;
+                document.getElementById('canMeet').checked = data.can_meet_for_drinks;
+                document.getElementById('canAdvice').checked = data.can_provide_local_advice;
+                document.getElementById('canHelp').checked = data.can_provide_help;
+            }
+        }
+        
+        // Save availability
+        async function saveAvailability() {
+            if (!supabase || !currentUser) {
+                alert('Please sign in first');
+                return;
+            }
+            
+            const resultDiv = document.getElementById('availResult');
+            resultDiv.innerHTML = '<div class="alert alert-info">Saving...</div>';
+            
+            const lat = parseFloat(document.getElementById('availLat').value);
+            const lng = parseFloat(document.getElementById('availLng').value);
+            
+            const availData = {
+                user_id: currentUser.id,
+                is_available: document.getElementById('availActive').checked,
+                current_location_name: document.getElementById('availLocation').value,
+                latitude: isNaN(lat) ? null : lat,
+                longitude: isNaN(lng) ? null : lng,
+                max_help_radius_km: parseInt(document.getElementById('availRadius').value) || 50,
+                notes: document.getElementById('availNotes').value,
+                can_pickup: document.getElementById('canPickup').checked,
+                can_provide_garage: document.getElementById('canGarage').checked,
+                can_provide_accommodation: document.getElementById('canStay').checked,
+                can_meet_for_drinks: document.getElementById('canMeet').checked,
+                can_provide_local_advice: document.getElementById('canAdvice').checked,
+                can_provide_help: document.getElementById('canHelp').checked,
+                updated_at: new Date().toISOString()
+            };
+            
+            const { error } = await supabase
+                .from('user_availability')
+                .upsert(availData, { onConflict: 'user_id' });
+            
+            if (error) {
+                resultDiv.innerHTML = `<div class="alert alert-danger">❌ ${error.message}</div>`;
+            } else {
+                resultDiv.innerHTML = '<div class="alert alert-success">✅ Availability updated!</div>';
+            }
+        }
+        
+        // Search helpers
+        async function searchHelpers() {
+            if (!supabase) {
+                alert('Please connect to database first');
+                return;
+            }
+            
+            const resultsDiv = document.getElementById('helperResults');
+            resultsDiv.innerHTML = '<p class="loading">Searching...</p>';
+            
+            const lat = parseFloat(document.getElementById('searchLat').value);
+            const lng = parseFloat(document.getElementById('searchLng').value);
+            const radius = parseInt(document.getElementById('searchRadius').value) || 50;
+            
+            if (isNaN(lat) || isNaN(lng)) {
+                resultsDiv.innerHTML = '<div class="alert alert-danger">Please enter your location first</div>';
+                return;
+            }
+            
+            try {
+                // Get available helpers
+                let query = supabase
+                    .from('user_availability')
+                    .select(`
+                        *,
+                        profiles (display_name, first_name)
+                    `)
+                    .eq('is_available', true);
+                
+                // Add service filters
+                if (document.getElementById('needPickup').checked) query = query.eq('can_pickup', true);
+                if (document.getElementById('needGarage').checked) query = query.eq('can_provide_garage', true);
+                if (document.getElementById('needStay').checked) query = query.eq('can_provide_accommodation', true);
+                if (document.getElementById('needMeet').checked) query = query.eq('can_meet_for_drinks', true);
+                
+                const { data, error } = await query;
+                
+                if (error) throw error;
+                
+                if (!data || data.length === 0) {
+                    resultsDiv.innerHTML = '<div class="alert alert-info">No helpers found matching your criteria. Try increasing the search radius.</div>';
+                    return;
+                }
+                
+                // Filter by distance (simple calculation)
+                const helpersInRange = data.filter(h => {
+                    if (!h.latitude || !h.longitude) return false;
+                    const dist = getDistance(lat, lng, h.latitude, h.longitude);
+                    h.distance = dist;
+                    return dist <= radius;
+                }).sort((a, b) => a.distance - b.distance);
+                
+                if (helpersInRange.length === 0) {
+                    resultsDiv.innerHTML = '<div class="alert alert-info">No helpers found within ' + radius + 'km. Try increasing the search radius.</div>';
+                    return;
+                }
+                
+                let html = '';
+                helpersInRange.forEach(h => {
+                    const name = h.profiles?.display_name || h.profiles?.first_name || 'Anonymous Helper';
+                    const services = [];
+                    if (h.can_pickup) services.push('🚗 Pickup');
+                    if (h.can_provide_garage) services.push('🔧 Garage');
+                    if (h.can_provide_accommodation) services.push('🏠 Stay');
+                    if (h.can_meet_for_drinks) services.push('🍺 Meetup');
+                    if (h.can_provide_local_advice) services.push('💡 Advice');
+                    
+                    html += `
+                        <div class="helper-card">
+                            <h4>${name}</h4>
+                            <p class="distance">📍 ${h.distance.toFixed(1)} km away - ${h.current_location_name || 'Location not specified'}</p>
+                            <div class="services">
+                                ${services.map(s => `<span class="service-tag">${s}</span>`).join('')}
+                            </div>
+                            ${h.notes ? `<p style="margin-top: 12px; color: var(--text-light);">${h.notes}</p>` : ''}
+                            <button class="btn btn-primary" style="margin-top: 12px;" onclick="contactHelper('${h.user_id}')">💬 Contact</button>
+                        </div>
+                    `;
+                });
+                
+                resultsDiv.innerHTML = html;
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+            }
+        }
+        
+        // Calculate distance between two points
+        function getDistance(lat1, lng1, lat2, lng2) {
+            const R = 6371; // Earth's radius in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLng/2) * Math.sin(dLng/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+        
+        // Contact helper
+        function contactHelper(userId) {
+            alert('Messaging feature: This would open a conversation with the helper.\n\nUser ID: ' + userId);
+        }
+        
+        // SOS Functions
+        function startSOS() {
+            const btn = document.getElementById('sosButton');
+            const progress = document.getElementById('sosProgress');
+            const status = document.getElementById('sosStatus');
+            
+            btn.classList.add('holding');
+            sosStartTime = Date.now();
+            status.textContent = 'Hold for 3 seconds to send SOS...';
+            
+            sosTimer = setInterval(() => {
+                const elapsed = Date.now() - sosStartTime;
+                const percent = Math.min((elapsed / 3000) * 100, 100);
+                progress.style.width = percent + '%';
+                
+                if (elapsed >= 3000) {
+                    cancelSOS();
+                    triggerSOS();
+                }
+            }, 50);
+        }
+        
+        function cancelSOS() {
+            const btn = document.getElementById('sosButton');
+            const progress = document.getElementById('sosProgress');
+            const status = document.getElementById('sosStatus');
+            
+            btn.classList.remove('holding');
+            progress.style.width = '0%';
+            status.textContent = '';
+            
+            if (sosTimer) {
+                clearInterval(sosTimer);
+                sosTimer = null;
+            }
+        }
+        
+        async function triggerSOS() {
+            const status = document.getElementById('sosStatus');
+            status.textContent = '🚨 SOS TRIGGERED! Alerting nearby helpers...';
+            status.style.color = 'var(--danger)';
+            status.style.fontWeight = 'bold';
+            
+            // Get location and create alert
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    await createSOSFromButton(position.coords.latitude, position.coords.longitude);
+                }, () => {
+                    status.textContent = '⚠️ Could not get location. Please use the form below to send help request.';
+                });
+            }
+        }
+        
+        async function createSOSFromButton(lat, lng) {
+            if (!supabase || !currentUser) {
+                alert('Please sign in first');
+                return;
+            }
+            
+            const { error } = await supabase.from('sos_alerts').insert({
+                user_id: currentUser.id,
+                alert_type: 'emergency',
+                severity: 'critical',
+                description: 'EMERGENCY SOS - Immediate assistance needed',
+                latitude: lat,
+                longitude: lng,
+                status: 'active',
+                created_at: new Date().toISOString()
+            });
+            
+            if (error) {
+                document.getElementById('sosStatus').textContent = '❌ Error sending SOS: ' + error.message;
+            } else {
+                document.getElementById('sosStatus').textContent = '✅ SOS sent! Nearby helpers have been notified.';
+            }
+        }
+        
+        // Create SOS alert from form
+        async function createSOSAlert() {
+            if (!supabase || !currentUser) {
+                alert('Please sign in first');
+                return;
+            }
+            
+            const resultDiv = document.getElementById('sosResult');
+            resultDiv.innerHTML = '<div class="alert alert-info">Sending alert...</div>';
+            
+            const { error } = await supabase.from('sos_alerts').insert({
+                user_id: currentUser.id,
+                alert_type: document.getElementById('sosType').value,
+                severity: document.getElementById('sosSeverity').value,
+                description: document.getElementById('sosDescription').value,
+                latitude: parseFloat(document.getElementById('sosLat').value) || null,
+                longitude: parseFloat(document.getElementById('sosLng').value) || null,
+                status: 'active',
+                created_at: new Date().toISOString()
+            });
+            
+            if (error) {
+                resultDiv.innerHTML = `<div class="alert alert-danger">❌ ${error.message}</div>`;
+            } else {
+                resultDiv.innerHTML = '<div class="alert alert-success">✅ Help request sent! Nearby helpers will be notified.</div>';
+                document.getElementById('sosDescription').value = '';
+            }
+        }
+        
+        // Load nearby alerts
+        async function loadNearbyAlerts() {
+            if (!supabase) {
+                alert('Please connect to database first');
+                return;
+            }
+            
+            const listDiv = document.getElementById('alertsList');
+            listDiv.innerHTML = '<p class="loading">Loading alerts...</p>';
+            
+            try {
+                const { data, error } = await supabase
+                    .from('sos_alerts')
+                    .select(`*, profiles (display_name)`)
+                    .eq('status', 'active')
+                    .order('created_at', { ascending: false })
+                    .limit(20);
+                
+                if (error) throw error;
+                
+                if (!data || data.length === 0) {
+                    listDiv.innerHTML = '<div class="alert alert-info">No active alerts nearby. Stay safe!</div>';
+                    return;
+                }
+                
+                let html = '<table><tr><th>Type</th><th>Severity</th><th>Description</th><th>Time</th><th>Action</th></tr>';
+                data.forEach(alert => {
+                    const time = new Date(alert.created_at).toLocaleString();
+                    html += `
+                        <tr>
+                            <td>${alert.alert_type}</td>
+                            <td><span style="color: ${alert.severity === 'critical' ? 'var(--danger)' : 'inherit'};">${alert.severity}</span></td>
+                            <td>${alert.description || '-'}</td>
+                            <td>${time}</td>
+                            <td><button class="btn btn-success" onclick="respondToAlert('${alert.id}')">🤝 Help</button></td>
+                        </tr>
+                    `;
+                });
+                html += '</table>';
+                listDiv.innerHTML = html;
+            } catch (error) {
+                listDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+            }
+        }
+        
+        function respondToAlert(alertId) {
+            alert('Respond to alert: ' + alertId + '\n\nThis would mark you as a responder and open communication with the person in need.');
+        }
+    </script>
+</body>
+</html>
