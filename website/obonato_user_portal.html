@@ -579,11 +579,13 @@
         function updateGPSDisplay(target){const lat=parseFloat(document.getElementById(target==='home'?'profileHomeLat':`${target}Lat`).value),lng=parseFloat(document.getElementById(target==='home'?'profileHomeLng':`${target}Lng`).value);if(!isNaN(lat)&&!isNaN(lng))renderGPSDisplay(target,lat,lng)}
         
         // Initialization
+        let defaultMapLocation = [-36.8485, 174.7633]; // Default to Auckland, will be updated when user loads
+        
         window.onload=function(){initDatabase();checkURLParams();setTimeout(initMaps,200)};
         function checkURLParams(){if(new URLSearchParams(window.location.search).get('mode')==='signup')showSignUp();else showSignIn()}
         function initDatabase(){try{db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);updateConnectionStatus(true);checkAuth()}catch(e){updateConnectionStatus(false)}}
         function initMaps(){
-            const v=[-36.8485,174.7633];
+            const v = defaultMapLocation;
             try{
                 helpersMap=L.map('helpersMap',{scrollWheelZoom:true}).setView(v,10);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(helpersMap);
@@ -605,6 +607,15 @@
                     if(dashboardMap)dashboardMap.invalidateSize();
                 },300);
             }catch(e){console.error('Map init error:',e)}
+        }
+        
+        // Update all maps to user's location
+        function updateMapsToUserLocation(lat, lng){
+            defaultMapLocation = [lat, lng];
+            if(helpersMap) helpersMap.setView([lat, lng], 11);
+            if(availMap) availMap.setView([lat, lng], 12);
+            if(dashboardMap) dashboardMap.setView([lat, lng], 11);
+            // Don't update homeMap here - it gets updated specifically when home location is set
         }
         function updateConnectionStatus(c){const b=document.getElementById('connectionStatus');b.textContent=c?'Connected':'Disconnected';b.className='status-badge '+(c?'status-connected':'status-disconnected')}
         
@@ -683,23 +694,106 @@
         }
         
         function captureHomeGPS(){if(navigator.geolocation)navigator.geolocation.getCurrentPosition(p=>{const lat=p.coords.latitude,lng=p.coords.longitude;document.getElementById('profileHomeLat').value=lat.toFixed(6);document.getElementById('profileHomeLng').value=lng.toFixed(6);document.getElementById('homeManualEntry').classList.remove('hidden');renderGPSDisplay('home',lat,lng);homeMap.setView([lat,lng],14);if(homeMarker)homeMap.removeLayer(homeMarker);homeMarker=L.marker([lat,lng]).addTo(homeMap)},e=>alert('Error: '+e.message),{enableHighAccuracy:true})}
+        
         function getLocation(target,source){
-            if(source==='home'&&userProfile&&userProfile.home_latitude){
-                const lat=userProfile.home_latitude,lng=userProfile.home_longitude;
-                if(target==='avail'){document.getElementById('availLat').value=lat;document.getElementById('availLng').value=lng;document.getElementById('availLocation').value=`${userProfile.suburb||''}, ${userProfile.city||''}`.replace(/^,|,$/g,'').trim();renderGPSDisplay('avail',lat,lng);availMap.setView([lat,lng],12);if(availMarker)availMap.removeLayer(availMarker);availMarker=L.marker([lat,lng]).addTo(availMap)}
-                else if(target==='search'){document.getElementById('searchLat').value=lat;document.getElementById('searchLng').value=lng;document.getElementById('searchManualEntry').classList.remove('hidden');renderGPSDisplay('search',lat,lng);helpersMap.setView([lat,lng],11)}
-                else if(target==='sos'){document.getElementById('sosLat').value=lat;document.getElementById('sosLng').value=lng;renderGPSDisplay('sos',lat,lng)}
-            }else if(source==='gps'&&navigator.geolocation){
-                navigator.geolocation.getCurrentPosition(p=>{const lat=p.coords.latitude,lng=p.coords.longitude;
-                    if(target==='avail'){document.getElementById('availLat').value=lat.toFixed(6);document.getElementById('availLng').value=lng.toFixed(6);renderGPSDisplay('avail',lat,lng);availMap.setView([lat,lng],12);if(availMarker)availMap.removeLayer(availMarker);availMarker=L.marker([lat,lng]).addTo(availMap)}
-                    else if(target==='search'){document.getElementById('searchLat').value=lat.toFixed(6);document.getElementById('searchLng').value=lng.toFixed(6);document.getElementById('searchManualEntry').classList.remove('hidden');renderGPSDisplay('search',lat,lng);helpersMap.setView([lat,lng],11)}
-                    else if(target==='sos'){document.getElementById('sosLat').value=lat.toFixed(6);document.getElementById('sosLng').value=lng.toFixed(6);renderGPSDisplay('sos',lat,lng)}
-                },e=>alert('Error: '+e.message),{enableHighAccuracy:true})
+            if(source==='home'){
+                // Check if we have home coordinates - either from userProfile or from the form fields
+                let lat = userProfile?.home_latitude || parseFloat(document.getElementById('profileHomeLat')?.value);
+                let lng = userProfile?.home_longitude || parseFloat(document.getElementById('profileHomeLng')?.value);
+                
+                if(!lat || !lng || isNaN(lat) || isNaN(lng)){
+                    alert('Home location not set. Please set your Home Location in your Profile first, then Save Profile.');
+                    return;
+                }
+                
+                const locationName = `${userProfile?.suburb||''}, ${userProfile?.city||''}`.replace(/^,\s*|,\s*$/g,'').trim() || 'Home';
+                
+                if(target==='avail'){
+                    document.getElementById('availLat').value=lat;
+                    document.getElementById('availLng').value=lng;
+                    document.getElementById('availManualEntry').classList.remove('hidden');
+                    document.getElementById('availLocation').value=locationName;
+                    renderGPSDisplay('avail',lat,lng);
+                    availMap.setView([lat,lng],12);
+                    if(availMarker)availMap.removeLayer(availMarker);
+                    availMarker=L.marker([lat,lng]).addTo(availMap);
+                }
+                else if(target==='search'){
+                    document.getElementById('searchLat').value=lat;
+                    document.getElementById('searchLng').value=lng;
+                    document.getElementById('searchManualEntry').classList.remove('hidden');
+                    renderGPSDisplay('search',lat,lng);
+                    helpersMap.setView([lat,lng],11);
+                }
+                else if(target==='sos'){
+                    document.getElementById('sosLat').value=lat;
+                    document.getElementById('sosLng').value=lng;
+                    renderGPSDisplay('sos',lat,lng);
+                }
+            }
+            else if(source==='gps'){
+                if(!navigator.geolocation){
+                    alert('Geolocation is not supported by your browser');
+                    return;
+                }
+                navigator.geolocation.getCurrentPosition(p=>{
+                    const lat=p.coords.latitude,lng=p.coords.longitude;
+                    if(target==='avail'){
+                        document.getElementById('availLat').value=lat.toFixed(6);
+                        document.getElementById('availLng').value=lng.toFixed(6);
+                        document.getElementById('availManualEntry').classList.remove('hidden');
+                        renderGPSDisplay('avail',lat,lng);
+                        availMap.setView([lat,lng],12);
+                        if(availMarker)availMap.removeLayer(availMarker);
+                        availMarker=L.marker([lat,lng]).addTo(availMap);
+                    }
+                    else if(target==='search'){
+                        document.getElementById('searchLat').value=lat.toFixed(6);
+                        document.getElementById('searchLng').value=lng.toFixed(6);
+                        document.getElementById('searchManualEntry').classList.remove('hidden');
+                        renderGPSDisplay('search',lat,lng);
+                        helpersMap.setView([lat,lng],11);
+                    }
+                    else if(target==='sos'){
+                        document.getElementById('sosLat').value=lat.toFixed(6);
+                        document.getElementById('sosLng').value=lng.toFixed(6);
+                        renderGPSDisplay('sos',lat,lng);
+                    }
+                },e=>alert('Error getting location: '+e.message),{enableHighAccuracy:true});
             }
         }
         
         // Profile
-        async function loadProfile(){if(!currentUser)return;const{data}=await db.from('profiles').select('*').eq('id',currentUser.id).single();if(data){userProfile=data;document.getElementById('profileFirstName').value=data.first_name||'';document.getElementById('profileSurname').value=data.last_name||'';document.getElementById('profileMobile').value=data.phone||'';document.getElementById('profileCountry').value=data.country||'';document.getElementById('profileSuburb').value=data.suburb||'';document.getElementById('profileCity').value=data.city||'';document.getElementById('profilePostCode').value=data.post_code||'';document.getElementById('emergencyName').value=data.emergency_contact_name||'';document.getElementById('emergencyPhone').value=data.emergency_contact_phone||'';document.getElementById('emergencyEmail').value=data.emergency_contact_email||'';if(data.home_latitude&&data.home_longitude){document.getElementById('profileHomeLat').value=data.home_latitude;document.getElementById('profileHomeLng').value=data.home_longitude;document.getElementById('homeManualEntry').classList.remove('hidden');renderGPSDisplay('home',data.home_latitude,data.home_longitude);homeMap.setView([data.home_latitude,data.home_longitude],14);if(homeMarker)homeMap.removeLayer(homeMarker);homeMarker=L.marker([data.home_latitude,data.home_longitude]).addTo(homeMap)}if(data.unit_distance)selectRadio('unitDistance',data.unit_distance);if(data.unit_temperature)selectRadio('unitTemp',data.unit_temperature)}}
+        async function loadProfile(){
+            if(!currentUser)return;
+            const{data}=await db.from('profiles').select('*').eq('id',currentUser.id).single();
+            if(data){
+                userProfile=data;
+                document.getElementById('profileFirstName').value=data.first_name||'';
+                document.getElementById('profileSurname').value=data.last_name||'';
+                document.getElementById('profileMobile').value=data.phone||'';
+                document.getElementById('profileCountry').value=data.country||'';
+                document.getElementById('profileSuburb').value=data.suburb||'';
+                document.getElementById('profileCity').value=data.city||'';
+                document.getElementById('profilePostCode').value=data.post_code||'';
+                document.getElementById('emergencyName').value=data.emergency_contact_name||'';
+                document.getElementById('emergencyPhone').value=data.emergency_contact_phone||'';
+                document.getElementById('emergencyEmail').value=data.emergency_contact_email||'';
+                if(data.home_latitude&&data.home_longitude){
+                    document.getElementById('profileHomeLat').value=data.home_latitude;
+                    document.getElementById('profileHomeLng').value=data.home_longitude;
+                    document.getElementById('homeManualEntry').classList.remove('hidden');
+                    renderGPSDisplay('home',data.home_latitude,data.home_longitude);
+                    homeMap.setView([data.home_latitude,data.home_longitude],14);
+                    if(homeMarker)homeMap.removeLayer(homeMarker);
+                    homeMarker=L.marker([data.home_latitude,data.home_longitude]).addTo(homeMap);
+                    // Update other maps to user's home location as default
+                    updateMapsToUserLocation(data.home_latitude, data.home_longitude);
+                }
+                if(data.unit_distance)selectRadio('unitDistance',data.unit_distance);
+                if(data.unit_temperature)selectRadio('unitTemp',data.unit_temperature);
+            }
+        }
         async function handleSaveProfile(){if(!currentUser)return;const r=document.getElementById('profileResult');r.innerHTML='<div class="alert alert-info">Saving...</div>';const lat=parseFloat(document.getElementById('profileHomeLat').value),lng=parseFloat(document.getElementById('profileHomeLng').value);const d={id:currentUser.id,display_name:generateAnonymousName(currentUser.email),first_name:document.getElementById('profileFirstName').value,last_name:document.getElementById('profileSurname').value,phone:document.getElementById('profileMobile').value,country:document.getElementById('profileCountry').value,suburb:document.getElementById('profileSuburb').value,city:document.getElementById('profileCity').value,post_code:document.getElementById('profilePostCode').value,home_latitude:isNaN(lat)?null:lat,home_longitude:isNaN(lng)?null:lng,emergency_contact_name:document.getElementById('emergencyName').value,emergency_contact_phone:document.getElementById('emergencyPhone').value,emergency_contact_email:document.getElementById('emergencyEmail').value,unit_distance:document.querySelector('input[name="unitDistance"]:checked')?.value||'km',unit_temperature:document.querySelector('input[name="unitTemp"]:checked')?.value||'celsius',updated_at:new Date().toISOString()};const{error}=await db.from('profiles').upsert(d);userProfile=d;r.innerHTML=error?'<div class="alert alert-danger">❌ '+error.message+'</div>':'<div class="alert alert-success">✅ Saved!</div>'}
         function selectRadio(name,val){document.querySelectorAll(`input[name="${name}"]`).forEach(r=>{r.checked=r.value===val;r.closest('.radio-item').classList.toggle('selected',r.checked)})}
         
@@ -714,7 +808,32 @@
         async function deleteVehicle(){const id=document.getElementById('vehicleEditId').value;if(!id||!confirm('Delete?'))return;const{error}=await db.from('user_vehicles').delete().eq('id',id);if(error)alert('Error: '+error.message);else{closeVehicleModal();await loadVehicles()}}
         
         // Availability
-        async function loadAvailability(){if(!currentUser)return;const{data}=await db.from('user_availability').select('*').eq('user_id',currentUser.id).single();if(data){document.getElementById('availActive').checked=data.is_available;document.getElementById('availLocation').value=data.current_location_name||'';document.getElementById('availRadius').value=data.max_help_radius_km||50;document.getElementById('canPickup').checked=data.can_pickup;document.getElementById('canGarage').checked=data.can_provide_garage;document.getElementById('canStay').checked=data.can_provide_accommodation;document.getElementById('canMeet').checked=data.can_meet_for_drinks;document.getElementById('canAdvice').checked=data.can_provide_local_advice;document.getElementById('canHelp').checked=data.can_provide_help;if(data.latitude&&data.longitude){document.getElementById('availLat').value=data.latitude;document.getElementById('availLng').value=data.longitude;renderGPSDisplay('avail',data.latitude,data.longitude);availMap.setView([data.latitude,data.longitude],12);if(availMarker)availMap.removeLayer(availMarker);availMarker=L.marker([data.latitude,data.longitude]).addTo(availMap)}}}
+        async function loadAvailability(){
+            if(!currentUser)return;
+            const{data}=await db.from('user_availability').select('*').eq('user_id',currentUser.id).single();
+            if(data){
+                document.getElementById('availActive').checked=data.is_available;
+                document.getElementById('availLocation').value=data.current_location_name||'';
+                document.getElementById('availRadius').value=data.max_help_radius_km||50;
+                document.getElementById('canPickup').checked=data.can_pickup;
+                document.getElementById('canGarage').checked=data.can_provide_garage;
+                document.getElementById('canStay').checked=data.can_provide_accommodation;
+                document.getElementById('canMeet').checked=data.can_meet_for_drinks;
+                document.getElementById('canAdvice').checked=data.can_provide_local_advice;
+                document.getElementById('canHelp').checked=data.can_provide_help;
+                if(data.latitude&&data.longitude){
+                    document.getElementById('availLat').value=data.latitude;
+                    document.getElementById('availLng').value=data.longitude;
+                    document.getElementById('availManualEntry').classList.remove('hidden');
+                    renderGPSDisplay('avail',data.latitude,data.longitude);
+                    availMap.setView([data.latitude,data.longitude],12);
+                    if(availMarker)availMap.removeLayer(availMarker);
+                    availMarker=L.marker([data.latitude,data.longitude]).addTo(availMap);
+                    // Update other maps to user's current/availability location (overrides home)
+                    updateMapsToUserLocation(data.latitude, data.longitude);
+                }
+            }
+        }
         async function handleSaveAvailability(){if(!currentUser)return;const r=document.getElementById('availResult');r.innerHTML='<div class="alert alert-info">Saving...</div>';const lat=parseFloat(document.getElementById('availLat').value),lng=parseFloat(document.getElementById('availLng').value);const d={user_id:currentUser.id,is_available:document.getElementById('availActive').checked,current_location_name:document.getElementById('availLocation').value,latitude:isNaN(lat)?null:lat,longitude:isNaN(lng)?null:lng,max_help_radius_km:parseInt(document.getElementById('availRadius').value)||50,can_pickup:document.getElementById('canPickup').checked,can_provide_garage:document.getElementById('canGarage').checked,can_provide_accommodation:document.getElementById('canStay').checked,can_meet_for_drinks:document.getElementById('canMeet').checked,can_provide_local_advice:document.getElementById('canAdvice').checked,can_provide_help:document.getElementById('canHelp').checked,updated_at:new Date().toISOString()};const{error}=await db.from('user_availability').upsert(d,{onConflict:'user_id'});r.innerHTML=error?'<div class="alert alert-danger">❌ '+error.message+'</div>':'<div class="alert alert-success">✅ Saved!</div>'}
         
         // Dashboard
