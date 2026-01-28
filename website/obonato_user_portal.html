@@ -2996,7 +2996,7 @@
             
             console.log('loadNearbyRequests: Fetching SOS alerts...');
             // Include gender from profiles for filtering, fetch both active and help_coming statuses
-            const{data:reqs, error}=await db.from('sos_alerts').select('*, requester:profiles!sos_alerts_user_id_fkey(id, gender)').in('status', ['active', 'help_coming']);
+            const{data:reqs, error}=await db.from('sos_alerts').select('id, user_id, alert_type, severity, description, latitude, longitude, status, created_at, helper_responding_id, requester:profiles!sos_alerts_user_id_fkey(gender)').in('status', ['active', 'help_coming']);
             console.log('loadNearbyRequests: Found', reqs?.length || 0, 'alerts. Error:', error);
             
             if(error){
