@@ -228,7 +228,7 @@
         <div id="dashboard" class="tab-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3 style="margin: 0;">📊 Dashboard</h3>
-                <button class="btn btn-secondary" onclick="loadDashboard()" style="padding: 10px 20px;">🔄 Refresh</button>
+                <button class="btn btn-secondary" id="refreshDashboardBtn" onclick="refreshDashboard()" style="padding: 10px 20px;">🔄 Refresh</button>
             </div>
             <div class="stats-grid">
                 <div class="stat-card"><div class="stat-value" id="statNearbyRequests">0</div><div class="stat-label">Nearby Requests</div></div>
@@ -1411,7 +1411,7 @@
             
             const modeIcons = {offering: '🚗 Offering ride', seeking: '👍 Seeking ride', companion: '🤝 Seeking companion'};
             div.innerHTML = `<h4>${filtered.length} traveler(s) found</h4>` + filtered.map(t => {
-                const e = t.profiles?.email || 'unknown';
+                const e = t.user_id || 'unknown';
                 const dn = generateAnonymousName(e);
                 const av = generateAvatarData(e);
                 const dateStr = new Date(t.travel_date).toLocaleDateString('en-NZ', {weekday:'short', day:'numeric', month:'short'});
@@ -1446,9 +1446,30 @@
         // Dashboard
         let dashboardMarkers = [];
         
+        async function refreshDashboard(){
+            const btn = document.getElementById('refreshDashboardBtn');
+            btn.textContent = '⏳ Loading...';
+            btn.disabled = true;
+            try {
+                await loadDashboard();
+                btn.textContent = '✅ Done!';
+                setTimeout(() => { btn.textContent = '🔄 Refresh'; btn.disabled = false; }, 1500);
+            } catch(e) {
+                console.error('Dashboard refresh error:', e);
+                btn.textContent = '❌ Error';
+                setTimeout(() => { btn.textContent = '🔄 Refresh'; btn.disabled = false; }, 2000);
+            }
+        }
+        
         async function loadDashboard(){
-            if(!currentUser)return;
-            const{data:avail}=await db.from('user_availability').select('*').eq('user_id',currentUser.id).single();
+            if(!currentUser) {
+                console.log('loadDashboard: No current user');
+                return;
+            }
+            console.log('loadDashboard: Starting...');
+            
+            const{data:avail, error:availError}=await db.from('user_availability').select('*').eq('user_id',currentUser.id).single();
+            console.log('loadDashboard: My availability:', avail, 'Error:', availError);
             
             // Clear existing markers
             dashboardMarkers.forEach(m=>dashboardMap.removeLayer(m));
@@ -1468,26 +1489,45 @@
                 }).addTo(dashboardMap);
                 userMarker.bindPopup('<strong>You</strong>');
                 dashboardMarkers.push(userMarker);
+            } else {
+                console.log('loadDashboard: No availability location set');
             }
             
             await loadNearbyRequests(avail);
             await loadNearbyTravelers(avail);
             await loadDashboardStats();
+            console.log('loadDashboard: Complete');
         }
         
         async function loadNearbyRequests(avail){
             const div=document.getElementById('nearbyRequests');
             if(!avail||!avail.latitude){
-                div.innerHTML='<p style="color:var(--text-light)">Set your location first.</p>';
+                div.innerHTML='<p style="color:var(--text-light)">Set your location in Availability first.</p>';
+                document.getElementById('statNearbyRequests').textContent = 0;
                 return;
             }
-            const{data:reqs}=await db.from('sos_alerts').select('*, profiles(id, email)').eq('status','active');
+            
+            console.log('loadNearbyRequests: Fetching SOS alerts...');
+            const{data:reqs, error}=await db.from('sos_alerts').select('*, profiles(id)').eq('status','active');
+            console.log('loadNearbyRequests: Found', reqs?.length || 0, 'active alerts. Error:', error);
+            
+            if(error){
+                div.innerHTML=`<p style="color:var(--danger)">Error: ${error.message}</p>`;
+                return;
+            }
+            
             const nearby=(reqs||[]).filter(r=>{
-                if(!r.latitude)return false;
+                if(!r.latitude) {
+                    console.log('loadNearbyRequests: Alert missing coords:', r.id);
+                    return false;
+                }
                 r.distance=getDistance(avail.latitude,avail.longitude,r.latitude,r.longitude);
-                return r.distance<=(avail.max_help_radius_km||50);
+                const inRange = r.distance<=(avail.max_help_radius_km||50);
+                console.log(`loadNearbyRequests: Alert ${r.id} is ${r.distance.toFixed(1)}km away, radius=${avail.max_help_radius_km}, inRange=${inRange}`);
+                return inRange;
             }).sort((a,b)=>a.distance-b.distance);
             
+            console.log('loadNearbyRequests: Nearby alerts:', nearby.length);
             document.getElementById('statNearbyRequests').textContent=nearby.length;
             
             if(!nearby.length){
@@ -1497,7 +1537,7 @@
             
             // Add SOS markers to dashboard map
             nearby.forEach(r=>{
-                const e=r.profiles?.email||'unknown';
+                const e=r.user_id||'unknown';
                 const av=generateAvatarData(e);
                 const m=L.marker([r.latitude,r.longitude],{
                     icon:L.divIcon({
@@ -1511,7 +1551,7 @@
             });
             
             div.innerHTML=nearby.map(r=>{
-                const e=r.profiles?.email||'unknown',dn=generateAnonymousName(e),av=generateAvatarData(e);
+                const e=r.user_id||'unknown',dn=generateAnonymousName(e),av=generateAvatarData(e);
                 return`<div class="request-card ${r.severity==='critical'?'urgent':r.severity==='high'?'high':''}"><div class="request-user"><div class="request-avatar" style="background:${av.color}">${av.icon}</div><div class="request-info"><h4>${dn}</h4><p>📍 ${r.distance.toFixed(1)} km</p></div></div><p style="margin:12px 0;color:var(--text-light)">${r.description||r.alert_type}</p><button class="btn btn-success btn-sm" onclick="openRespondModal('${r.id}','${dn}','${r.alert_type}')">✅ Help</button></div>`;
             }).join('');
         }
@@ -1520,20 +1560,31 @@
             const div=document.getElementById('nearbyTravelers');
             if(!avail||!avail.latitude){
                 div.innerHTML='<p style="color:var(--text-light)">Set location first.</p>';
+                document.getElementById('statNearbyTravelers').textContent = 0;
                 return;
             }
-            const{data:travelers}=await db.from('user_availability').select('*, profiles(id, email)').eq('is_available',true).neq('user_id',currentUser.id);
+            
+            console.log('loadNearbyTravelers: Fetching...');
+            const{data:travelers, error}=await db.from('user_availability').select('*, profiles(id)').eq('is_available',true).neq('user_id',currentUser.id);
+            console.log('loadNearbyTravelers: Found', travelers?.length || 0, 'available users. Error:', error);
+            
+            if(error){
+                div.innerHTML=`<p style="color:var(--danger)">Error: ${error.message}</p>`;
+                return;
+            }
+            
             const nearby=(travelers||[]).filter(t=>{
-                if(!t.latitude)return false;
+                if(!t.latitude) return false;
                 t.distance=getDistance(avail.latitude,avail.longitude,t.latitude,t.longitude);
                 return t.distance<=(avail.max_help_radius_km||50);
             }).sort((a,b)=>a.distance-b.distance).slice(0,10);
             
+            console.log('loadNearbyTravelers: Nearby:', nearby.length);
             document.getElementById('statNearbyTravelers').textContent=nearby.length;
             
             // Add traveler markers to dashboard map
             nearby.forEach(t=>{
-                const e=t.profiles?.email||'unknown';
+                const e=t.user_id||'unknown';
                 const dn=generateAnonymousName(e);
                 const av=generateAvatarData(e);
                 const m=L.marker([t.latitude,t.longitude],{
@@ -1553,7 +1604,7 @@
             }
             
             div.innerHTML=nearby.slice(0,5).map(t=>{
-                const e=t.profiles?.email||'unknown',dn=generateAnonymousName(e),av=generateAvatarData(e);
+                const e=t.user_id||'unknown',dn=generateAnonymousName(e),av=generateAvatarData(e);
                 return`<div class="traveler-card"><div class="traveler-avatar" style="background:${av.color}">${av.icon}</div><div><h5 style="font-size:15px;margin:0 0 4px">${dn}</h5><p style="font-size:13px;color:var(--text-light);margin:0">📍 ${t.distance.toFixed(1)} km</p></div></div>`;
             }).join('');
         }
@@ -1587,7 +1638,7 @@
             userMarker.bindPopup('<strong>You</strong>');
             markers.push(userMarker);
             
-            let q=db.from('user_availability').select('*, profiles(id, email)').eq('is_available',true).neq('user_id',currentUser.id);
+            let q=db.from('user_availability').select('*, profiles(id)').eq('is_available',true).neq('user_id',currentUser.id);
             if(document.getElementById('needPickup').checked)q=q.eq('can_pickup',true);
             if(document.getElementById('needGarage').checked)q=q.eq('can_provide_garage',true);
             if(document.getElementById('needStay').checked)q=q.eq('can_provide_accommodation',true);
@@ -1613,7 +1664,7 @@
             }
             
             currentHelpers.forEach((h,i)=>{
-                const e=h.profiles?.email||'unknown';
+                const e=h.user_id||'unknown';
                 const dn=generateAnonymousName(e);
                 const av=generateAvatarData(e);
                 const m=L.marker([h.latitude,h.longitude],{
@@ -1629,7 +1680,7 @@
             
             helpersMap.fitBounds(L.featureGroup(markers).getBounds().pad(0.1));
             r.innerHTML=`<h4>${currentHelpers.length} helper(s)</h4>`+currentHelpers.map((h,i)=>{
-                const e=h.profiles?.email||'unknown';
+                const e=h.user_id||'unknown';
                 const dn=generateAnonymousName(e);
                 const av=generateAvatarData(e);
                 return`<div class="request-card" onclick="focusHelper(${i})" style="cursor:pointer"><div class="request-user"><div class="request-avatar" style="background:${av.color}">${av.icon}</div><div class="request-info"><h4>${dn}</h4><p>📍 ${h.distance.toFixed(1)} km</p></div></div><button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openContactModal(${i})">📨 Contact</button></div>`;
@@ -1638,7 +1689,7 @@
         function focusHelper(i){const h=currentHelpers[i];helpersMap.setView([h.latitude,h.longitude],14);markers[i+1].openPopup()}
         
         // Contact & Respond
-        function openContactModal(i){selectedHelper=currentHelpers[i];const e=selectedHelper.profiles?.email||'unknown',dn=generateAnonymousName(e),av=generateAvatarData(e);document.getElementById('contactHelperInfo').innerHTML=`<div style="text-align:center;padding:20px;background:var(--bg);border-radius:12px;margin-bottom:20px"><div style="width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;color:white;margin:0 auto 12px;background:${av.color}">${av.icon}</div><h3>${dn}</h3><p style="color:var(--text-light)">📍 ${selectedHelper.distance.toFixed(1)} km</p></div>`;document.getElementById('contactModal').classList.add('active')}
+        function openContactModal(i){selectedHelper=currentHelpers[i];const e=selectedHelper.user_id||'unknown',dn=generateAnonymousName(e),av=generateAvatarData(e);document.getElementById('contactHelperInfo').innerHTML=`<div style="text-align:center;padding:20px;background:var(--bg);border-radius:12px;margin-bottom:20px"><div style="width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;color:white;margin:0 auto 12px;background:${av.color}">${av.icon}</div><h3>${dn}</h3><p style="color:var(--text-light)">📍 ${selectedHelper.distance.toFixed(1)} km</p></div>`;document.getElementById('contactModal').classList.add('active')}
         function closeContactModal(){document.getElementById('contactModal').classList.remove('active');selectedHelper=null}
         async function sendContactRequest(){if(!currentUser||!selectedHelper)return;const{error}=await db.from('interactions').insert({requester_id:currentUser.id,helper_id:selectedHelper.profiles.id,interaction_type:document.getElementById('contactType').value,status:'pending',notes:document.getElementById('contactMessage').value});if(error)alert('Error: '+error.message);else{alert('✅ Sent!');closeContactModal();document.getElementById('contactMessage').value=''}}
         function openRespondModal(id,name,type){currentRespondRequest={id,name,type};document.getElementById('respondRequestInfo').innerHTML=`<div style="background:var(--bg);padding:20px;border-radius:12px;margin-bottom:20px"><h4 style="margin:0 0 8px;border:none;padding:0">Helping: ${name}</h4><p style="margin:0;color:var(--text-light)">${type}</p></div>`;document.getElementById('respondModal').classList.add('active')}
