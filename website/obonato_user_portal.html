@@ -2186,9 +2186,9 @@
             }
             
             console.log('loadNearbyRequests: Fetching SOS alerts...');
-            // Include gender from profiles for filtering
-            const{data:reqs, error}=await db.from('sos_alerts').select('*, profiles(id, gender)').eq('status','active');
-            console.log('loadNearbyRequests: Found', reqs?.length || 0, 'active alerts. Error:', error);
+            // Include gender from profiles for filtering, fetch both active and help_coming statuses
+            const{data:reqs, error}=await db.from('sos_alerts').select('*, profiles(id, gender)').in('status', ['active', 'help_coming']);
+            console.log('loadNearbyRequests: Found', reqs?.length || 0, 'alerts. Error:', error);
             
             if(error){
                 div.innerHTML=`<p style="color:var(--danger)">Error: ${error.message}</p>`;
@@ -2283,20 +2283,45 @@
                 const e=r.user_id||'unknown',dn=generateAnonymousName(e),av=generateAvatarData(e);
                 const isUrgent = r.severity === 'critical' || r.alert_type === 'emergency';
                 const isHigh = r.severity === 'high';
-                const borderColor = isUrgent ? 'var(--danger)' : isHigh ? '#f97316' : 'var(--border)';
-                const bgColor = isUrgent ? '#fef2f2' : isHigh ? '#fff7ed' : 'white';
+                const helpComing = r.status === 'help_coming';
+                
+                // Different styling if help is already coming
+                let borderColor, bgColor;
+                if(helpComing){
+                    borderColor = '#22c55e'; // Green
+                    bgColor = '#f0fdf4';     // Light green
+                } else if(isUrgent){
+                    borderColor = 'var(--danger)';
+                    bgColor = '#fef2f2';
+                } else if(isHigh){
+                    borderColor = '#f97316';
+                    bgColor = '#fff7ed';
+                } else {
+                    borderColor = 'var(--border)';
+                    bgColor = 'white';
+                }
+                
+                // Status badge
+                const statusBadge = helpComing 
+                    ? `<span style="background:#22c55e;color:white;padding:2px 6px;border-radius:8px;font-size:10px;margin-left:6px;">🚗 Help coming</span>`
+                    : '';
+                
+                // Button changes based on status
+                const actionButton = helpComing
+                    ? `<button class="btn btn-secondary btn-sm" onclick="openRespondModal('${r.id}','${dn}','${r.alert_type}')" style="padding:6px 10px;font-size:12px;flex-shrink:0;" title="Someone is already responding, but you can also help">+Help</button>`
+                    : `<button class="btn btn-success btn-sm" onclick="openRespondModal('${r.id}','${dn}','${r.alert_type}')" style="padding:6px 10px;font-size:12px;flex-shrink:0;">Help</button>`;
                 
                 return `
                 <div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;border-left:3px solid ${borderColor};background:${bgColor};margin-bottom:8px;">
                     <div style="width:36px;height:36px;border-radius:50%;background:${av.color};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">${av.icon}</div>
                     <div style="flex:1;min-width:0;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <span style="font-weight:600;font-size:13px;">${typeIcons[r.alert_type]||'❓'} ${dn}</span>
+                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
+                            <span style="font-weight:600;font-size:13px;">${typeIcons[r.alert_type]||'❓'} ${dn}${statusBadge}</span>
                             <span style="font-size:11px;color:var(--text-light);">📍${r.distance.toFixed(1)}km</span>
                         </div>
                         <p style="margin:2px 0 0;font-size:12px;color:var(--text-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.description||r.alert_type}</p>
                     </div>
-                    <button class="btn btn-success btn-sm" onclick="openRespondModal('${r.id}','${dn}','${r.alert_type}')" style="padding:6px 10px;font-size:12px;flex-shrink:0;">Help</button>
+                    ${actionButton}
                 </div>`;
             }).join('');
             
@@ -2561,7 +2586,7 @@
             if(!currentRespondRequest) return;
             
             // Get requester's user_id from the SOS alert
-            const {data: sosData} = await db.from('sos_alerts').select('user_id').eq('id', currentRespondRequest.id).single();
+            const {data: sosData} = await db.from('sos_alerts').select('user_id, status').eq('id', currentRespondRequest.id).single();
             if(!sosData){
                 alert('Error: Could not find request');
                 return;
@@ -2581,6 +2606,13 @@
                 alert('Error: '+error.message);
                 return;
             }
+            
+            // Update SOS alert status to show help is on the way
+            await db.from('sos_alerts').update({
+                status: 'help_coming',
+                helper_responding_id: currentUser.id,
+                response_time: new Date().toISOString()
+            }).eq('id', currentRespondRequest.id);
             
             // Hide form, show photo reveal
             document.getElementById('respondFormSection').classList.add('hidden');
