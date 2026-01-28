@@ -1217,7 +1217,7 @@
                     <div class="form-group"><label>ETA</label><input type="text" class="form-control" id="respondETA" placeholder="30 minutes"></div>
                 </div>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer" id="respondModalFooter">
                 <button class="btn btn-secondary" onclick="closeRespondModal()">Close</button>
                 <button class="btn btn-success" id="respondSubmitBtn" onclick="sendResponse()">✅ I'll Help!</button>
             </div>
@@ -2682,12 +2682,16 @@
             const section = document.getElementById('helpingSection');
             const list = document.getElementById('helpingList');
             
+            console.log('loadPeopleImHelping: Checking for active help...');
+            
             // Get interactions where I'm helper and status is accepted (not completed)
             const{data: interactions, error} = await db.from('interactions')
                 .select('*, sos_alerts(id, alert_type, description, latitude, longitude, created_at)')
                 .eq('helper_id', currentUser.id)
                 .eq('status', 'accepted')
                 .order('created_at', {ascending: false});
+            
+            console.log('loadPeopleImHelping: Found', interactions?.length || 0, 'active interactions', error ? 'Error: ' + error.message : '');
             
             if(error || !interactions || interactions.length === 0){
                 section.classList.add('hidden');
@@ -3145,7 +3149,7 @@
             // Reset modal state
             document.getElementById('respondPhotoReveal').classList.add('hidden');
             document.getElementById('respondFormSection').classList.remove('hidden');
-            document.getElementById('respondSubmitBtn').classList.remove('hidden');
+            document.getElementById('respondModalFooter').classList.remove('hidden');
             document.getElementById('respondMessage').value = '';
             document.getElementById('respondETA').value = '';
             document.getElementById('respondModal').classList.add('active');
@@ -3197,7 +3201,7 @@
             
             // Hide form, show photo reveal
             document.getElementById('respondFormSection').classList.add('hidden');
-            document.getElementById('respondSubmitBtn').classList.add('hidden');
+            document.getElementById('respondModalFooter').classList.add('hidden');
             
             // Load requester's photo
             const photoUrl = await getPhotoForVerifiedUser(sosData.user_id);
