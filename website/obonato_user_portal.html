@@ -260,6 +260,7 @@
             <button class="tab hidden" data-tab="availability" onclick="showTab('availability', this)">📍 Availability</button>
             <button class="tab hidden" data-tab="travel" onclick="showTab('travel', this)">🚗 Travel</button>
             <button class="tab hidden" data-tab="helpers" onclick="showTab('helpers', this)">🗺️ Find Helpers</button>
+            <button class="tab hidden" data-tab="places" onclick="showTab('places', this)">🏪 Places</button>
             <button class="tab hidden" data-tab="activity" onclick="showTab('activity', this)">📋 Activity</button>
             <button class="tab hidden sos-tab" data-tab="sos" onclick="showTab('sos', this)" id="sosTab">🚨 SOS</button>
         </div>
@@ -758,9 +759,62 @@
             </div>
         </div>
         
+        <!-- Places Tab -->
+        <div id="places" class="tab-content">
+            <div class="card">
+                <h3>🏪 Find & Review Places</h3>
+                <p style="color: var(--text-light); margin-bottom: 20px;">Find mechanics, cafes, campgrounds, and other traveler-friendly businesses recommended by the community.</p>
+                
+                <div class="grid-2" style="margin-bottom: 20px;">
+                    <div class="form-group">
+                        <label>Search</label>
+                        <input type="text" class="form-control" id="placeSearch" placeholder="Business name or type...">
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select class="form-control" id="placeCategory">
+                            <option value="">All Categories</option>
+                            <option value="mechanic">🔧 Mechanic / Workshop</option>
+                            <option value="fuel">⛽ Fuel Station</option>
+                            <option value="tyres">🛞 Tyre Shop</option>
+                            <option value="accommodation">🏨 Accommodation</option>
+                            <option value="camping">🏕️ Campground</option>
+                            <option value="cafe">☕ Cafe / Restaurant</option>
+                            <option value="parts">🔩 Parts / Accessories</option>
+                            <option value="other">📍 Other</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="location-btn-group" style="margin-bottom: 20px;">
+                    <button class="location-btn primary" onclick="searchPlacesNearMe()">📍 Near Me</button>
+                    <button class="location-btn" onclick="searchAllPlaces()">🌍 All Places</button>
+                    <button class="btn btn-accent" onclick="openAddPlaceModal()">➕ Add Place</button>
+                </div>
+                
+                <div id="placesResults">
+                    <p style="color: var(--text-light); text-align: center;">Search for places or click "Near Me" to find recommendations.</p>
+                </div>
+            </div>
+            
+            <!-- My Reviews -->
+            <div class="card">
+                <h3>⭐ My Reviews</h3>
+                <div id="myPlaceReviews">
+                    <p style="color: var(--text-light);">You haven't reviewed any places yet.</p>
+                </div>
+            </div>
+        </div>
+        
         <!-- SOS Tab -->
         <div id="sos" class="tab-content">
-            <div class="alert alert-warning">⚠️ <strong>Emergency:</strong> Call 111 (NZ) / 000 (AU) / 911 (US) first!</div>
+            <div class="alert alert-warning">⚠️ <strong>Life-threatening emergency?</strong> Call 111 (NZ) / 000 (AU) / 911 (US) first!</div>
+            
+            <!-- Incoming Help Section (for requesters) -->
+            <div id="incomingHelpSection" class="card hidden" style="margin-bottom: 24px; border-left: 4px solid var(--success);">
+                <h3>🚗 Help Is Coming!</h3>
+                <div id="incomingHelpList"></div>
+            </div>
             
             <!-- Active SOS Requests -->
             <div id="activeSOSSection" class="card hidden" style="margin-bottom: 24px; border-left: 4px solid var(--danger);">
@@ -768,26 +822,70 @@
                 <div id="activeSOSList"></div>
             </div>
             
-            <div class="sos-container">
-                <button class="sos-button" id="sosButton" onmousedown="startSOS()" onmouseup="cancelSOS()" onmouseleave="cancelSOS()" ontouchstart="startSOS()" ontouchend="cancelSOS()">🚨 SOS<span>Hold 3 seconds</span></button>
-                <div class="sos-progress"><div class="sos-progress-bar" id="sosProgress"></div></div>
-                <p id="sosStatus" style="font-size: 16px; font-weight: 600;"></p>
-            </div>
-            <div class="card">
-                <h3>📝 Help Request</h3>
-                <div class="form-group"><label>Vehicle</label><select class="form-control" id="sosVehicle"><option value="">-- Not vehicle related --</option></select></div>
-                <div class="grid-2">
-                    <div class="form-group"><label>Type</label><select class="form-control" id="sosType"><option value="breakdown">🔧 Breakdown</option><option value="accident">💥 Accident</option><option value="medical">🏥 Medical</option><option value="stuck">🚙 Stuck</option><option value="fuel">⛽ Fuel</option><option value="unsafe">⚠️ Unsafe</option><option value="other">❓ Other</option></select></div>
-                    <div class="form-group"><label>Severity</label><select class="form-control" id="sosSeverity"><option value="low">🟢 Low</option><option value="medium">🟡 Medium</option><option value="high">🟠 High</option><option value="critical">🔴 Critical</option></select></div>
+            <!-- EMERGENCY SOS -->
+            <div class="card" style="border: 2px solid var(--danger); background: linear-gradient(135deg, #fef2f2, #fee2e2);">
+                <h3 style="color: var(--danger);">🆘 Emergency SOS</h3>
+                <p style="color: var(--text-light); margin-bottom: 16px;">For urgent situations where you need immediate help from nearby Obonato members.</p>
+                <div class="sos-container">
+                    <button class="sos-button" id="sosButton" onmousedown="startSOS()" onmouseup="cancelSOS()" onmouseleave="cancelSOS()" ontouchstart="startSOS()" ontouchend="cancelSOS()">🚨 SOS<span>Hold 3 seconds</span></button>
+                    <div class="sos-progress"><div class="sos-progress-bar" id="sosProgress"></div></div>
+                    <p id="sosStatus" style="font-size: 16px; font-weight: 600;"></p>
                 </div>
-                <div class="form-group"><label>Description</label><textarea class="form-control" id="sosDescription" rows="3"></textarea></div>
+                <div class="alert alert-info" style="margin-top: 16px;">
+                    <strong>What happens:</strong> Your location is broadcast to all nearby helpers. They'll see your emergency and can respond with their ETA. You'll see their photo so you can recognize them when they arrive.
+                </div>
+            </div>
+            
+            <!-- HELP REQUEST (Non-Emergency) -->
+            <div class="card">
+                <h3>📝 Request Assistance</h3>
+                <p style="color: var(--text-light); margin-bottom: 20px;">For non-urgent help like breakdowns, needing fuel, finding a mechanic, or just wanting to meet up.</p>
+                
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>What do you need?</label>
+                        <select class="form-control" id="sosType">
+                            <option value="breakdown">🔧 Breakdown - mechanical issue</option>
+                            <option value="fuel">⛽ Fuel - ran out or need to find</option>
+                            <option value="stuck">🚙 Stuck - bogged, flat tyre, etc</option>
+                            <option value="accident">💥 Accident - minor, non-life-threatening</option>
+                            <option value="medical">🏥 Medical - non-emergency health issue</option>
+                            <option value="unsafe">⚠️ Unsafe - feeling uncomfortable</option>
+                            <option value="directions">🗺️ Directions - lost or need guidance</option>
+                            <option value="meetup">🍺 Meetup - looking for company</option>
+                            <option value="other">❓ Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>How urgent?</label>
+                        <select class="form-control" id="sosSeverity">
+                            <option value="low">🟢 Low - can wait a few hours</option>
+                            <option value="medium">🟡 Medium - within an hour ideally</option>
+                            <option value="high">🟠 High - need help soon</option>
+                            <option value="critical">🔴 Critical - urgent assistance needed</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Vehicle (optional)</label>
+                    <select class="form-control" id="sosVehicle"><option value="">-- Not vehicle related --</option></select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea class="form-control" id="sosDescription" rows="3" placeholder="What's happened? What help do you need?"></textarea>
+                </div>
                 
                 <h4>📍 Your Location</h4>
                 <div class="location-btn-group">
                     <button class="location-btn primary" onclick="getLocation('sos','gps')">📍 Current GPS</button>
                     <button class="location-btn" onclick="getLocation('sos','home')">🏠 Use Home</button>
                 </div>
-                <div class="grid-2" style="margin-bottom: 16px;"><input type="text" class="form-control" id="sosLat" placeholder="Lat" onchange="updateGPSDisplay('sos')"><input type="text" class="form-control" id="sosLng" placeholder="Lng" onchange="updateGPSDisplay('sos')"></div>
+                <div class="grid-2" style="margin-bottom: 16px;">
+                    <input type="text" class="form-control" id="sosLat" placeholder="Latitude" onchange="updateGPSDisplay('sos')">
+                    <input type="text" class="form-control" id="sosLng" placeholder="Longitude" onchange="updateGPSDisplay('sos')">
+                </div>
                 <div id="sosGPSDisplay" class="gps-display-box hidden">
                     <div class="gps-format-tabs">
                         <button class="gps-format-tab active" onclick="setGPSFormat('sos','dd')">DD</button>
@@ -797,8 +895,13 @@
                     <div id="sosGPSValues"></div>
                     <div id="sosW3W" class="w3w-row" style="margin-top: 12px;"><div class="w3w-logo">///</div><span class="value" id="sosW3WValue">loading...</span><button class="copy-btn" onclick="copyValue('sosW3WValue',this)">Copy</button></div>
                 </div>
-                <button class="btn btn-danger" onclick="handleCreateSOS()" style="margin-top: 16px;">🚨 Send Request</button>
+                
+                <button class="btn btn-danger" onclick="handleCreateSOS()" style="margin-top: 16px; width: 100%;">📤 Send Help Request</button>
                 <div id="sosResult" style="margin-top: 16px;"></div>
+                
+                <div class="alert alert-info" style="margin-top: 16px;">
+                    <strong>What happens:</strong> Nearby helpers matching your needs will be notified. When someone responds, you'll see their photo and ETA. After they help you, both parties leave feedback.
+                </div>
             </div>
         </div>
     </div>
@@ -879,6 +982,124 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeRespondModal()">Close</button>
                 <button class="btn btn-success" id="respondSubmitBtn" onclick="sendResponse()">✅ I'll Help!</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Place Modal -->
+    <div class="modal-overlay" id="addPlaceModal">
+        <div class="modal" style="max-width: 550px;">
+            <div class="modal-header"><h2>➕ Add a Place</h2><button class="modal-close" onclick="closeAddPlaceModal()">×</button></div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Business Name *</label>
+                    <input type="text" class="form-control" id="placeName" placeholder="e.g. Bob's Motorcycle Workshop">
+                </div>
+                <div class="form-group">
+                    <label>Category *</label>
+                    <select class="form-control" id="placeAddCategory">
+                        <option value="">-- Select --</option>
+                        <option value="mechanic">🔧 Mechanic / Workshop</option>
+                        <option value="fuel">⛽ Fuel Station</option>
+                        <option value="tyres">🛞 Tyre Shop</option>
+                        <option value="accommodation">🏨 Accommodation</option>
+                        <option value="camping">🏕️ Campground</option>
+                        <option value="cafe">☕ Cafe / Restaurant</option>
+                        <option value="parts">🔩 Parts / Accessories</option>
+                        <option value="other">📍 Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <input type="text" class="form-control" id="placeAddress" placeholder="123 Main Street">
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>City *</label>
+                        <input type="text" class="form-control" id="placeCity">
+                    </div>
+                    <div class="form-group">
+                        <label>Country *</label>
+                        <input type="text" class="form-control" id="placeCountry" value="New Zealand">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" class="form-control" id="placePhone">
+                    </div>
+                    <div class="form-group">
+                        <label>Website</label>
+                        <input type="url" class="form-control" id="placeWebsite" placeholder="https://...">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Location (optional)</label>
+                    <button class="btn btn-secondary btn-sm" onclick="getPlaceGPS()" style="margin-bottom: 8px;">📍 Use My Location</button>
+                    <div class="grid-2">
+                        <input type="text" class="form-control" id="placeLat" placeholder="Latitude">
+                        <input type="text" class="form-control" id="placeLng" placeholder="Longitude">
+                    </div>
+                </div>
+                <div id="addPlaceResult"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAddPlaceModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveNewPlace()">💾 Save Place</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Review Place Modal -->
+    <div class="modal-overlay" id="reviewPlaceModal">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header"><h2>⭐ Write Review</h2><button class="modal-close" onclick="closeReviewPlaceModal()">×</button></div>
+            <div class="modal-body">
+                <div id="reviewPlaceInfo" style="background: var(--bg); padding: 16px; border-radius: 12px; margin-bottom: 20px;"></div>
+                
+                <p style="font-weight: 600; margin-bottom: 12px;">Your Rating</p>
+                <div class="rating-buttons" id="placeRatingButtons">
+                    <button class="rating-btn positive" onclick="selectPlaceRating('positive')"><span class="emoji">👍</span><span class="label">Recommend</span></button>
+                    <button class="rating-btn neutral" onclick="selectPlaceRating('neutral')"><span class="emoji">😐</span><span class="label">Okay</span></button>
+                    <button class="rating-btn negative" onclick="selectPlaceRating('negative')"><span class="emoji">👎</span><span class="label">Avoid</span></button>
+                </div>
+                
+                <div class="form-group">
+                    <label>Services Used (select all that apply)</label>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                        <label class="checkbox-item" style="flex: 0 0 auto;"><input type="checkbox" value="tyres" class="serviceCheckbox"> Tyres</label>
+                        <label class="checkbox-item" style="flex: 0 0 auto;"><input type="checkbox" value="oil" class="serviceCheckbox"> Oil Change</label>
+                        <label class="checkbox-item" style="flex: 0 0 auto;"><input type="checkbox" value="brakes" class="serviceCheckbox"> Brakes</label>
+                        <label class="checkbox-item" style="flex: 0 0 auto;"><input type="checkbox" value="welding" class="serviceCheckbox"> Welding</label>
+                        <label class="checkbox-item" style="flex: 0 0 auto;"><input type="checkbox" value="electrical" class="serviceCheckbox"> Electrical</label>
+                        <label class="checkbox-item" style="flex: 0 0 auto;"><input type="checkbox" value="parts" class="serviceCheckbox"> Parts</label>
+                        <label class="checkbox-item" style="flex: 0 0 auto;"><input type="checkbox" value="fuel" class="serviceCheckbox"> Fuel</label>
+                        <label class="checkbox-item" style="flex: 0 0 auto;"><input type="checkbox" value="food" class="serviceCheckbox"> Food</label>
+                        <label class="checkbox-item" style="flex: 0 0 auto;"><input type="checkbox" value="accommodation" class="serviceCheckbox"> Stay</label>
+                        <label class="checkbox-item" style="flex: 0 0 auto;"><input type="checkbox" value="camping" class="serviceCheckbox"> Camping</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>When did you visit?</label>
+                    <input type="date" class="form-control" id="reviewVisitDate">
+                </div>
+                
+                <div class="form-group">
+                    <label>Your Review</label>
+                    <textarea class="form-control" id="reviewComment" rows="3" placeholder="What was your experience?"></textarea>
+                </div>
+                
+                <div class="checkbox-item">
+                    <input type="checkbox" id="reviewRecommend" checked>
+                    <label for="reviewRecommend">Would recommend to other travelers</label>
+                </div>
+                
+                <div id="reviewPlaceResult"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeReviewPlaceModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitPlaceReview()">📤 Submit Review</button>
             </div>
         </div>
     </div>
@@ -1022,6 +1243,7 @@
             if(tabId==='dashboard')loadDashboard();
             if(tabId==='travel')loadMyTravelPlans();
             if(tabId==='sos')loadActiveSOSRequests();
+            if(tabId==='places')loadMyPlaceReviews();
         }
         function showLoggedInTabs(){document.querySelectorAll('.tab[data-tab]').forEach(t=>{if(t.dataset.tab!=='auth')t.classList.remove('hidden')});document.querySelector('.tab[data-tab="auth"]').classList.add('hidden')}
         async function checkAuth(){if(!db)return;const{data}=await db.auth.getUser();if(data&&data.user){currentUser=data.user;await onUserLoggedIn()}}
@@ -2098,6 +2320,8 @@
         
         async function loadActiveSOSRequests(){
             if(!currentUser)return;
+            
+            // Load user's active SOS requests
             const section = document.getElementById('activeSOSSection');
             const list = document.getElementById('activeSOSList');
             
@@ -2109,32 +2333,107 @@
             
             if(error || !data || data.length === 0){
                 section.classList.add('hidden');
+            } else {
+                section.classList.remove('hidden');
+                
+                const typeIcons = {breakdown:'🔧', accident:'💥', medical:'🏥', stuck:'🚙', fuel:'⛽', unsafe:'⚠️', emergency:'🚨', directions:'🗺️', meetup:'🍺', other:'❓'};
+                const severityColors = {low:'#22c55e', medium:'#f59e0b', high:'#f97316', critical:'#ef4444'};
+                
+                list.innerHTML = data.map(s => {
+                    const created = new Date(s.created_at).toLocaleString('en-NZ', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+                    return `
+                    <div class="request-card" style="margin-bottom: 16px; border-left: 4px solid ${severityColors[s.severity] || '#ccc'};">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div>
+                                <h4 style="margin: 0 0 8px;">${typeIcons[s.alert_type] || '❓'} ${s.alert_type.charAt(0).toUpperCase() + s.alert_type.slice(1)}</h4>
+                                <p style="color: var(--text-light); font-size: 13px; margin: 0 0 8px;">📅 ${created}</p>
+                                ${s.description ? `<p style="margin: 0; color: var(--text-light);">${s.description}</p>` : ''}
+                            </div>
+                            <span class="severity-badge severity-${s.severity}">${s.severity}</span>
+                        </div>
+                        <div style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
+                            <button class="btn btn-success btn-sm" onclick="markSOSResolved('${s.id}')">✅ Resolved</button>
+                            <button class="btn btn-danger btn-sm" onclick="cancelSOSRequest('${s.id}')">❌ Cancel</button>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+            
+            // Load incoming help (responses to my SOS requests)
+            await loadIncomingHelp();
+        }
+        
+        async function loadIncomingHelp(){
+            if(!currentUser)return;
+            
+            const section = document.getElementById('incomingHelpSection');
+            const list = document.getElementById('incomingHelpList');
+            
+            // Get interactions where I'm the requester and status is accepted (helper coming)
+            const{data, error} = await db.from('interactions')
+                .select('*, sos_alerts(*)')
+                .eq('requester_id', currentUser.id)
+                .eq('status', 'accepted')
+                .order('created_at', {ascending: false});
+            
+            if(error || !data || data.length === 0){
+                section.classList.add('hidden');
                 return;
             }
             
             section.classList.remove('hidden');
             
-            const typeIcons = {breakdown:'🔧', accident:'💥', medical:'🏥', stuck:'🚙', fuel:'⛽', unsafe:'⚠️', emergency:'🚨', other:'❓'};
-            const severityColors = {low:'#22c55e', medium:'#f59e0b', high:'#f97316', critical:'#ef4444'};
-            
-            list.innerHTML = data.map(s => {
-                const created = new Date(s.created_at).toLocaleString('en-NZ', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
-                return `
-                <div class="request-card" style="margin-bottom: 16px; border-left: 4px solid ${severityColors[s.severity] || '#ccc'};">
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <div>
-                            <h4 style="margin: 0 0 8px;">${typeIcons[s.alert_type] || '❓'} ${s.alert_type.charAt(0).toUpperCase() + s.alert_type.slice(1)}</h4>
-                            <p style="color: var(--text-light); font-size: 13px; margin: 0 0 8px;">📅 ${created}</p>
-                            ${s.description ? `<p style="margin: 0; color: var(--text-light);">${s.description}</p>` : ''}
+            // Build the list with helper photos
+            let html = '';
+            for(const i of data){
+                const helperName = generateAnonymousName(i.helper_id);
+                const helperAv = generateAvatarData(i.helper_id);
+                const photoUrl = await getPhotoForVerifiedUser(i.helper_id);
+                const created = new Date(i.created_at).toLocaleString('en-NZ', {hour:'2-digit', minute:'2-digit'});
+                
+                html += `
+                <div class="request-card" style="margin-bottom: 16px; border-left: 4px solid var(--success); background: var(--success-light);">
+                    <div style="display: flex; gap: 16px; align-items: center;">
+                        <div style="width: 70px; height: 70px; border-radius: 50%; overflow: hidden; border: 3px solid var(--success); flex-shrink: 0;">
+                            ${photoUrl 
+                                ? `<img src="${photoUrl}" style="width:100%;height:100%;object-fit:cover;">` 
+                                : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:${helperAv.color};font-size:28px;color:white;">${helperAv.icon}</div>`
+                            }
                         </div>
-                        <span class="severity-badge severity-${s.severity}">${s.severity}</span>
+                        <div style="flex: 1;">
+                            <h4 style="margin: 0 0 4px; color: var(--success);">${helperName} is coming!</h4>
+                            ${i.eta ? `<p style="margin: 0 0 4px; font-weight: 600;">🕐 ETA: ${i.eta}</p>` : ''}
+                            ${i.notes ? `<p style="margin: 0; color: var(--text-light); font-size: 13px;">"${i.notes}"</p>` : ''}
+                            <p style="margin: 4px 0 0; color: var(--text-light); font-size: 12px;">Responded at ${created}</p>
+                        </div>
                     </div>
                     <div style="margin-top: 16px; display: flex; gap: 12px;">
-                        <button class="btn btn-secondary btn-sm" onclick="markSOSResolved('${s.id}')">✅ Resolved</button>
-                        <button class="btn btn-danger btn-sm" onclick="cancelSOSRequest('${s.id}')">❌ Cancel</button>
+                        <button class="btn btn-success btn-sm" onclick="markInteractionComplete('${i.id}', '${helperName}', '${i.helper_id}')">✅ They Arrived - Complete</button>
                     </div>
                 </div>`;
-            }).join('');
+            }
+            
+            list.innerHTML = html;
+        }
+        
+        async function markInteractionComplete(interactionId, helperName, helperId){
+            if(!confirm(`Confirm ${helperName} has helped you? This will mark the interaction complete and prompt for feedback.`)) return;
+            
+            const{error} = await db.from('interactions')
+                .update({status: 'completed', updated_at: new Date().toISOString()})
+                .eq('id', interactionId);
+            
+            if(error){
+                alert('Error: ' + error.message);
+                return;
+            }
+            
+            // Refresh the lists
+            await loadActiveSOSRequests();
+            await checkPendingFeedback();
+            
+            // Open feedback modal immediately
+            openFeedbackModal(interactionId, helperName, helperId);
         }
         
         async function cancelSOSRequest(id){
@@ -2148,13 +2447,303 @@
         }
         
         async function markSOSResolved(id){
-            if(!confirm('Mark this request as resolved?')) return;
+            if(!confirm('Mark this request as resolved? Any pending help responses will also be marked complete.')) return;
+            
+            // Update SOS alert
             const{error} = await db.from('sos_alerts').update({status: 'resolved', updated_at: new Date().toISOString()}).eq('id', id);
             if(error){
                 alert('Error: ' + error.message);
-            } else {
-                loadActiveSOSRequests();
+                return;
             }
+            
+            // Mark any accepted interactions as completed
+            await db.from('interactions')
+                .update({status: 'completed', updated_at: new Date().toISOString()})
+                .eq('sos_alert_id', id)
+                .eq('status', 'accepted');
+            
+            loadActiveSOSRequests();
+            checkPendingFeedback();
+        }
+        
+        // Places & Business Reviews
+        let currentPlaces = [];
+        let selectedPlace = null;
+        let selectedPlaceRating = null;
+        
+        async function searchPlacesNearMe(){
+            if(!navigator.geolocation){
+                alert('Geolocation not supported');
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(async p => {
+                await searchPlaces(p.coords.latitude, p.coords.longitude);
+            }, e => alert('Location error: ' + e.message), {enableHighAccuracy: true});
+        }
+        
+        async function searchAllPlaces(){
+            await searchPlaces(null, null);
+        }
+        
+        async function searchPlaces(lat, lng){
+            const resultsDiv = document.getElementById('placesResults');
+            resultsDiv.innerHTML = '<p style="text-align:center;color:var(--text-light)">🔍 Searching...</p>';
+            
+            const searchText = document.getElementById('placeSearch').value.toLowerCase();
+            const category = document.getElementById('placeCategory').value;
+            
+            let query = db.from('businesses').select('*, business_reviews(rating)');
+            if(category) query = query.eq('category', category);
+            
+            const {data, error} = await query.order('name');
+            
+            if(error){
+                resultsDiv.innerHTML = `<p style="color:var(--danger)">Error: ${error.message}</p>`;
+                return;
+            }
+            
+            let places = data || [];
+            
+            // Filter by search text
+            if(searchText){
+                places = places.filter(p => 
+                    p.name.toLowerCase().includes(searchText) || 
+                    (p.city && p.city.toLowerCase().includes(searchText)) ||
+                    (p.address && p.address.toLowerCase().includes(searchText))
+                );
+            }
+            
+            // Calculate distance if we have location
+            if(lat && lng){
+                places.forEach(p => {
+                    if(p.latitude && p.longitude){
+                        p.distance = getDistance(lat, lng, p.latitude, p.longitude);
+                    } else {
+                        p.distance = 99999;
+                    }
+                });
+                places.sort((a,b) => a.distance - b.distance);
+            }
+            
+            currentPlaces = places;
+            
+            if(!places.length){
+                resultsDiv.innerHTML = '<p style="text-align:center;color:var(--text-light)">No places found. Try a different search or add a new place!</p>';
+                return;
+            }
+            
+            const categoryIcons = {mechanic:'🔧', fuel:'⛽', tyres:'🛞', accommodation:'🏨', camping:'🏕️', cafe:'☕', parts:'🔩', other:'📍'};
+            
+            resultsDiv.innerHTML = `<p style="margin-bottom:16px;color:var(--text-light)">${places.length} place(s) found</p>` + 
+                places.map((p, i) => {
+                    // Calculate rating summary
+                    const reviews = p.business_reviews || [];
+                    const positive = reviews.filter(r => r.rating === 'positive').length;
+                    const total = reviews.length;
+                    const ratingText = total > 0 ? `👍 ${positive}/${total}` : 'No reviews yet';
+                    
+                    return `
+                    <div class="request-card" style="margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div>
+                                <h4 style="margin: 0 0 6px;">${categoryIcons[p.category] || '📍'} ${p.name}</h4>
+                                <p style="color: var(--text-light); font-size: 13px; margin: 0;">
+                                    ${p.city || ''}${p.city && p.country ? ', ' : ''}${p.country || ''}
+                                    ${p.distance < 99999 ? ` • 📍 ${p.distance.toFixed(1)} km` : ''}
+                                </p>
+                                <p style="margin: 8px 0 0; font-size: 14px;">${ratingText}</p>
+                            </div>
+                        </div>
+                        <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button class="btn btn-primary btn-sm" onclick="viewPlace(${i})">👁️ View</button>
+                            <button class="btn btn-accent btn-sm" onclick="openReviewPlaceModal(${i})">⭐ Review</button>
+                            ${p.phone ? `<a href="tel:${p.phone}" class="btn btn-secondary btn-sm">📞 Call</a>` : ''}
+                        </div>
+                    </div>`;
+                }).join('');
+        }
+        
+        function viewPlace(index){
+            const p = currentPlaces[index];
+            const reviews = p.business_reviews || [];
+            const categoryIcons = {mechanic:'🔧', fuel:'⛽', tyres:'🛞', accommodation:'🏨', camping:'🏕️', cafe:'☕', parts:'🔩', other:'📍'};
+            
+            let details = `
+                <h3>${categoryIcons[p.category] || '📍'} ${p.name}</h3>
+                <p>${p.address || ''} ${p.city || ''}, ${p.country || ''}</p>
+                ${p.phone ? `<p>📞 ${p.phone}</p>` : ''}
+                ${p.website ? `<p>🌐 <a href="${p.website}" target="_blank">${p.website}</a></p>` : ''}
+                <hr style="margin: 16px 0; border: none; border-top: 1px solid var(--border);">
+                <h4>Reviews (${reviews.length})</h4>
+            `;
+            
+            if(reviews.length === 0){
+                details += '<p style="color:var(--text-light)">No reviews yet. Be the first!</p>';
+            }
+            
+            alert(details); // Simple for now - could make a proper modal
+        }
+        
+        function openAddPlaceModal(){
+            document.getElementById('placeName').value = '';
+            document.getElementById('placeAddCategory').value = '';
+            document.getElementById('placeAddress').value = '';
+            document.getElementById('placeCity').value = '';
+            document.getElementById('placeCountry').value = 'New Zealand';
+            document.getElementById('placePhone').value = '';
+            document.getElementById('placeWebsite').value = '';
+            document.getElementById('placeLat').value = '';
+            document.getElementById('placeLng').value = '';
+            document.getElementById('addPlaceResult').innerHTML = '';
+            document.getElementById('addPlaceModal').classList.add('active');
+        }
+        
+        function closeAddPlaceModal(){
+            document.getElementById('addPlaceModal').classList.remove('active');
+        }
+        
+        function getPlaceGPS(){
+            if(navigator.geolocation){
+                navigator.geolocation.getCurrentPosition(p => {
+                    document.getElementById('placeLat').value = p.coords.latitude.toFixed(6);
+                    document.getElementById('placeLng').value = p.coords.longitude.toFixed(6);
+                }, e => alert('Error: ' + e.message), {enableHighAccuracy: true});
+            }
+        }
+        
+        async function saveNewPlace(){
+            const name = document.getElementById('placeName').value.trim();
+            const category = document.getElementById('placeAddCategory').value;
+            const city = document.getElementById('placeCity').value.trim();
+            const country = document.getElementById('placeCountry').value.trim();
+            const result = document.getElementById('addPlaceResult');
+            
+            if(!name || !category || !city || !country){
+                result.innerHTML = '<div class="alert alert-danger">Please fill in required fields (Name, Category, City, Country)</div>';
+                return;
+            }
+            
+            result.innerHTML = '<div class="alert alert-info">Saving...</div>';
+            
+            const {error} = await db.from('businesses').insert({
+                name: name,
+                category: category,
+                address: document.getElementById('placeAddress').value.trim() || null,
+                city: city,
+                country: country,
+                phone: document.getElementById('placePhone').value.trim() || null,
+                website: document.getElementById('placeWebsite').value.trim() || null,
+                latitude: parseFloat(document.getElementById('placeLat').value) || null,
+                longitude: parseFloat(document.getElementById('placeLng').value) || null,
+                added_by: currentUser.id
+            });
+            
+            if(error){
+                result.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+            } else {
+                result.innerHTML = '<div class="alert alert-success">✅ Place added!</div>';
+                setTimeout(() => {
+                    closeAddPlaceModal();
+                    searchAllPlaces();
+                }, 1500);
+            }
+        }
+        
+        function openReviewPlaceModal(index){
+            selectedPlace = currentPlaces[index];
+            selectedPlaceRating = null;
+            
+            const categoryIcons = {mechanic:'🔧', fuel:'⛽', tyres:'🛞', accommodation:'🏨', camping:'🏕️', cafe:'☕', parts:'🔩', other:'📍'};
+            document.getElementById('reviewPlaceInfo').innerHTML = `
+                <h4 style="margin: 0 0 4px;">${categoryIcons[selectedPlace.category] || '📍'} ${selectedPlace.name}</h4>
+                <p style="margin: 0; color: var(--text-light);">${selectedPlace.city || ''}, ${selectedPlace.country || ''}</p>
+            `;
+            
+            // Reset form
+            document.querySelectorAll('#placeRatingButtons .rating-btn').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('.serviceCheckbox').forEach(c => c.checked = false);
+            document.getElementById('reviewVisitDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('reviewComment').value = '';
+            document.getElementById('reviewRecommend').checked = true;
+            document.getElementById('reviewPlaceResult').innerHTML = '';
+            
+            document.getElementById('reviewPlaceModal').classList.add('active');
+        }
+        
+        function closeReviewPlaceModal(){
+            document.getElementById('reviewPlaceModal').classList.remove('active');
+            selectedPlace = null;
+        }
+        
+        function selectPlaceRating(rating){
+            selectedPlaceRating = rating;
+            document.querySelectorAll('#placeRatingButtons .rating-btn').forEach(b => b.classList.remove('selected'));
+            document.querySelector(`#placeRatingButtons .rating-btn.${rating}`).classList.add('selected');
+        }
+        
+        async function submitPlaceReview(){
+            if(!selectedPlace || !selectedPlaceRating){
+                alert('Please select a rating');
+                return;
+            }
+            
+            const result = document.getElementById('reviewPlaceResult');
+            result.innerHTML = '<div class="alert alert-info">Submitting...</div>';
+            
+            // Gather selected services
+            const services = [];
+            document.querySelectorAll('.serviceCheckbox:checked').forEach(c => services.push(c.value));
+            
+            const {error} = await db.from('business_reviews').insert({
+                business_id: selectedPlace.id,
+                user_id: currentUser.id,
+                rating: selectedPlaceRating,
+                comment: document.getElementById('reviewComment').value.trim() || null,
+                services_used: services.length > 0 ? services : null,
+                would_recommend: document.getElementById('reviewRecommend').checked,
+                visit_date: document.getElementById('reviewVisitDate').value || null
+            });
+            
+            if(error){
+                result.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+            } else {
+                result.innerHTML = '<div class="alert alert-success">✅ Review submitted!</div>';
+                setTimeout(() => {
+                    closeReviewPlaceModal();
+                    searchAllPlaces(); // Refresh to show updated ratings
+                    loadMyPlaceReviews();
+                }, 1500);
+            }
+        }
+        
+        async function loadMyPlaceReviews(){
+            if(!currentUser) return;
+            const div = document.getElementById('myPlaceReviews');
+            
+            const {data, error} = await db.from('business_reviews')
+                .select('*, businesses(name, city)')
+                .eq('user_id', currentUser.id)
+                .order('created_at', {ascending: false});
+            
+            if(error || !data || data.length === 0){
+                div.innerHTML = '<p style="color: var(--text-light)">You haven\'t reviewed any places yet.</p>';
+                return;
+            }
+            
+            const ratingIcons = {positive: '👍', neutral: '😐', negative: '👎'};
+            
+            div.innerHTML = data.map(r => `
+                <div class="request-card" style="margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <div>
+                            <strong>${r.businesses?.name || 'Unknown'}</strong>
+                            <span style="margin-left: 8px;">${ratingIcons[r.rating] || ''}</span>
+                        </div>
+                        <span style="color: var(--text-light); font-size: 12px;">${r.visit_date || ''}</span>
+                    </div>
+                    ${r.comment ? `<p style="margin: 8px 0 0; color: var(--text-light); font-size: 13px;">"${r.comment}"</p>` : ''}
+                </div>
+            `).join('');
         }
         
         // Utilities
