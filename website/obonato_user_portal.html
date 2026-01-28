@@ -588,6 +588,80 @@
                     </p>
                 </div>
                 
+                <h4>🩺 Medical Information (ICE)</h4>
+                <p style="color: var(--text-light); margin-bottom: 16px;">In Case of Emergency - this information can be shared with helpers responding to medical/emergency SOS alerts.</p>
+                
+                <div style="background: linear-gradient(135deg, #fef2f2, #fee2e2); border: 1px solid #fecaca; border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; margin: 0;">
+                            <input type="checkbox" id="shareICEInEmergency" style="width: 20px; height: 20px; cursor: pointer;">
+                            <span style="font-weight: 600; color: #dc2626;">🆘 Share medical info in emergencies</span>
+                        </label>
+                        <p style="margin: 8px 0 0 32px; font-size: 13px; color: var(--text-light);">
+                            When enabled, helpers responding to your Emergency SOS will see your medical information.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>🩸 Blood Type</label>
+                        <select class="form-control" id="iceBloodType">
+                            <option value="">-- Unknown --</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>📞 ICE Contact Name</label>
+                        <input type="text" class="form-control" id="iceContactName" placeholder="e.g. Partner, Parent">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>💊 Allergies</label>
+                    <div id="iceAllergiesList" style="margin-bottom: 8px;"></div>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" class="form-control" id="iceNewAllergy" placeholder="e.g. Penicillin, Bee stings, Peanuts" style="flex: 1;">
+                        <select class="form-control" id="iceNewAllergySeverity" style="width: 120px;">
+                            <option value="mild">Mild</option>
+                            <option value="moderate">Moderate</option>
+                            <option value="severe">Severe ⚠️</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="addICEAllergy()">+ Add</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>💉 Current Medications</label>
+                    <div id="iceMedicationsList" style="margin-bottom: 8px;"></div>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" class="form-control" id="iceNewMedication" placeholder="e.g. Insulin, Blood thinners" style="flex: 1;">
+                        <input type="text" class="form-control" id="iceNewMedicationDosage" placeholder="Dosage" style="width: 120px;">
+                        <button class="btn btn-secondary" onclick="addICEMedication()">+ Add</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>🏥 Medical Conditions</label>
+                    <div id="iceConditionsList" style="margin-bottom: 8px;"></div>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" class="form-control" id="iceNewCondition" placeholder="e.g. Diabetic, Epileptic, Asthmatic" style="flex: 1;">
+                        <button class="btn btn-secondary" onclick="addICECondition()">+ Add</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>📝 Emergency Notes</label>
+                    <textarea class="form-control" id="iceEmergencyNotes" rows="2" placeholder="e.g. Carries EpiPen in left pannier, Pacemaker fitted, DNR order"></textarea>
+                </div>
+                
                 <h4>⚙️ Preferences</h4>
                 <div class="grid-2">
                     <div class="form-group"><label>Distance</label><div class="radio-group"><div class="radio-item selected" onclick="selectRadio('unitDistance','km')"><input type="radio" name="unitDistance" value="km" checked><label>km</label></div><div class="radio-item" onclick="selectRadio('unitDistance','miles')"><input type="radio" name="unitDistance" value="miles"><label>miles</label></div></div></div>
@@ -1207,6 +1281,14 @@
                         <p id="respondNoLocation" style="color: var(--text-light); font-size: 13px; display: none;">Location not available - message them for details</p>
                     </div>
                     
+                    <!-- ICE Medical Info (shown for emergencies) -->
+                    <div id="respondICEInfo" class="hidden" style="background: #fef2f2; border: 2px solid #ef4444; border-radius: 12px; padding: 16px; margin-bottom: 16px; text-align: left;">
+                        <p style="font-weight: 700; color: #dc2626; margin: 0 0 12px; display: flex; align-items: center; gap: 8px;">
+                            🩺 ICE - Medical Information
+                        </p>
+                        <div id="respondICEContent"></div>
+                    </div>
+                    
                     <div style="display: flex; gap: 12px;">
                         <button class="btn btn-primary" style="flex: 1;" onclick="openChatFromRespond()">💬 Message</button>
                         <button class="btn btn-secondary" style="flex: 1;" onclick="closeRespondModal()">Close</button>
@@ -1444,6 +1526,8 @@
         let db=null,currentUser=null,userProfile=null,helpersMap=null,homeMap=null,availMap=null,dashboardMap=null;
         let markers=[],currentHelpers=[],selectedHelper=null,currentInteractionId=null,selectedRating=null;
         let homeMarker=null,availMarker=null,userVehicles=[],userEmergencyContacts=[],sosTimer=null,sosStartTime=null,currentRespondRequest=null;
+        let userICEData={bloodType:'',contactName:'',emergencyNotes:'',shareInEmergency:false};
+        let userAllergies=[],userMedications=[],userConditions=[];
         let gpsFormats={home:'dd',avail:'dd',sos:'dd',search:'dd'},gpsCoords={home:null,avail:null,sos:null,search:null};
         
         const ADJECTIVES=['Swift','Brave','Clever','Dusty','Epic','Fierce','Golden','Happy','Iron','Jolly','Keen','Lucky','Mighty','Noble','Ocean','Proud','Quick','Rusty','Shadow','Thunder','Urban','Velvet','Wild','Alpine','Blazing','Coastal','Desert','Eastern','Forest','Glacier','Harbor','Island','Jungle','Lunar','Misty','Nordic','Outback','Prairie','River','Solar','Tropic','Valley','Western','Azure','Crimson','Emerald'];
@@ -1592,6 +1676,7 @@
             await loadAvailability();
             await loadVehicles();
             await loadEmergencyContacts();
+            await loadICEData();
             await checkPendingFeedback();
             await loadDashboard();
             
@@ -2144,6 +2229,10 @@
                 updated_at:new Date().toISOString()
             };
             const{error}=await db.from('profiles').upsert(d);
+            
+            // Also save ICE data
+            await saveICEData();
+            
             userProfile=d;
             r.innerHTML=error?'<div class="alert alert-danger">❌ '+error.message+'</div>':'<div class="alert alert-success">✅ Saved!</div>';
         }
@@ -2317,6 +2406,173 @@
             } else {
                 await loadEmergencyContacts();
             }
+        }
+        
+        // ICE Medical Information
+        async function loadICEData(){
+            if(!currentUser) return;
+            
+            // Load main ICE record
+            const{data: iceData} = await db.from('user_medical').select('*').eq('user_id', currentUser.id).single();
+            if(iceData){
+                userICEData = iceData;
+                document.getElementById('iceBloodType').value = iceData.blood_type || '';
+                document.getElementById('iceContactName').value = iceData.ice_contact_name || '';
+                document.getElementById('iceEmergencyNotes').value = iceData.emergency_notes || '';
+                document.getElementById('shareICEInEmergency').checked = iceData.share_in_emergency || false;
+            }
+            
+            // Load allergies
+            const{data: allergies} = await db.from('user_allergies').select('*').eq('user_id', currentUser.id).order('severity', {ascending: false});
+            userAllergies = allergies || [];
+            renderICEAllergies();
+            
+            // Load medications
+            const{data: meds} = await db.from('user_medications').select('*').eq('user_id', currentUser.id);
+            userMedications = meds || [];
+            renderICEMedications();
+            
+            // Load conditions
+            const{data: conditions} = await db.from('user_conditions').select('*').eq('user_id', currentUser.id);
+            userConditions = conditions || [];
+            renderICEConditions();
+        }
+        
+        function renderICEAllergies(){
+            const div = document.getElementById('iceAllergiesList');
+            if(userAllergies.length === 0){
+                div.innerHTML = '<p style="color:var(--text-light);font-size:13px;">No allergies added</p>';
+                return;
+            }
+            const severityColors = {mild: '#22c55e', moderate: '#f59e0b', severe: '#ef4444'};
+            div.innerHTML = userAllergies.map(a => `
+                <span style="display:inline-flex;align-items:center;gap:6px;background:${severityColors[a.severity]}22;border:1px solid ${severityColors[a.severity]};color:${severityColors[a.severity]};padding:4px 10px;border-radius:16px;margin:0 6px 6px 0;font-size:13px;">
+                    ${a.severity === 'severe' ? '⚠️ ' : ''}${a.allergy}
+                    <button onclick="deleteICEAllergy('${a.id}')" style="background:none;border:none;cursor:pointer;font-size:14px;color:${severityColors[a.severity]};">×</button>
+                </span>
+            `).join('');
+        }
+        
+        function renderICEMedications(){
+            const div = document.getElementById('iceMedicationsList');
+            if(userMedications.length === 0){
+                div.innerHTML = '<p style="color:var(--text-light);font-size:13px;">No medications added</p>';
+                return;
+            }
+            div.innerHTML = userMedications.map(m => `
+                <span style="display:inline-flex;align-items:center;gap:6px;background:#eff6ff;border:1px solid #3b82f6;color:#1d4ed8;padding:4px 10px;border-radius:16px;margin:0 6px 6px 0;font-size:13px;">
+                    💊 ${m.medication}${m.dosage ? ` (${m.dosage})` : ''}
+                    <button onclick="deleteICEMedication('${m.id}')" style="background:none;border:none;cursor:pointer;font-size:14px;color:#1d4ed8;">×</button>
+                </span>
+            `).join('');
+        }
+        
+        function renderICEConditions(){
+            const div = document.getElementById('iceConditionsList');
+            if(userConditions.length === 0){
+                div.innerHTML = '<p style="color:var(--text-light);font-size:13px;">No medical conditions added</p>';
+                return;
+            }
+            div.innerHTML = userConditions.map(c => `
+                <span style="display:inline-flex;align-items:center;gap:6px;background:#fef3c7;border:1px solid #f59e0b;color:#b45309;padding:4px 10px;border-radius:16px;margin:0 6px 6px 0;font-size:13px;">
+                    🏥 ${c.condition}
+                    <button onclick="deleteICECondition('${c.id}')" style="background:none;border:none;cursor:pointer;font-size:14px;color:#b45309;">×</button>
+                </span>
+            `).join('');
+        }
+        
+        async function addICEAllergy(){
+            const allergy = document.getElementById('iceNewAllergy').value.trim();
+            const severity = document.getElementById('iceNewAllergySeverity').value;
+            if(!allergy) return;
+            
+            const{error} = await db.from('user_allergies').insert({
+                user_id: currentUser.id,
+                allergy,
+                severity
+            });
+            
+            if(error){
+                alert('Error: ' + error.message);
+            } else {
+                document.getElementById('iceNewAllergy').value = '';
+                await loadICEData();
+            }
+        }
+        
+        async function deleteICEAllergy(id){
+            const{error} = await db.from('user_allergies').delete().eq('id', id);
+            if(!error) await loadICEData();
+        }
+        
+        async function addICEMedication(){
+            const medication = document.getElementById('iceNewMedication').value.trim();
+            const dosage = document.getElementById('iceNewMedicationDosage').value.trim();
+            if(!medication) return;
+            
+            const{error} = await db.from('user_medications').insert({
+                user_id: currentUser.id,
+                medication,
+                dosage: dosage || null
+            });
+            
+            if(error){
+                alert('Error: ' + error.message);
+            } else {
+                document.getElementById('iceNewMedication').value = '';
+                document.getElementById('iceNewMedicationDosage').value = '';
+                await loadICEData();
+            }
+        }
+        
+        async function deleteICEMedication(id){
+            const{error} = await db.from('user_medications').delete().eq('id', id);
+            if(!error) await loadICEData();
+        }
+        
+        async function addICECondition(){
+            const condition = document.getElementById('iceNewCondition').value.trim();
+            if(!condition) return;
+            
+            const{error} = await db.from('user_conditions').insert({
+                user_id: currentUser.id,
+                condition
+            });
+            
+            if(error){
+                alert('Error: ' + error.message);
+            } else {
+                document.getElementById('iceNewCondition').value = '';
+                await loadICEData();
+            }
+        }
+        
+        async function deleteICECondition(id){
+            const{error} = await db.from('user_conditions').delete().eq('id', id);
+            if(!error) await loadICEData();
+        }
+        
+        async function saveICEData(){
+            const iceData = {
+                user_id: currentUser.id,
+                blood_type: document.getElementById('iceBloodType').value || null,
+                ice_contact_name: document.getElementById('iceContactName').value.trim() || null,
+                emergency_notes: document.getElementById('iceEmergencyNotes').value.trim() || null,
+                share_in_emergency: document.getElementById('shareICEInEmergency').checked,
+                updated_at: new Date().toISOString()
+            };
+            
+            // Upsert - insert or update
+            const{data: existing} = await db.from('user_medical').select('id').eq('user_id', currentUser.id).single();
+            
+            let error;
+            if(existing){
+                ({error} = await db.from('user_medical').update(iceData).eq('user_id', currentUser.id));
+            } else {
+                ({error} = await db.from('user_medical').insert(iceData));
+            }
+            
+            return !error;
         }
         
         // Availability
@@ -3167,7 +3423,7 @@
             if(!currentRespondRequest) return;
             
             // Get requester's user_id and location from the SOS alert
-            const {data: sosData} = await db.from('sos_alerts').select('user_id, status, latitude, longitude').eq('id', currentRespondRequest.id).single();
+            const {data: sosData} = await db.from('sos_alerts').select('user_id, status, latitude, longitude, alert_type').eq('id', currentRespondRequest.id).single();
             if(!sosData){
                 alert('Error: Could not find request');
                 return;
@@ -3233,6 +3489,67 @@
                 coordsEl.textContent = '';
                 mapsLink.style.display = 'none';
                 noLocation.style.display = 'block';
+            }
+            
+            // Load ICE data for emergency/medical alerts
+            const iceSection = document.getElementById('respondICEInfo');
+            const iceContent = document.getElementById('respondICEContent');
+            const isEmergency = ['emergency', 'medical', 'accident'].includes(sosData.alert_type);
+            
+            if(isEmergency){
+                // Load their ICE data
+                const{data: iceData} = await db.from('user_medical').select('*').eq('user_id', sosData.user_id).eq('share_in_emergency', true).single();
+                const{data: allergies} = await db.from('user_allergies').select('*').eq('user_id', sosData.user_id);
+                const{data: medications} = await db.from('user_medications').select('*').eq('user_id', sosData.user_id);
+                const{data: conditions} = await db.from('user_conditions').select('*').eq('user_id', sosData.user_id);
+                
+                if(iceData || (allergies && allergies.length) || (medications && medications.length) || (conditions && conditions.length)){
+                    let html = '';
+                    
+                    if(iceData?.blood_type){
+                        html += `<div style="margin-bottom:8px;"><strong>🩸 Blood Type:</strong> <span style="font-size:16px;font-weight:700;color:#dc2626;">${iceData.blood_type}</span></div>`;
+                    }
+                    
+                    if(allergies && allergies.length){
+                        const severeAllergies = allergies.filter(a => a.severity === 'severe');
+                        const otherAllergies = allergies.filter(a => a.severity !== 'severe');
+                        html += `<div style="margin-bottom:8px;"><strong>⚠️ Allergies:</strong><br>`;
+                        if(severeAllergies.length){
+                            html += severeAllergies.map(a => `<span style="display:inline-block;background:#fecaca;color:#dc2626;padding:2px 8px;border-radius:8px;margin:2px 4px 2px 0;font-weight:600;">⚠️ ${a.allergy}</span>`).join('');
+                        }
+                        if(otherAllergies.length){
+                            html += otherAllergies.map(a => `<span style="display:inline-block;background:#fef3c7;color:#b45309;padding:2px 8px;border-radius:8px;margin:2px 4px 2px 0;">${a.allergy}</span>`).join('');
+                        }
+                        html += `</div>`;
+                    }
+                    
+                    if(medications && medications.length){
+                        html += `<div style="margin-bottom:8px;"><strong>💊 Medications:</strong><br>`;
+                        html += medications.map(m => `<span style="display:inline-block;background:#eff6ff;color:#1d4ed8;padding:2px 8px;border-radius:8px;margin:2px 4px 2px 0;">${m.medication}${m.dosage ? ` (${m.dosage})` : ''}</span>`).join('');
+                        html += `</div>`;
+                    }
+                    
+                    if(conditions && conditions.length){
+                        html += `<div style="margin-bottom:8px;"><strong>🏥 Conditions:</strong><br>`;
+                        html += conditions.map(c => `<span style="display:inline-block;background:#fef3c7;color:#b45309;padding:2px 8px;border-radius:8px;margin:2px 4px 2px 0;">${c.condition}</span>`).join('');
+                        html += `</div>`;
+                    }
+                    
+                    if(iceData?.emergency_notes){
+                        html += `<div style="margin-top:8px;padding:8px;background:#fff;border-radius:8px;"><strong>📝 Notes:</strong> ${iceData.emergency_notes}</div>`;
+                    }
+                    
+                    if(iceData?.ice_contact_name){
+                        html += `<div style="margin-top:8px;"><strong>📞 ICE Contact:</strong> ${iceData.ice_contact_name}</div>`;
+                    }
+                    
+                    iceContent.innerHTML = html;
+                    iceSection.classList.remove('hidden');
+                } else {
+                    iceSection.classList.add('hidden');
+                }
+            } else {
+                iceSection.classList.add('hidden');
             }
             
             photoReveal.classList.remove('hidden');
