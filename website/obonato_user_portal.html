@@ -903,37 +903,9 @@
         <div id="activity" class="tab-content">
             <div class="card">
                 <h3>📋 Your Activity</h3>
-                
-                <div id="pendingFeedbackAlert" class="alert alert-warning hidden" style="margin-bottom: 20px;">
-                    ⚠️ <strong>Feedback Required</strong> - Please rate your recent interactions
-                </div>
-                
-                <h4>⏳ Pending Feedback</h4>
-                <div id="pendingInteractions"><p class="loading">Loading...</p></div>
-                
-                <h4 style="margin-top: 24px;">🚗 Active Interactions</h4>
-                <p style="color: var(--text-light); font-size: 13px; margin-bottom: 12px;">Help on the way or in progress</p>
-                <div id="activeInteractions"><p class="loading">Loading...</p></div>
-                
-                <h4 style="margin-top: 24px;">📜 Recent Activity</h4>
-                <p style="color: var(--text-light); font-size: 13px; margin-bottom: 12px;">Your interaction history</p>
-                <div id="recentActivity"><p class="loading">Loading...</p></div>
-                
-                <h4 style="margin-top: 24px;">⭐ Your Stats</h4>
-                <div id="activityStats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
-                    <div style="background: var(--bg); padding: 16px; border-radius: 12px; text-align: center;">
-                        <p style="font-size: 24px; font-weight: 700; margin: 0; color: var(--primary);" id="statHelped">-</p>
-                        <p style="font-size: 12px; color: var(--text-light); margin: 4px 0 0;">Times Helped</p>
-                    </div>
-                    <div style="background: var(--bg); padding: 16px; border-radius: 12px; text-align: center;">
-                        <p style="font-size: 24px; font-weight: 700; margin: 0; color: var(--success);" id="statHelper">-</p>
-                        <p style="font-size: 12px; color: var(--text-light); margin: 4px 0 0;">Times Helper</p>
-                    </div>
-                    <div style="background: var(--bg); padding: 16px; border-radius: 12px; text-align: center;">
-                        <p style="font-size: 24px; font-weight: 700; margin: 0; color: var(--warning);" id="statPositive">-</p>
-                        <p style="font-size: 12px; color: var(--text-light); margin: 4px 0 0;">Positive Reviews</p>
-                    </div>
-                </div>
+                <div id="pendingFeedbackAlert" class="alert alert-warning hidden">⚠️ Feedback Required</div>
+                <h4>⏳ Pending Feedback</h4><div id="pendingInteractions"><p class="loading">Loading...</p></div>
+                <h4>📜 Recent Activity</h4><div id="recentActivity"><p class="loading">Loading...</p></div>
             </div>
         </div>
         
@@ -3085,7 +3057,7 @@
             }).join('');
             
             div.innerHTML = filterButtons + 
-                `<div style="max-height:500px;overflow-y:auto;padding-right:4px;">
+                `<div style="max-height:300px;overflow-y:auto;padding-right:4px;">
                     ${filtered.length ? cards : '<p style="color:var(--text-light);text-align:center;padding:20px;">No requests match this filter.</p>'}
                 </div>`;
         }
@@ -3415,37 +3387,15 @@
         async function checkPendingFeedback(){if(!currentUser)return;const{data}=await db.from('interactions').select('*').or(`requester_id.eq.${currentUser.id},helper_id.eq.${currentUser.id}`).eq('status','completed');const pending=(data||[]).filter(i=>(i.requester_id===currentUser.id&&!i.requester_feedback_given)||(i.helper_id===currentUser.id&&!i.helper_feedback_given));const badge=document.getElementById('pendingBadge');if(pending.length>0){badge.classList.remove('hidden');badge.textContent='⚠️ '+pending.length}else badge.classList.add('hidden')}
         async function loadActivity(){
             if(!currentUser) return;
-            
             const{data} = await db.from('interactions')
-                .select('*, sos_alerts(alert_type, severity)')
+                .select('*, requester:requester_id(id), helper:helper_id(id)')
                 .or(`requester_id.eq.${currentUser.id},helper_id.eq.${currentUser.id}`)
                 .order('created_at',{ascending:false});
             
             const all = data || [];
-            
-            // Pending feedback - completed but not rated
             const pending = all.filter(i => i.status==='completed' && 
                 ((i.requester_id===currentUser.id && !i.requester_feedback_given) || 
                  (i.helper_id===currentUser.id && !i.helper_feedback_given)));
-            
-            // Active - accepted but not completed
-            const active = all.filter(i => i.status === 'accepted');
-            
-            // Stats
-            const timesHelped = all.filter(i => i.requester_id === currentUser.id).length;
-            const timesHelper = all.filter(i => i.helper_id === currentUser.id).length;
-            
-            // Get positive feedback count
-            const{data: feedbackData} = await db.from('feedback')
-                .select('rating')
-                .eq('to_user_id', currentUser.id)
-                .eq('rating', 'positive');
-            const positiveCount = feedbackData?.length || 0;
-            
-            // Update stats
-            document.getElementById('statHelped').textContent = timesHelped;
-            document.getElementById('statHelper').textContent = timesHelper;
-            document.getElementById('statPositive').textContent = positiveCount;
             
             const pendingDiv = document.getElementById('pendingInteractions');
             
@@ -3455,73 +3405,27 @@
                     const isRequester = i.requester_id === currentUser.id;
                     const otherUserId = isRequester ? i.helper_id : i.requester_id;
                     const n = generateAnonymousName(otherUserId || 'unknown');
-                    const av = generateAvatarData(otherUserId);
-                    const date = new Date(i.created_at).toLocaleDateString('en-NZ', {day:'numeric', month:'short'});
-                    return `<div class="request-card" style="border-color:var(--warning);background:var(--warning-light);display:flex;align-items:center;gap:12px;">
-                        <div style="width:40px;height:40px;border-radius:50%;background:${av.color};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${av.icon}</div>
-                        <div style="flex:1;">
-                            <p style="margin:0;font-weight:600;">${n}</p>
-                            <p style="color:var(--text-light);font-size:12px;margin:2px 0 0;">${i.interaction_type || 'Help'} • ${date}</p>
-                        </div>
-                        <button class="btn btn-accent btn-sm" onclick="openFeedbackModal('${i.id}','${n}','${otherUserId}')">⭐ Rate</button>
+                    return `<div class="request-card" style="border-color:var(--warning);background:var(--warning-light)">
+                        <p><strong>With:</strong> ${n}</p>
+                        <p style="color:var(--text-light);font-size:13px">${i.interaction_type}</p>
+                        <button class="btn btn-accent btn-sm" onclick="openFeedbackModal('${i.id}','${n}','${otherUserId}')" style="margin-top:12px">⭐ Feedback</button>
                     </div>`;
                 }).join('');
             } else {
                 document.getElementById('pendingFeedbackAlert').classList.add('hidden');
-                pendingDiv.innerHTML = '<p style="color:var(--text-light);font-size:13px;">No pending feedback</p>';
+                pendingDiv.innerHTML = '<p style="color:var(--success)">✅ All done!</p>';
             }
             
-            // Render active interactions
-            const activeDiv = document.getElementById('activeInteractions');
-            if(active.length > 0){
-                activeDiv.innerHTML = active.map(i => {
-                    const isRequester = i.requester_id === currentUser.id;
-                    const otherUserId = isRequester ? i.helper_id : i.requester_id;
-                    const n = generateAnonymousName(otherUserId || 'unknown');
-                    const av = generateAvatarData(otherUserId);
-                    const alertType = i.sos_alerts?.alert_type || i.interaction_type || 'help';
-                    const typeIcons = {breakdown:'🔧', accident:'💥', medical:'🏥', stuck:'🚙', fuel:'⛽', unsafe:'⚠️', emergency:'🚨', directions:'🗺️', meetup:'🍺', other:'❓'};
-                    
-                    return `<div class="request-card" style="border-color:var(--success);background:linear-gradient(135deg, #f0fdf4, #dcfce7);display:flex;align-items:center;gap:12px;">
-                        <div style="width:40px;height:40px;border-radius:50%;background:${av.color};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${av.icon}</div>
-                        <div style="flex:1;">
-                            <p style="margin:0;font-weight:600;">${isRequester ? '🚗 ' + n + ' is coming!' : '🏃 Helping ' + n}</p>
-                            <p style="color:var(--text-light);font-size:12px;margin:2px 0 0;">${typeIcons[alertType] || '❓'} ${alertType}${i.eta ? ' • ETA: ' + i.eta : ''}</p>
-                        </div>
-                        <button class="btn btn-primary btn-sm" onclick="openChatModal('${otherUserId}','${n}','${i.id}')">💬</button>
-                    </div>`;
-                }).join('');
-            } else {
-                activeDiv.innerHTML = '<p style="color:var(--text-light);font-size:13px;">No active interactions</p>';
-            }
-            
-            // Render recent activity
             const recentDiv = document.getElementById('recentActivity');
-            if(all.length > 0){
-                recentDiv.innerHTML = all.slice(0,15).map(i => {
-                    const isRequester = i.requester_id === currentUser.id;
-                    const otherUserId = isRequester ? i.helper_id : i.requester_id;
-                    const n = generateAnonymousName(otherUserId || 'unknown');
-                    const av = generateAvatarData(otherUserId);
-                    const date = new Date(i.created_at).toLocaleDateString('en-NZ', {day:'numeric', month:'short', year:'numeric'});
-                    const alertType = i.sos_alerts?.alert_type || i.interaction_type || 'help';
-                    const typeIcons = {breakdown:'🔧', accident:'💥', medical:'🏥', stuck:'🚙', fuel:'⛽', unsafe:'⚠️', emergency:'🚨', directions:'🗺️', meetup:'🍺', other:'❓'};
-                    
-                    const statusColors = {accepted:'var(--success)', completed:'var(--primary)', cancelled:'var(--text-light)'};
-                    const statusLabels = {accepted:'In Progress', completed:'Completed', cancelled:'Cancelled'};
-                    
-                    return `<div class="request-card" style="display:flex;align-items:center;gap:12px;">
-                        <div style="width:40px;height:40px;border-radius:50%;background:${av.color};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${av.icon}</div>
-                        <div style="flex:1;">
-                            <p style="margin:0;font-weight:600;">${isRequester ? 'Helped by' : 'Helped'} ${n}</p>
-                            <p style="color:var(--text-light);font-size:12px;margin:2px 0 0;">${typeIcons[alertType] || '❓'} ${alertType} • ${date}</p>
-                        </div>
-                        <span style="font-size:11px;padding:4px 8px;border-radius:8px;background:${statusColors[i.status] || 'var(--bg)'};color:white;">${statusLabels[i.status] || i.status}</span>
-                    </div>`;
-                }).join('');
-            } else {
-                recentDiv.innerHTML = '<p style="color:var(--text-light);font-size:13px;">No activity yet. Help someone or request help to see your history here.</p>';
-            }
+            recentDiv.innerHTML = all.length > 0 ? all.slice(0,10).map(i => {
+                const isRequester = i.requester_id === currentUser.id;
+                const otherUserId = isRequester ? i.helper_id : i.requester_id;
+                const n = generateAnonymousName(otherUserId || 'unknown');
+                return `<div class="request-card">
+                    <p><strong>${isRequester ? 'Requested from' : 'Helped'}:</strong> ${n}</p>
+                    <p style="color:var(--text-light);font-size:13px">${i.interaction_type} • ${i.status}</p>
+                </div>`;
+            }).join('') : '<p style="color:var(--text-light)">No activity.</p>';
         }
         async function openFeedbackModal(id, name, otherUserId){
             currentInteractionId = id;
@@ -3715,14 +3619,14 @@
         async function loadActiveSOSRequests(){
             if(!currentUser)return;
             
-            // Load user's active SOS requests (including those with help coming)
+            // Load user's active SOS requests
             const section = document.getElementById('activeSOSSection');
             const list = document.getElementById('activeSOSList');
             
             const{data, error} = await db.from('sos_alerts')
                 .select('*')
                 .eq('user_id', currentUser.id)
-                .in('status', ['active', 'help_coming'])
+                .eq('status', 'active')
                 .order('created_at', {ascending: false});
             
             if(error || !data || data.length === 0){
@@ -3735,13 +3639,11 @@
                 
                 list.innerHTML = data.map(s => {
                     const created = new Date(s.created_at).toLocaleString('en-NZ', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
-                    const isHelpComing = s.status === 'help_coming';
                     return `
-                    <div class="request-card" style="margin-bottom: 16px; border-left: 4px solid ${isHelpComing ? 'var(--success)' : (severityColors[s.severity] || '#ccc')}; ${isHelpComing ? 'background: linear-gradient(135deg, #f0fdf4, #dcfce7);' : ''}">
+                    <div class="request-card" style="margin-bottom: 16px; border-left: 4px solid ${severityColors[s.severity] || '#ccc'};">
                         <div style="display: flex; justify-content: space-between; align-items: start;">
                             <div>
                                 <h4 style="margin: 0 0 8px;">${typeIcons[s.alert_type] || '❓'} ${s.alert_type.charAt(0).toUpperCase() + s.alert_type.slice(1)}</h4>
-                                ${isHelpComing ? `<p style="color: var(--success); font-weight: 700; margin: 0 0 8px;">🚗 Help is on the way!</p>` : ''}
                                 <p style="color: var(--text-light); font-size: 13px; margin: 0 0 8px;">📅 ${created}</p>
                                 ${s.description ? `<p style="margin: 0; color: var(--text-light);">${s.description}</p>` : ''}
                             </div>
