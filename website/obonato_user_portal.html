@@ -680,6 +680,13 @@
         <!-- SOS Tab -->
         <div id="sos" class="tab-content">
             <div class="alert alert-warning">⚠️ <strong>Emergency:</strong> Call 111 (NZ) / 000 (AU) / 911 (US) first!</div>
+            
+            <!-- Active SOS Requests -->
+            <div id="activeSOSSection" class="card hidden" style="margin-bottom: 24px; border-left: 4px solid var(--danger);">
+                <h3>🚨 Your Active Requests</h3>
+                <div id="activeSOSList"></div>
+            </div>
+            
             <div class="sos-container">
                 <button class="sos-button" id="sosButton" onmousedown="startSOS()" onmouseup="cancelSOS()" onmouseleave="cancelSOS()" ontouchstart="startSOS()" ontouchend="cancelSOS()">🚨 SOS<span>Hold 3 seconds</span></button>
                 <div class="sos-progress"><div class="sos-progress-bar" id="sosProgress"></div></div>
@@ -914,6 +921,7 @@
             if(tabId==='activity')loadActivity();
             if(tabId==='dashboard')loadDashboard();
             if(tabId==='travel')loadMyTravelPlans();
+            if(tabId==='sos')loadActiveSOSRequests();
         }
         function showLoggedInTabs(){document.querySelectorAll('.tab[data-tab]').forEach(t=>{if(t.dataset.tab!=='auth')t.classList.remove('hidden')});document.querySelector('.tab[data-tab="auth"]').classList.add('hidden')}
         async function checkAuth(){if(!db)return;const{data}=await db.auth.getUser();if(data&&data.user){currentUser=data.user;await onUserLoggedIn()}}
@@ -1707,8 +1715,69 @@
         // SOS
         function startSOS(){document.getElementById('sosButton').classList.add('holding');sosStartTime=Date.now();document.getElementById('sosStatus').textContent='Hold...';document.getElementById('sosStatus').style.color='var(--danger)';sosTimer=setInterval(()=>{const elapsed=Date.now()-sosStartTime;document.getElementById('sosProgress').style.width=Math.min((elapsed/3000)*100,100)+'%';if(elapsed>=3000){cancelSOS();triggerSOS()}},50)}
         function cancelSOS(){document.getElementById('sosButton').classList.remove('holding');document.getElementById('sosProgress').style.width='0%';if(sosTimer){clearInterval(sosTimer);sosTimer=null}if(!sosStartTime||Date.now()-sosStartTime<3000)document.getElementById('sosStatus').textContent=''}
-        function triggerSOS(){document.getElementById('sosStatus').textContent='🚨 TRIGGERED!';if(navigator.geolocation){navigator.geolocation.getCurrentPosition(async p=>{await db.from('sos_alerts').insert({user_id:currentUser.id,alert_type:'emergency',severity:'critical',description:'EMERGENCY SOS',latitude:p.coords.latitude,longitude:p.coords.longitude,status:'active'});document.getElementById('sosStatus').textContent='✅ SOS sent!';document.getElementById('sosStatus').style.color='var(--success)'},()=>{document.getElementById('sosStatus').textContent='⚠️ No location'},{enableHighAccuracy:true})}}
-        async function handleCreateSOS(){if(!currentUser)return;const r=document.getElementById('sosResult');r.innerHTML='<div class="alert alert-info">Sending...</div>';const vid=document.getElementById('sosVehicle').value;let vinfo='';if(vid){const v=userVehicles.find(x=>x.id===vid);if(v)vinfo=`\n🚗 Vehicle: ${v.year||''} ${v.make} ${v.model} (${v.fuel_type||'Unknown'})`}const{error}=await db.from('sos_alerts').insert({user_id:currentUser.id,alert_type:document.getElementById('sosType').value,severity:document.getElementById('sosSeverity').value,description:document.getElementById('sosDescription').value+vinfo,latitude:parseFloat(document.getElementById('sosLat').value)||null,longitude:parseFloat(document.getElementById('sosLng').value)||null,status:'active'});r.innerHTML=error?'<div class="alert alert-danger">❌ '+error.message+'</div>':'<div class="alert alert-success">✅ Help request sent!</div>';if(!error)document.getElementById('sosDescription').value=''}
+        function triggerSOS(){document.getElementById('sosStatus').textContent='🚨 TRIGGERED!';if(navigator.geolocation){navigator.geolocation.getCurrentPosition(async p=>{await db.from('sos_alerts').insert({user_id:currentUser.id,alert_type:'emergency',severity:'critical',description:'EMERGENCY SOS',latitude:p.coords.latitude,longitude:p.coords.longitude,status:'active'});document.getElementById('sosStatus').textContent='✅ SOS sent!';document.getElementById('sosStatus').style.color='var(--success)';loadActiveSOSRequests()},()=>{document.getElementById('sosStatus').textContent='⚠️ No location'},{enableHighAccuracy:true})}}
+        async function handleCreateSOS(){if(!currentUser)return;const r=document.getElementById('sosResult');r.innerHTML='<div class="alert alert-info">Sending...</div>';const vid=document.getElementById('sosVehicle').value;let vinfo='';if(vid){const v=userVehicles.find(x=>x.id===vid);if(v)vinfo=`\n🚗 Vehicle: ${v.year||''} ${v.make} ${v.model} (${v.fuel_type||'Unknown'})`}const{error}=await db.from('sos_alerts').insert({user_id:currentUser.id,alert_type:document.getElementById('sosType').value,severity:document.getElementById('sosSeverity').value,description:document.getElementById('sosDescription').value+vinfo,latitude:parseFloat(document.getElementById('sosLat').value)||null,longitude:parseFloat(document.getElementById('sosLng').value)||null,status:'active'});r.innerHTML=error?'<div class="alert alert-danger">❌ '+error.message+'</div>':'<div class="alert alert-success">✅ Help request sent!</div>';if(!error){document.getElementById('sosDescription').value='';loadActiveSOSRequests()}}
+        
+        async function loadActiveSOSRequests(){
+            if(!currentUser)return;
+            const section = document.getElementById('activeSOSSection');
+            const list = document.getElementById('activeSOSList');
+            
+            const{data, error} = await db.from('sos_alerts')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .eq('status', 'active')
+                .order('created_at', {ascending: false});
+            
+            if(error || !data || data.length === 0){
+                section.classList.add('hidden');
+                return;
+            }
+            
+            section.classList.remove('hidden');
+            
+            const typeIcons = {breakdown:'🔧', accident:'💥', medical:'🏥', stuck:'🚙', fuel:'⛽', unsafe:'⚠️', emergency:'🚨', other:'❓'};
+            const severityColors = {low:'#22c55e', medium:'#f59e0b', high:'#f97316', critical:'#ef4444'};
+            
+            list.innerHTML = data.map(s => {
+                const created = new Date(s.created_at).toLocaleString('en-NZ', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+                return `
+                <div class="request-card" style="margin-bottom: 16px; border-left: 4px solid ${severityColors[s.severity] || '#ccc'};">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <h4 style="margin: 0 0 8px;">${typeIcons[s.alert_type] || '❓'} ${s.alert_type.charAt(0).toUpperCase() + s.alert_type.slice(1)}</h4>
+                            <p style="color: var(--text-light); font-size: 13px; margin: 0 0 8px;">📅 ${created}</p>
+                            ${s.description ? `<p style="margin: 0; color: var(--text-light);">${s.description}</p>` : ''}
+                        </div>
+                        <span class="severity-badge severity-${s.severity}">${s.severity}</span>
+                    </div>
+                    <div style="margin-top: 16px; display: flex; gap: 12px;">
+                        <button class="btn btn-secondary btn-sm" onclick="markSOSResolved('${s.id}')">✅ Resolved</button>
+                        <button class="btn btn-danger btn-sm" onclick="cancelSOSRequest('${s.id}')">❌ Cancel</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+        
+        async function cancelSOSRequest(id){
+            if(!confirm('Cancel this SOS request?')) return;
+            const{error} = await db.from('sos_alerts').update({status: 'cancelled', updated_at: new Date().toISOString()}).eq('id', id);
+            if(error){
+                alert('Error: ' + error.message);
+            } else {
+                loadActiveSOSRequests();
+            }
+        }
+        
+        async function markSOSResolved(id){
+            if(!confirm('Mark this request as resolved?')) return;
+            const{error} = await db.from('sos_alerts').update({status: 'resolved', updated_at: new Date().toISOString()}).eq('id', id);
+            if(error){
+                alert('Error: ' + error.message);
+            } else {
+                loadActiveSOSRequests();
+            }
+        }
         
         // Utilities
         function getDistance(lat1,lng1,lat2,lng2){const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180,a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))}
