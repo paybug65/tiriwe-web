@@ -2885,6 +2885,7 @@
             btn.disabled = true;
             try {
                 await loadDashboard();
+                await checkPendingFeedback();
                 btn.textContent = '✅ Done!';
                 setTimeout(() => { btn.textContent = '🔄 Refresh'; btn.disabled = false; }, 1500);
             } catch(e) {
@@ -3583,15 +3584,22 @@
         async function checkPendingFeedback(){
             if(!currentUser) return;
             
-            const{data} = await db.from('interactions')
+            console.log('checkPendingFeedback: Checking for user', currentUser.id);
+            
+            const{data, error} = await db.from('interactions')
                 .select('*')
                 .or(`requester_id.eq.${currentUser.id},helper_id.eq.${currentUser.id}`)
                 .eq('status','completed');
+            
+            console.log('checkPendingFeedback: Found', data?.length || 0, 'completed interactions', error ? 'Error: ' + error.message : '');
+            if(data) console.log('checkPendingFeedback: Interactions:', data);
             
             const pending = (data||[]).filter(i => 
                 (i.requester_id===currentUser.id && !i.requester_feedback_given) || 
                 (i.helper_id===currentUser.id && !i.helper_feedback_given)
             );
+            
+            console.log('checkPendingFeedback: Pending feedback:', pending.length);
             
             const badge = document.getElementById('pendingBadge');
             if(pending.length > 0){
@@ -3603,6 +3611,8 @@
                 const isRequester = first.requester_id === currentUser.id;
                 const otherUserId = isRequester ? first.helper_id : first.requester_id;
                 const name = generateAnonymousName(otherUserId || 'unknown');
+                
+                console.log('checkPendingFeedback: Showing modal for interaction', first.id, 'with', name);
                 
                 // Show blocking feedback modal
                 showFeedbackBlockingModal(first.id, name, otherUserId, pending.length);
@@ -4053,29 +4063,37 @@
         async function markSOSResolved(id){
             if(!confirm('Mark this request as resolved?')) return;
             
+            console.log('markSOSResolved: Starting for SOS', id);
+            
             // Get any interactions (helpers who responded)
-            const{data: interactions} = await db.from('interactions')
+            const{data: interactions, error: intError} = await db.from('interactions')
                 .select('*')
                 .eq('sos_alert_id', id)
                 .eq('status', 'accepted');
+            
+            console.log('markSOSResolved: Found interactions:', interactions, intError ? 'Error: ' + intError.message : '');
             
             // Update SOS alert
             const{error} = await db.from('sos_alerts').update({status: 'resolved', updated_at: new Date().toISOString()}).eq('id', id);
             if(error){
                 alert('Error: ' + error.message);
+                console.log('markSOSResolved: SOS update error:', error.message);
                 return;
             }
+            console.log('markSOSResolved: SOS status updated to resolved');
             
             // Mark any accepted interactions as completed
-            await db.from('interactions')
+            const{error: intUpdateError} = await db.from('interactions')
                 .update({status: 'completed', updated_at: new Date().toISOString()})
-                .eq('sos_alert_id', id)
-                .eq('status', 'accepted');
+                .eq('sos_alert_id', id);
+            
+            console.log('markSOSResolved: Interaction update result:', intUpdateError ? 'Error: ' + intUpdateError.message : 'Success');
             
             loadActiveSOSRequests();
             
             // If there were helpers, prompt for feedback on each
             if(interactions && interactions.length > 0){
+                console.log('markSOSResolved: Opening feedback for', interactions.length, 'helpers');
                 for(const i of interactions){
                     const helperName = generateAnonymousName(i.helper_id);
                     openFeedbackModal(i.id, helperName, i.helper_id);
