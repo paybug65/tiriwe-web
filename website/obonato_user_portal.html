@@ -3429,14 +3429,17 @@
                 return;
             }
             
+            const responseMessage = document.getElementById('respondMessage').value.trim();
+            const eta = document.getElementById('respondETA').value.trim();
+            
             const {data: insertData, error} = await db.from('interactions').insert({
                 requester_id: sosData.user_id,
                 helper_id: currentUser.id,
                 interaction_type: currentRespondRequest.type,
                 sos_alert_id: currentRespondRequest.id,
                 status: 'accepted',
-                notes: document.getElementById('respondMessage').value,
-                eta: document.getElementById('respondETA').value
+                notes: responseMessage,
+                eta: eta
             }).select().single();
             
             if(error){
@@ -3447,6 +3450,18 @@
             // Store for chat
             lastCreatedInteractionId = insertData.id;
             lastRespondRequesterId = sosData.user_id;
+            
+            // Send response as first message in chat
+            let messageContent = `🚗 I'm on my way to help!`;
+            if(eta) messageContent += `\n⏱️ ETA: ${eta}`;
+            if(responseMessage) messageContent += `\n\n${responseMessage}`;
+            
+            await db.from('messages').insert({
+                sender_id: currentUser.id,
+                receiver_id: sosData.user_id,
+                content: messageContent,
+                sos_alert_id: currentRespondRequest.id
+            });
             
             // Update SOS alert status to show help is on the way
             await db.from('sos_alerts').update({
