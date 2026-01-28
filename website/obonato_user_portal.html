@@ -160,6 +160,17 @@
         .loading { text-align: center; padding: 48px; color: var(--text-light); }
         .back-link { display: inline-flex; align-items: center; gap: 8px; color: var(--text-light); text-decoration: none; font-size: 14px; font-weight: 600; margin-bottom: 20px; padding: 8px 16px; border-radius: 8px; }
         .back-link:hover { color: var(--primary); background: var(--bg); }
+        .unread-badge { background: var(--danger); color: white; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px; margin-left: 6px; }
+        .conversation-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; cursor: pointer; transition: background 0.2s; border-bottom: 1px solid var(--border); }
+        .conversation-item:hover { background: var(--bg); }
+        .conversation-item.unread { background: #eff6ff; border-left: 3px solid var(--primary); }
+        .conversation-avatar { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+        .conversation-info { flex: 1; min-width: 0; }
+        .conversation-name { font-weight: 600; font-size: 14px; margin: 0; }
+        .conversation-preview { font-size: 13px; color: var(--text-light); margin: 2px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .conversation-meta { text-align: right; flex-shrink: 0; }
+        .conversation-time { font-size: 11px; color: var(--text-light); }
+        .conversation-unread-dot { width: 10px; height: 10px; background: var(--primary); border-radius: 50%; margin-top: 4px; margin-left: auto; }
         @media (max-width: 768px) {
             .header-content { flex-direction: column; height: auto; padding: 16px 0; gap: 12px; }
             .grid-2, .grid-3 { grid-template-columns: 1fr; }
@@ -260,6 +271,7 @@
         <div class="tabs">
             <button class="tab active" data-tab="auth" onclick="showTab('auth', this)">🔐 Welcome</button>
             <button class="tab hidden" data-tab="dashboard" onclick="showTab('dashboard', this)">📊 Dashboard</button>
+            <button class="tab hidden" data-tab="messages" onclick="showTab('messages', this)" id="messagesTab">💬 Messages<span id="unreadBadge" class="unread-badge hidden">0</span></button>
             <button class="tab hidden" data-tab="profile" onclick="showTab('profile', this)">👤 Profile</button>
             <button class="tab hidden" data-tab="availability" onclick="showTab('availability', this)">📍 Availability</button>
             <button class="tab hidden" data-tab="travel" onclick="showTab('travel', this)">🚗 Travel</button>
@@ -309,6 +321,17 @@
                 <div>
                     <div class="card"><h3>🗺️ Your Area</h3><div class="map-container small"><div id="dashboardMap"></div></div></div>
                     <div class="card"><h3>👥 Travelers Nearby</h3><div id="nearbyTravelers"><p class="loading">Loading...</p></div></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Messages Tab -->
+        <div id="messages" class="tab-content">
+            <div class="card">
+                <h3>💬 Messages</h3>
+                <p style="color: var(--text-light); margin-bottom: 20px;">Your conversations with other travelers</p>
+                <div id="conversationsList">
+                    <p class="loading">Loading conversations...</p>
                 </div>
             </div>
         </div>
@@ -1347,6 +1370,48 @@
             </div>
         </div>
     </div>
+    
+    <!-- View Request Modal -->
+    <div class="modal-overlay" id="viewRequestModal">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header"><h2>🆘 Help Request</h2><button class="modal-close" onclick="closeViewRequestModal()">×</button></div>
+            <div class="modal-body" id="viewRequestContent">
+                <!-- Populated dynamically -->
+            </div>
+            <div class="modal-footer" style="flex-direction: column; gap: 12px;">
+                <div style="display: flex; gap: 12px; width: 100%;">
+                    <button class="btn btn-primary" onclick="messageFromViewRequest()" style="flex: 1;">💬 Message</button>
+                    <button class="btn btn-success" onclick="helpFromViewRequest()" style="flex: 1;">🚗 I'll Help!</button>
+                </div>
+                <button class="btn btn-secondary" onclick="closeViewRequestModal()" style="width: 100%;">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Universal Chat Modal -->
+    <div class="modal-overlay" id="universalChatModal">
+        <div class="modal" style="max-width: 500px; height: 80vh; display: flex; flex-direction: column;">
+            <div class="modal-header" style="flex-shrink: 0;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div id="chatUserAvatar" style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px;"></div>
+                    <div>
+                        <h2 id="chatUserName" style="margin: 0; font-size: 16px;">Chat</h2>
+                        <p id="chatContext" style="margin: 0; font-size: 12px; color: var(--text-light);"></p>
+                    </div>
+                </div>
+                <button class="modal-close" onclick="closeUniversalChat()">×</button>
+            </div>
+            <div id="universalChatMessages" style="flex: 1; overflow-y: auto; padding: 16px; background: var(--bg-alt);">
+                <p style="color: var(--text-light); text-align: center;">Loading messages...</p>
+            </div>
+            <div class="modal-footer" style="flex-shrink: 0; padding: 12px;">
+                <div style="display: flex; gap: 8px; width: 100%;">
+                    <input type="text" class="form-control" id="universalChatInput" placeholder="Type a message..." style="flex: 1;">
+                    <button class="btn btn-primary" onclick="sendUniversalMessage()">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         const SUPABASE_URL = 'https://mozbpccxzfcoswvxjuym.supabase.co';
@@ -1488,6 +1553,7 @@
             if(tabId==='travel')loadMyTravelPlans();
             if(tabId==='sos')loadActiveSOSRequests();
             if(tabId==='places')loadMyPlaceReviews();
+            if(tabId==='messages')loadConversations();
         }
         function showLoggedInTabs(){document.querySelectorAll('.tab[data-tab]').forEach(t=>{if(t.dataset.tab!=='auth')t.classList.remove('hidden')});document.querySelector('.tab[data-tab="auth"]').classList.add('hidden')}
         async function checkAuth(){if(!db)return;const{data}=await db.auth.getUser();if(data&&data.user){currentUser=data.user;await onUserLoggedIn()}}
@@ -2729,11 +2795,11 @@
                 
                 // Button changes based on status
                 const actionButton = helpComing
-                    ? `<button class="btn btn-secondary btn-sm" onclick="openRespondModal('${r.id}','${dn}','${r.alert_type}')" style="padding:6px 10px;font-size:12px;flex-shrink:0;" title="Someone is already responding, but you can also help">+Help</button>`
-                    : `<button class="btn btn-success btn-sm" onclick="openRespondModal('${r.id}','${dn}','${r.alert_type}')" style="padding:6px 10px;font-size:12px;flex-shrink:0;">Help</button>`;
+                    ? `<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openRespondModal('${r.id}','${dn}','${r.alert_type}')" style="padding:6px 10px;font-size:12px;flex-shrink:0;" title="Someone is already responding, but you can also help">+Help</button>`
+                    : `<button class="btn btn-success btn-sm" onclick="event.stopPropagation();openRespondModal('${r.id}','${dn}','${r.alert_type}')" style="padding:6px 10px;font-size:12px;flex-shrink:0;">Help</button>`;
                 
                 return `
-                <div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;border-left:3px solid ${borderColor};background:${bgColor};margin-bottom:8px;">
+                <div onclick="openViewRequestModal('${r.id}')" style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;border-left:3px solid ${borderColor};background:${bgColor};margin-bottom:8px;cursor:pointer;transition:transform 0.1s, box-shadow 0.1s;" onmouseover="this.style.transform='translateX(4px)';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
                     <div style="width:36px;height:36px;border-radius:50%;background:${av.color};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">${av.icon}</div>
                     <div style="flex:1;min-width:0;">
                         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
@@ -2863,6 +2929,7 @@
                             <p style="margin:2px 0 0;font-size:11px;color:var(--text-light);">${statusText} ${services.length ? '• ' + services.join('') : ''}</p>
                             ${lastActive ? `<p style="margin:2px 0 0;font-size:10px;color:var(--text-light);">${lastActive}</p>` : ''}
                         </div>
+                        <button class="btn btn-primary btn-sm" onclick="messageNearbyTraveler('${e}','${dn}')" style="padding:6px 10px;font-size:12px;flex-shrink:0;">💬</button>
                     </div>`;
                 }).join('') + `</div>`;
         }
@@ -3884,6 +3951,364 @@
                 </div>
             `).join('');
         }
+        
+        // ==================== MESSAGING SYSTEM ====================
+        let currentChatUserId = null;
+        let currentChatContext = null; // {type: 'sos'|'traveler'|'general', id: sosAlertId or null}
+        let messageSubscription = null;
+        
+        // Load conversations for Messages tab
+        async function loadConversations(){
+            if(!currentUser) return;
+            const div = document.getElementById('conversationsList');
+            
+            // Get all messages involving current user
+            const{data: messages, error} = await db.from('messages')
+                .select('*')
+                .or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`)
+                .order('created_at', {ascending: false});
+            
+            if(error){
+                div.innerHTML = `<p style="color: var(--danger);">Error loading messages</p>`;
+                return;
+            }
+            
+            if(!messages || messages.length === 0){
+                div.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--text-light);">
+                        <p style="font-size: 48px; margin-bottom: 16px;">💬</p>
+                        <p>No conversations yet</p>
+                        <p style="font-size: 13px;">Message a nearby traveler or respond to a help request to start chatting</p>
+                    </div>`;
+                return;
+            }
+            
+            // Group by conversation partner
+            const conversations = {};
+            messages.forEach(m => {
+                const partnerId = m.sender_id === currentUser.id ? m.receiver_id : m.sender_id;
+                if(!conversations[partnerId]){
+                    conversations[partnerId] = {
+                        partnerId,
+                        lastMessage: m,
+                        unread: m.receiver_id === currentUser.id && !m.read_at
+                    };
+                } else if(!m.read_at && m.receiver_id === currentUser.id){
+                    conversations[partnerId].unread = true;
+                }
+            });
+            
+            // Convert to array and sort by last message time
+            const convList = Object.values(conversations).sort((a,b) => 
+                new Date(b.lastMessage.created_at) - new Date(a.lastMessage.created_at)
+            );
+            
+            // Count total unread
+            const totalUnread = convList.filter(c => c.unread).length;
+            updateUnreadBadge(totalUnread);
+            
+            // Render conversation list
+            div.innerHTML = convList.map(c => {
+                const av = generateAvatarData(c.partnerId);
+                const name = generateAnonymousName(c.partnerId);
+                const preview = c.lastMessage.content.length > 40 
+                    ? c.lastMessage.content.substring(0, 40) + '...' 
+                    : c.lastMessage.content;
+                const isFromMe = c.lastMessage.sender_id === currentUser.id;
+                const time = formatMessageTime(c.lastMessage.created_at);
+                
+                return `
+                <div class="conversation-item ${c.unread ? 'unread' : ''}" onclick="openUniversalChat('${c.partnerId}', '${name}', null)">
+                    <div class="conversation-avatar" style="background: ${av.color}; color: white;">${av.icon}</div>
+                    <div class="conversation-info">
+                        <p class="conversation-name">${name}</p>
+                        <p class="conversation-preview">${isFromMe ? 'You: ' : ''}${escapeHtml(preview)}</p>
+                    </div>
+                    <div class="conversation-meta">
+                        <div class="conversation-time">${time}</div>
+                        ${c.unread ? '<div class="conversation-unread-dot"></div>' : ''}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+        
+        function updateUnreadBadge(count){
+            const badge = document.getElementById('unreadBadge');
+            if(count > 0){
+                badge.textContent = count > 9 ? '9+' : count;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+        
+        function formatMessageTime(timestamp){
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diffMins = Math.floor((now - date) / 60000);
+            
+            if(diffMins < 1) return 'Now';
+            if(diffMins < 60) return `${diffMins}m`;
+            if(diffMins < 1440) return `${Math.floor(diffMins/60)}h`;
+            if(diffMins < 10080) return `${Math.floor(diffMins/1440)}d`;
+            return date.toLocaleDateString('en-NZ', {day: 'numeric', month: 'short'});
+        }
+        
+        // View Request Modal
+        let viewRequestData = null;
+        
+        function openViewRequestModal(requestId){
+            const request = window.nearbySOSRequests?.find(r => r.id === requestId);
+            if(!request){
+                alert('Request not found');
+                return;
+            }
+            viewRequestData = request;
+            
+            const av = generateAvatarData(request.user_id);
+            const name = generateAnonymousName(request.user_id);
+            const typeIcons = {breakdown:'🔧', accident:'💥', medical:'🏥', stuck:'🚙', fuel:'⛽', unsafe:'⚠️', emergency:'🚨', directions:'🗺️', meetup:'🍺', other:'❓'};
+            const severityColors = {low:'#22c55e', medium:'#f59e0b', high:'#f97316', critical:'#ef4444'};
+            
+            const created = new Date(request.created_at);
+            const timeAgo = formatMessageTime(request.created_at);
+            const fullTime = created.toLocaleString('en-NZ', {
+                weekday: 'short', day: 'numeric', month: 'short', 
+                hour: '2-digit', minute: '2-digit'
+            });
+            
+            const mapsUrl = request.latitude && request.longitude 
+                ? `https://maps.google.com/?q=${request.latitude},${request.longitude}` 
+                : '';
+            
+            document.getElementById('viewRequestContent').innerHTML = `
+                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+                    <div style="width: 60px; height: 60px; border-radius: 50%; background: ${av.color}; display: flex; align-items: center; justify-content: center; font-size: 28px; color: white;">${av.icon}</div>
+                    <div>
+                        <h3 style="margin: 0 0 4px;">${name}</h3>
+                        <p style="margin: 0; color: var(--text-light); font-size: 13px;">📍 ${request.distance?.toFixed(1) || '?'} km away</p>
+                    </div>
+                </div>
+                
+                <div style="background: linear-gradient(135deg, ${severityColors[request.severity]}22, ${severityColors[request.severity]}11); border-left: 4px solid ${severityColors[request.severity]}; padding: 16px; border-radius: 12px; margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 18px; font-weight: 700;">${typeIcons[request.alert_type] || '❓'} ${request.alert_type?.charAt(0).toUpperCase() + request.alert_type?.slice(1)}</span>
+                        <span style="background: ${severityColors[request.severity]}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; text-transform: uppercase;">${request.severity}</span>
+                    </div>
+                    ${request.description ? `<p style="margin: 0; color: var(--text);">${escapeHtml(request.description)}</p>` : ''}
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                    <div style="background: var(--bg); padding: 12px; border-radius: 10px;">
+                        <p style="margin: 0; font-size: 12px; color: var(--text-light);">🕐 Posted</p>
+                        <p style="margin: 4px 0 0; font-weight: 600;">${timeAgo}</p>
+                        <p style="margin: 2px 0 0; font-size: 11px; color: var(--text-light);">${fullTime}</p>
+                    </div>
+                    <div style="background: var(--bg); padding: 12px; border-radius: 10px;">
+                        <p style="margin: 0; font-size: 12px; color: var(--text-light);">📍 Location</p>
+                        ${mapsUrl ? `
+                            <a href="${mapsUrl}" target="_blank" style="display: inline-block; margin-top: 4px; font-size: 13px; color: var(--primary);">Open in Maps →</a>
+                        ` : `<p style="margin: 4px 0 0; font-size: 13px; color: var(--text-light);">Not available</p>`}
+                    </div>
+                </div>
+                
+                ${request.status === 'help_coming' ? `
+                    <div style="background: #f0fdf4; border: 1px solid #22c55e; padding: 12px; border-radius: 10px; text-align: center;">
+                        <p style="margin: 0; color: #22c55e; font-weight: 600;">🚗 Help is already on the way</p>
+                        <p style="margin: 4px 0 0; font-size: 12px; color: var(--text-light);">You can still offer additional help</p>
+                    </div>
+                ` : ''}
+            `;
+            
+            document.getElementById('viewRequestModal').classList.add('active');
+        }
+        
+        function closeViewRequestModal(){
+            document.getElementById('viewRequestModal').classList.remove('active');
+            viewRequestData = null;
+        }
+        
+        function messageFromViewRequest(){
+            if(!viewRequestData) return;
+            const name = generateAnonymousName(viewRequestData.user_id);
+            closeViewRequestModal();
+            openUniversalChat(viewRequestData.user_id, name, {type: 'sos', id: viewRequestData.id, label: viewRequestData.alert_type});
+        }
+        
+        function helpFromViewRequest(){
+            if(!viewRequestData) return;
+            const name = generateAnonymousName(viewRequestData.user_id);
+            closeViewRequestModal();
+            openRespondModal(viewRequestData.id, name, viewRequestData.alert_type);
+        }
+        
+        // Universal Chat
+        async function openUniversalChat(userId, userName, context){
+            currentChatUserId = userId;
+            currentChatContext = context;
+            
+            const av = generateAvatarData(userId);
+            document.getElementById('chatUserAvatar').style.background = av.color;
+            document.getElementById('chatUserAvatar').innerHTML = av.icon;
+            document.getElementById('chatUserName').textContent = userName;
+            document.getElementById('chatContext').textContent = context?.label 
+                ? `Re: ${context.label}` 
+                : 'Direct message';
+            
+            document.getElementById('universalChatInput').value = '';
+            document.getElementById('universalChatModal').classList.add('active');
+            
+            await loadChatMessages();
+            subscribeToChat();
+            
+            // Mark messages as read
+            await db.from('messages')
+                .update({read_at: new Date().toISOString()})
+                .eq('sender_id', userId)
+                .eq('receiver_id', currentUser.id)
+                .is('read_at', null);
+        }
+        
+        function closeUniversalChat(){
+            document.getElementById('universalChatModal').classList.remove('active');
+            if(messageSubscription){
+                messageSubscription.unsubscribe();
+                messageSubscription = null;
+            }
+            currentChatUserId = null;
+            currentChatContext = null;
+            loadConversations(); // Refresh conversation list
+        }
+        
+        async function loadChatMessages(){
+            const div = document.getElementById('universalChatMessages');
+            
+            const{data: messages, error} = await db.from('messages')
+                .select('*')
+                .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${currentChatUserId}),and(sender_id.eq.${currentChatUserId},receiver_id.eq.${currentUser.id})`)
+                .order('created_at', {ascending: true});
+            
+            if(error || !messages || messages.length === 0){
+                div.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--text-light);">
+                        <p>No messages yet</p>
+                        <p style="font-size: 13px;">Send a message to start the conversation</p>
+                    </div>`;
+                return;
+            }
+            
+            div.innerHTML = messages.map(m => {
+                const isMe = m.sender_id === currentUser.id;
+                const time = new Date(m.created_at).toLocaleTimeString('en-NZ', {hour: '2-digit', minute: '2-digit'});
+                
+                return `
+                <div style="display: flex; justify-content: ${isMe ? 'flex-end' : 'flex-start'}; margin-bottom: 8px;">
+                    <div style="max-width: 75%; padding: 10px 14px; border-radius: 16px;
+                        background: ${isMe ? 'var(--primary)' : 'white'};
+                        color: ${isMe ? 'white' : 'var(--text)'};
+                        border-bottom-${isMe ? 'right' : 'left'}-radius: 4px;
+                        box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                        <p style="margin: 0; word-wrap: break-word;">${escapeHtml(m.content)}</p>
+                        <p style="margin: 4px 0 0; font-size: 10px; opacity: 0.7; text-align: right;">${time}</p>
+                    </div>
+                </div>`;
+            }).join('');
+            
+            div.scrollTop = div.scrollHeight;
+        }
+        
+        function subscribeToChat(){
+            if(messageSubscription) messageSubscription.unsubscribe();
+            
+            messageSubscription = db.channel(`chat-${currentChatUserId}`)
+                .on('postgres_changes', {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'messages'
+                }, (payload) => {
+                    const m = payload.new;
+                    // Only show if it's part of this conversation
+                    if((m.sender_id === currentUser.id && m.receiver_id === currentChatUserId) ||
+                       (m.sender_id === currentChatUserId && m.receiver_id === currentUser.id)){
+                        appendChatMessage(m);
+                        
+                        // Mark as read if from other user
+                        if(m.sender_id === currentChatUserId){
+                            db.from('messages').update({read_at: new Date().toISOString()}).eq('id', m.id);
+                            playNotificationSound();
+                        }
+                    }
+                })
+                .subscribe();
+        }
+        
+        function appendChatMessage(m){
+            const div = document.getElementById('universalChatMessages');
+            const isMe = m.sender_id === currentUser.id;
+            const time = new Date(m.created_at).toLocaleTimeString('en-NZ', {hour: '2-digit', minute: '2-digit'});
+            
+            // Remove "no messages" placeholder if present
+            if(div.querySelector('div[style*="text-align: center"]')){
+                div.innerHTML = '';
+            }
+            
+            div.innerHTML += `
+            <div style="display: flex; justify-content: ${isMe ? 'flex-end' : 'flex-start'}; margin-bottom: 8px;">
+                <div style="max-width: 75%; padding: 10px 14px; border-radius: 16px;
+                    background: ${isMe ? 'var(--primary)' : 'white'};
+                    color: ${isMe ? 'white' : 'var(--text)'};
+                    border-bottom-${isMe ? 'right' : 'left'}-radius: 4px;
+                    box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                    <p style="margin: 0; word-wrap: break-word;">${escapeHtml(m.content)}</p>
+                    <p style="margin: 4px 0 0; font-size: 10px; opacity: 0.7; text-align: right;">${time}</p>
+                </div>
+            </div>`;
+            
+            div.scrollTop = div.scrollHeight;
+        }
+        
+        async function sendUniversalMessage(){
+            const input = document.getElementById('universalChatInput');
+            const content = input.value.trim();
+            
+            if(!content || !currentChatUserId) return;
+            
+            input.value = '';
+            
+            const messageData = {
+                sender_id: currentUser.id,
+                receiver_id: currentChatUserId,
+                content: content,
+                sos_alert_id: currentChatContext?.type === 'sos' ? currentChatContext.id : null
+            };
+            
+            const{error} = await db.from('messages').insert(messageData);
+            
+            if(error){
+                alert('Failed to send message: ' + error.message);
+                input.value = content; // Restore message
+            }
+        }
+        
+        // Message from Travelers Nearby
+        function messageNearbyTraveler(userId, userName){
+            openUniversalChat(userId, userName, {type: 'traveler', label: 'Nearby traveler'});
+        }
+        
+        // Handle Enter key in universal chat
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const chatInput = document.getElementById('universalChatInput');
+                if(chatInput){
+                    chatInput.addEventListener('keypress', (e) => {
+                        if(e.key === 'Enter' && !e.shiftKey){
+                            e.preventDefault();
+                            sendUniversalMessage();
+                        }
+                    });
+                }
+            }, 1000);
+        });
         
         // Utilities
         function getDistance(lat1,lng1,lat2,lng2){const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180,a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))}
