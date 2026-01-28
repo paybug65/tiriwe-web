@@ -540,11 +540,21 @@
                 <div id="vehiclesList"></div>
                 <div class="add-vehicle-card" onclick="openVehicleModal()"><span style="font-size: 32px;">➕</span><p style="color: var(--text-light); margin-top: 8px;">Add Vehicle</p></div>
                 
-                <h4>🚨 Emergency Contact</h4>
-                <div class="grid-3">
-                    <div class="form-group"><label>Name</label><input type="text" class="form-control" id="emergencyName"></div>
-                    <div class="form-group"><label>Phone</label><input type="tel" class="form-control" id="emergencyPhone"></div>
-                    <div class="form-group"><label>Email</label><input type="email" class="form-control" id="emergencyEmail"></div>
+                <h4>🚨 Emergency Contacts</h4>
+                <p style="color: var(--text-light); margin-bottom: 16px;">Add people who should be notified if you trigger an SOS. You can have contacts at home and locally.</p>
+                
+                <div id="emergencyContactsList"></div>
+                
+                <button class="btn btn-secondary" onclick="addEmergencyContact()" style="margin-top: 12px;">➕ Add Emergency Contact</button>
+                
+                <div class="form-group" style="margin-top: 16px; padding: 16px; background: var(--bg); border-radius: 12px;">
+                    <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; margin: 0;">
+                        <input type="checkbox" id="autoNotifyEmergency" style="width: 20px; height: 20px; cursor: pointer;">
+                        <span style="font-weight: 600;">📲 Auto-notify when I send an SOS</span>
+                    </label>
+                    <p style="margin: 8px 0 0 32px; font-size: 13px; color: var(--text-light);">
+                        When enabled, all your emergency contacts will automatically receive an email with your location when you trigger an Emergency SOS or Request Assistance.
+                    </p>
                 </div>
                 
                 <h4>⚙️ Preferences</h4>
@@ -555,6 +565,77 @@
                 
                 <button class="btn btn-primary" onclick="handleSaveProfile()" style="margin-top: 24px;">💾 Save Profile</button>
                 <div id="profileResult" style="margin-top: 16px;"></div>
+                
+                <!-- Community Guidelines -->
+                <div style="margin-top: 32px; padding: 20px; background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 16px; border: 1px solid #86efac;">
+                    <h4 style="margin: 0 0 16px; color: #166534; display: flex; align-items: center; gap: 8px;">
+                        🤝 Community Guidelines
+                    </h4>
+                    
+                    <div style="display: grid; gap: 12px;">
+                        <div style="display: flex; gap: 12px; align-items: start;">
+                            <span style="font-size: 20px;">💚</span>
+                            <div>
+                                <strong style="color: #166534;">Ubuntu: I exist because you exist</strong>
+                                <p style="margin: 4px 0 0; font-size: 13px; color: #15803d;">This is a mutual aid community. We help each other because we're all travelers on the same journey.</p>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 12px; align-items: start;">
+                            <span style="font-size: 20px;">🚫💰</span>
+                            <div>
+                                <strong style="color: #166534;">No payment expected or required</strong>
+                                <p style="margin: 4px 0 0; font-size: 13px; color: #15803d;">Help is freely given. If you want to say thanks, pay it forward by helping someone else.</p>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 12px; align-items: start;">
+                            <span style="font-size: 20px;">⭐</span>
+                            <div>
+                                <strong style="color: #166534;">Feedback builds trust</strong>
+                                <p style="margin: 4px 0 0; font-size: 13px; color: #15803d;">Always leave honest feedback after interactions. It helps keep our community safe.</p>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 12px; align-items: start;">
+                            <span style="font-size: 20px;">🚨</span>
+                            <div>
+                                <strong style="color: #166534;">Report concerning behavior</strong>
+                                <p style="margin: 4px 0 0; font-size: 13px; color: #15803d;">If anyone asks for payment, acts inappropriately, or makes you uncomfortable, report them immediately.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Safety Tips -->
+                <div style="margin-top: 16px; padding: 20px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 16px; border: 1px solid #fcd34d;">
+                    <h4 style="margin: 0 0 16px; color: #92400e; display: flex; align-items: center; gap: 8px;">
+                        🛡️ Safety Tips for Meeting
+                    </h4>
+                    
+                    <div style="display: grid; gap: 10px; font-size: 13px; color: #78350f;">
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span>📍</span>
+                            <span><strong>Meet in public first</strong> - Cafe, petrol station, or busy area</span>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span>📱</span>
+                            <span><strong>Tell someone</strong> - Share your location with a friend or emergency contact</span>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span>✅</span>
+                            <span><strong>Check verification</strong> - Prefer community-verified members when possible</span>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span>🚗</span>
+                            <span><strong>Have an exit</strong> - Keep your vehicle accessible, know how to leave</span>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span>🎯</span>
+                            <span><strong>Trust your instincts</strong> - If something feels wrong, it probably is</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -988,6 +1069,54 @@
         </div>
     </div>
     
+    <!-- Emergency Contact Modal -->
+    <div class="modal-overlay" id="emergencyContactModal">
+        <div class="modal">
+            <div class="modal-header"><h2 id="ecModalTitle">Add Emergency Contact</h2><button class="modal-close" onclick="closeEmergencyContactModal()">×</button></div>
+            <div class="modal-body">
+                <input type="hidden" id="ecEditId">
+                <div class="form-group">
+                    <label>Contact Type</label>
+                    <select class="form-control" id="ecType">
+                        <option value="home">🏠 Home Contact - Family/friend at home</option>
+                        <option value="local">📍 Local Contact - Someone where you're traveling</option>
+                        <option value="travel_buddy">🧭 Travel Buddy - Someone traveling with you</option>
+                        <option value="other">👤 Other</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Name *</label><input type="text" class="form-control" id="ecName" placeholder="e.g. Mum, John Smith"></div>
+                <div class="form-group"><label>Relationship</label><input type="text" class="form-control" id="ecRelationship" placeholder="e.g. Mother, Friend, Partner"></div>
+                <div class="grid-2">
+                    <div class="form-group"><label>Phone</label><input type="tel" class="form-control" id="ecPhone" placeholder="+64 21 xxx xxxx"></div>
+                    <div class="form-group"><label>Email</label><input type="email" class="form-control" id="ecEmail" placeholder="email@example.com"></div>
+                </div>
+                <p style="font-size:12px;color:var(--text-light);margin-top:8px;">* At least phone or email is required</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEmergencyContactModal()">Cancel</button>
+                <button class="btn btn-danger hidden" id="ecDeleteBtn" onclick="deleteEmergencyContact(document.getElementById('ecEditId').value);closeEmergencyContactModal();">🗑️ Delete</button>
+                <button class="btn btn-primary" onclick="saveEmergencyContact()">💾 Save</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chat Modal -->
+    <div class="modal-overlay" id="chatModal">
+        <div class="modal" style="max-width: 500px; height: 70vh; display: flex; flex-direction: column;">
+            <div class="modal-header" style="flex-shrink: 0;">
+                <h2>💬 <span id="chatUserName">Chat</span></h2>
+                <button class="modal-close" onclick="closeChatModal()">×</button>
+            </div>
+            <div id="chatMessages" style="flex: 1; overflow-y: auto; padding: 16px; background: var(--bg-alt);">
+                <!-- Messages will load here -->
+            </div>
+            <div style="padding: 12px; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-shrink: 0;">
+                <input type="text" id="chatInput" class="form-control" placeholder="Type a message..." style="flex: 1;">
+                <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Feedback Modal -->
     <div class="modal-overlay" id="feedbackModal">
         <div class="modal">
@@ -1037,7 +1166,8 @@
                     <div id="respondPhoto" style="width: 120px; height: 120px; border-radius: 50%; margin: 0 auto 12px; border: 4px solid var(--success); overflow: hidden; background: var(--bg-alt);">
                         <img id="respondPhotoImg" src="" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
-                    <p id="respondPhotoName" style="font-weight: 700; font-size: 18px; margin: 0;"></p>
+                    <p id="respondPhotoName" style="font-weight: 700; font-size: 18px; margin: 0 0 12px;"></p>
+                    <button class="btn btn-primary" id="respondChatBtn" onclick="openChatFromRespond()">💬 Send a Message</button>
                 </div>
                 <div id="respondFormSection">
                     <div class="form-group"><label>Response</label><textarea class="form-control" id="respondMessage" rows="4"></textarea></div>
@@ -1226,7 +1356,7 @@
         
         let db=null,currentUser=null,userProfile=null,helpersMap=null,homeMap=null,availMap=null,dashboardMap=null;
         let markers=[],currentHelpers=[],selectedHelper=null,currentInteractionId=null,selectedRating=null;
-        let homeMarker=null,availMarker=null,userVehicles=[],sosTimer=null,sosStartTime=null,currentRespondRequest=null;
+        let homeMarker=null,availMarker=null,userVehicles=[],userEmergencyContacts=[],sosTimer=null,sosStartTime=null,currentRespondRequest=null;
         let gpsFormats={home:'dd',avail:'dd',sos:'dd',search:'dd'},gpsCoords={home:null,avail:null,sos:null,search:null};
         
         const ADJECTIVES=['Swift','Brave','Clever','Dusty','Epic','Fierce','Golden','Happy','Iron','Jolly','Keen','Lucky','Mighty','Noble','Ocean','Proud','Quick','Rusty','Shadow','Thunder','Urban','Velvet','Wild','Alpine','Blazing','Coastal','Desert','Eastern','Forest','Glacier','Harbor','Island','Jungle','Lunar','Misty','Nordic','Outback','Prairie','River','Solar','Tropic','Valley','Western','Azure','Crimson','Emerald'];
@@ -1373,6 +1503,7 @@
             await loadProfile();
             await loadAvailability();
             await loadVehicles();
+            await loadEmergencyContacts();
             await checkPendingFeedback();
             await loadDashboard();
             
@@ -1650,9 +1781,7 @@
                 document.getElementById('profileSuburb').value=data.suburb||'';
                 document.getElementById('profileCity').value=data.city||'';
                 document.getElementById('profilePostCode').value=data.post_code||'';
-                document.getElementById('emergencyName').value=data.emergency_contact_name||'';
-                document.getElementById('emergencyPhone').value=data.emergency_contact_phone||'';
-                document.getElementById('emergencyEmail').value=data.emergency_contact_email||'';
+                document.getElementById('autoNotifyEmergency').checked=data.auto_notify_emergency||false;
                 if(data.home_latitude&&data.home_longitude){
                     document.getElementById('profileHomeLat').value=data.home_latitude;
                     document.getElementById('profileHomeLng').value=data.home_longitude;
@@ -1921,9 +2050,7 @@
                 post_code:document.getElementById('profilePostCode').value,
                 home_latitude:isNaN(lat)?null:lat,
                 home_longitude:isNaN(lng)?null:lng,
-                emergency_contact_name:document.getElementById('emergencyName').value,
-                emergency_contact_phone:document.getElementById('emergencyPhone').value,
-                emergency_contact_email:document.getElementById('emergencyEmail').value,
+                auto_notify_emergency:document.getElementById('autoNotifyEmergency').checked,
                 unit_distance:document.querySelector('input[name="unitDistance"]:checked')?.value||'km',
                 unit_temperature:document.querySelector('input[name="unitTemp"]:checked')?.value||'celsius',
                 updated_at:new Date().toISOString()
@@ -1976,6 +2103,133 @@
         function closeVehicleModal(){document.getElementById('vehicleModal').classList.remove('active')}
         async function saveVehicle(){const editId=document.getElementById('vehicleEditId').value,d={user_id:currentUser.id,vehicle_type:document.getElementById('vehicleType').value,make:document.getElementById('vehicleMake').value,model:document.getElementById('vehicleModel').value,year:parseInt(document.getElementById('vehicleYear').value)||null,fuel_type:document.getElementById('vehicleFuel').value,colour:document.getElementById('vehicleColour').value,registration:document.getElementById('vehicleRego').value,notes:document.getElementById('vehicleNotes').value,is_active:document.getElementById('vehicleActive').checked,updated_at:new Date().toISOString()};const{error}=editId?await db.from('user_vehicles').update(d).eq('id',editId):await db.from('user_vehicles').insert(d);if(error)alert('Error: '+error.message);else{closeVehicleModal();await loadVehicles()}}
         async function deleteVehicle(){const id=document.getElementById('vehicleEditId').value;if(!id||!confirm('Delete?'))return;const{error}=await db.from('user_vehicles').delete().eq('id',id);if(error)alert('Error: '+error.message);else{closeVehicleModal();await loadVehicles()}}
+        
+        // Emergency Contacts
+        async function loadEmergencyContacts(){
+            if(!currentUser)return;
+            const{data}=await db.from('emergency_contacts').select('*').eq('user_id',currentUser.id).order('contact_type');
+            userEmergencyContacts=data||[];
+            renderEmergencyContacts();
+            
+            // Load auto-notify preference from profile
+            if(userProfile?.auto_notify_emergency){
+                document.getElementById('autoNotifyEmergency').checked = true;
+            }
+        }
+        
+        function renderEmergencyContacts(){
+            const div=document.getElementById('emergencyContactsList');
+            if(userEmergencyContacts.length===0){
+                div.innerHTML='<p style="color:var(--text-light);padding:16px;background:var(--bg);border-radius:8px;">No emergency contacts added yet. Add at least one contact who can be notified in case of emergency.</p>';
+                return;
+            }
+            
+            const typeIcons = {home:'🏠', local:'📍', travel_buddy:'🧭', other:'👤'};
+            const typeLabels = {home:'Home Contact', local:'Local Contact', travel_buddy:'Travel Buddy', other:'Other'};
+            
+            div.innerHTML=userEmergencyContacts.map((c,i)=>`
+                <div style="background:var(--bg);border-radius:12px;padding:16px;margin-bottom:12px;border-left:4px solid ${c.contact_type==='home'?'var(--primary)':c.contact_type==='local'?'var(--success)':'var(--warning)'};">
+                    <div style="display:flex;justify-content:space-between;align-items:start;gap:12px;flex-wrap:wrap;">
+                        <div style="flex:1;min-width:200px;">
+                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                                <span style="font-size:20px;">${typeIcons[c.contact_type]||'👤'}</span>
+                                <span style="font-weight:700;">${c.name}</span>
+                                <span style="font-size:11px;background:var(--bg-alt);padding:2px 8px;border-radius:8px;">${typeLabels[c.contact_type]||'Other'}</span>
+                            </div>
+                            <div style="font-size:13px;color:var(--text-light);">
+                                ${c.phone ? `<span style="margin-right:16px;">📱 ${c.phone}</span>` : ''}
+                                ${c.email ? `<span>✉️ ${c.email}</span>` : ''}
+                            </div>
+                            ${c.relationship ? `<div style="font-size:12px;color:var(--text-light);margin-top:4px;">Relationship: ${c.relationship}</div>` : ''}
+                        </div>
+                        <div style="display:flex;gap:8px;">
+                            <button class="btn btn-secondary btn-xs" onclick="editEmergencyContact(${i})">✏️</button>
+                            <button class="btn btn-danger btn-xs" onclick="deleteEmergencyContact('${c.id}')">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function addEmergencyContact(){
+            document.getElementById('ecEditId').value='';
+            document.getElementById('ecName').value='';
+            document.getElementById('ecPhone').value='';
+            document.getElementById('ecEmail').value='';
+            document.getElementById('ecType').value='home';
+            document.getElementById('ecRelationship').value='';
+            document.getElementById('ecModalTitle').textContent='Add Emergency Contact';
+            document.getElementById('ecDeleteBtn').classList.add('hidden');
+            document.getElementById('emergencyContactModal').classList.add('active');
+        }
+        
+        function editEmergencyContact(index){
+            const c = userEmergencyContacts[index];
+            document.getElementById('ecEditId').value=c.id;
+            document.getElementById('ecName').value=c.name||'';
+            document.getElementById('ecPhone').value=c.phone||'';
+            document.getElementById('ecEmail').value=c.email||'';
+            document.getElementById('ecType').value=c.contact_type||'other';
+            document.getElementById('ecRelationship').value=c.relationship||'';
+            document.getElementById('ecModalTitle').textContent='Edit Emergency Contact';
+            document.getElementById('ecDeleteBtn').classList.remove('hidden');
+            document.getElementById('emergencyContactModal').classList.add('active');
+        }
+        
+        function closeEmergencyContactModal(){
+            document.getElementById('emergencyContactModal').classList.remove('active');
+        }
+        
+        async function saveEmergencyContact(){
+            const id = document.getElementById('ecEditId').value;
+            const name = document.getElementById('ecName').value.trim();
+            const phone = document.getElementById('ecPhone').value.trim();
+            const email = document.getElementById('ecEmail').value.trim();
+            const contactType = document.getElementById('ecType').value;
+            const relationship = document.getElementById('ecRelationship').value.trim();
+            
+            if(!name){
+                alert('Please enter a name');
+                return;
+            }
+            if(!phone && !email){
+                alert('Please enter at least a phone or email');
+                return;
+            }
+            
+            const contactData = {
+                user_id: currentUser.id,
+                name,
+                phone: phone || null,
+                email: email || null,
+                contact_type: contactType,
+                relationship: relationship || null
+            };
+            
+            let error;
+            if(id){
+                ({error} = await db.from('emergency_contacts').update(contactData).eq('id', id));
+            } else {
+                ({error} = await db.from('emergency_contacts').insert(contactData));
+            }
+            
+            if(error){
+                alert('Error: ' + error.message);
+            } else {
+                closeEmergencyContactModal();
+                await loadEmergencyContacts();
+            }
+        }
+        
+        async function deleteEmergencyContact(id){
+            if(!confirm('Remove this emergency contact?')) return;
+            const{error} = await db.from('emergency_contacts').delete().eq('id', id);
+            if(error){
+                alert('Error: ' + error.message);
+            } else {
+                await loadEmergencyContacts();
+            }
+        }
         
         // Availability
         async function loadAvailability(){
@@ -2739,6 +2993,9 @@
             currentRespondRequest=null;
         }
         
+        let lastCreatedInteractionId = null;
+        let lastRespondRequesterId = null;
+        
         async function sendResponse(){
             if(!currentRespondRequest) return;
             
@@ -2749,7 +3006,7 @@
                 return;
             }
             
-            const {error} = await db.from('interactions').insert({
+            const {data: insertData, error} = await db.from('interactions').insert({
                 requester_id: sosData.user_id,
                 helper_id: currentUser.id,
                 interaction_type: currentRespondRequest.type,
@@ -2757,12 +3014,16 @@
                 status: 'accepted',
                 notes: document.getElementById('respondMessage').value,
                 eta: document.getElementById('respondETA').value
-            });
+            }).select().single();
             
             if(error){
                 alert('Error: '+error.message);
                 return;
             }
+            
+            // Store for chat
+            lastCreatedInteractionId = insertData.id;
+            lastRespondRequesterId = sosData.user_id;
             
             // Update SOS alert status to show help is on the way
             await db.from('sos_alerts').update({
@@ -2793,6 +3054,13 @@
             photoReveal.classList.remove('hidden');
             
             loadDashboard();
+        }
+        
+        function openChatFromRespond(){
+            if(!lastCreatedInteractionId || !lastRespondRequesterId) return;
+            const name = currentRespondRequest?.name || 'User';
+            closeRespondModal();
+            openChatModal(lastRespondRequesterId, name, lastCreatedInteractionId);
         }
         
         // Activity & Feedback
@@ -3081,7 +3349,8 @@
                             <p style="margin: 4px 0 0; color: var(--text-light); font-size: 12px;">Responded at ${created}</p>
                         </div>
                     </div>
-                    <div style="margin-top: 16px; display: flex; gap: 12px;">
+                    <div style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
+                        <button class="btn btn-primary btn-sm" onclick="openChatModal('${i.helper_id}', '${helperName}', '${i.id}')">💬 Chat</button>
                         <button class="btn btn-success btn-sm" onclick="markInteractionComplete('${i.id}', '${helperName}', '${i.helper_id}')">✅ They Arrived - Complete</button>
                     </div>
                 </div>`;
@@ -3121,7 +3390,13 @@
         }
         
         async function markSOSResolved(id){
-            if(!confirm('Mark this request as resolved? Any pending help responses will also be marked complete.')) return;
+            if(!confirm('Mark this request as resolved?')) return;
+            
+            // Get any interactions (helpers who responded)
+            const{data: interactions} = await db.from('interactions')
+                .select('*')
+                .eq('sos_alert_id', id)
+                .eq('status', 'accepted');
             
             // Update SOS alert
             const{error} = await db.from('sos_alerts').update({status: 'resolved', updated_at: new Date().toISOString()}).eq('id', id);
@@ -3137,9 +3412,172 @@
                 .eq('status', 'accepted');
             
             loadActiveSOSRequests();
+            
+            // If there were helpers, prompt for feedback on each
+            if(interactions && interactions.length > 0){
+                for(const i of interactions){
+                    const helperName = generateAnonymousName(i.helper_id);
+                    openFeedbackModal(i.id, helperName, i.helper_id);
+                    break; // Open first one, others will show in pending
+                }
+            }
+            
             checkPendingFeedback();
         }
         
+        // In-App Messaging
+        let currentChatUserId = null;
+        let currentChatInteractionId = null;
+        let messageSubscription = null;
+        
+        function openChatModal(userId, userName, interactionId){
+            currentChatUserId = userId;
+            currentChatInteractionId = interactionId;
+            document.getElementById('chatUserName').textContent = userName;
+            document.getElementById('chatMessages').innerHTML = '<p style="text-align:center;color:var(--text-light);padding:20px;">Loading messages...</p>';
+            document.getElementById('chatInput').value = '';
+            document.getElementById('chatModal').classList.add('active');
+            loadMessages();
+            subscribeToMessages();
+        }
+        
+        function closeChatModal(){
+            document.getElementById('chatModal').classList.remove('active');
+            if(messageSubscription){
+                messageSubscription.unsubscribe();
+                messageSubscription = null;
+            }
+            currentChatUserId = null;
+            currentChatInteractionId = null;
+        }
+        
+        async function loadMessages(){
+            if(!currentChatInteractionId) return;
+            
+            const{data, error} = await db.from('messages')
+                .select('*')
+                .eq('interaction_id', currentChatInteractionId)
+                .order('created_at', {ascending: true});
+            
+            if(error){
+                document.getElementById('chatMessages').innerHTML = `<p style="color:var(--danger)">Error loading messages</p>`;
+                return;
+            }
+            
+            renderMessages(data || []);
+        }
+        
+        function renderMessages(messages){
+            const div = document.getElementById('chatMessages');
+            
+            if(messages.length === 0){
+                div.innerHTML = `
+                    <div style="text-align:center;padding:40px;color:var(--text-light);">
+                        <p style="font-size:24px;margin-bottom:8px;">💬</p>
+                        <p>No messages yet. Say hello!</p>
+                    </div>`;
+                return;
+            }
+            
+            div.innerHTML = messages.map(m => {
+                const isMe = m.sender_id === currentUser.id;
+                const time = new Date(m.created_at).toLocaleTimeString('en-NZ', {hour:'2-digit', minute:'2-digit'});
+                return `
+                    <div style="display:flex;justify-content:${isMe ? 'flex-end' : 'flex-start'};margin-bottom:8px;">
+                        <div style="max-width:75%;padding:10px 14px;border-radius:16px;
+                            background:${isMe ? 'var(--primary)' : 'var(--bg)'};
+                            color:${isMe ? 'white' : 'var(--text)'};
+                            border-bottom-${isMe ? 'right' : 'left'}-radius:4px;">
+                            <p style="margin:0;word-wrap:break-word;">${escapeHtml(m.content)}</p>
+                            <p style="margin:4px 0 0;font-size:10px;opacity:0.7;text-align:right;">${time}</p>
+                        </div>
+                    </div>`;
+            }).join('');
+            
+            // Scroll to bottom
+            div.scrollTop = div.scrollHeight;
+        }
+        
+        function escapeHtml(text){
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        async function sendMessage(){
+            const input = document.getElementById('chatInput');
+            const content = input.value.trim();
+            if(!content || !currentChatInteractionId) return;
+            
+            input.value = '';
+            
+            const{error} = await db.from('messages').insert({
+                interaction_id: currentChatInteractionId,
+                sender_id: currentUser.id,
+                receiver_id: currentChatUserId,
+                content: content
+            });
+            
+            if(error){
+                alert('Failed to send: ' + error.message);
+                input.value = content;
+            }
+        }
+        
+        function subscribeToMessages(){
+            if(!currentChatInteractionId) return;
+            
+            messageSubscription = db.channel(`chat-${currentChatInteractionId}`)
+                .on('postgres_changes', {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'messages',
+                    filter: `interaction_id=eq.${currentChatInteractionId}`
+                }, (payload) => {
+                    // Add new message to chat
+                    const div = document.getElementById('chatMessages');
+                    const m = payload.new;
+                    const isMe = m.sender_id === currentUser.id;
+                    const time = new Date(m.created_at).toLocaleTimeString('en-NZ', {hour:'2-digit', minute:'2-digit'});
+                    
+                    // Remove "no messages" placeholder if present
+                    if(div.querySelector('p')?.textContent?.includes('No messages')){
+                        div.innerHTML = '';
+                    }
+                    
+                    div.innerHTML += `
+                        <div style="display:flex;justify-content:${isMe ? 'flex-end' : 'flex-start'};margin-bottom:8px;">
+                            <div style="max-width:75%;padding:10px 14px;border-radius:16px;
+                                background:${isMe ? 'var(--primary)' : 'var(--bg)'};
+                                color:${isMe ? 'white' : 'var(--text)'};
+                                border-bottom-${isMe ? 'right' : 'left'}-radius:4px;">
+                                <p style="margin:0;word-wrap:break-word;">${escapeHtml(m.content)}</p>
+                                <p style="margin:4px 0 0;font-size:10px;opacity:0.7;text-align:right;">${time}</p>
+                            </div>
+                        </div>`;
+                    div.scrollTop = div.scrollHeight;
+                    
+                    // Play sound if message is from other user
+                    if(!isMe) playNotificationSound();
+                })
+                .subscribe();
+        }
+        
+        // Handle Enter key in chat
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const chatInput = document.getElementById('chatInput');
+                if(chatInput){
+                    chatInput.addEventListener('keypress', (e) => {
+                        if(e.key === 'Enter' && !e.shiftKey){
+                            e.preventDefault();
+                            sendMessage();
+                        }
+                    });
+                }
+            }, 1000);
+        });
+
         // Places & Business Reviews
         let currentPlaces = [];
         let selectedPlace = null;
