@@ -1407,6 +1407,7 @@
             </div>
             <div class="modal-footer" style="flex-shrink: 0; padding: 12px;">
                 <div style="display: flex; gap: 8px; width: 100%;">
+                    <button class="btn btn-secondary" onclick="closeUniversalChat()" style="padding: 12px 16px;">Cancel</button>
                     <input type="text" class="form-control" id="universalChatInput" placeholder="Type a message..." style="flex: 1;">
                     <button class="btn btn-primary" onclick="sendUniversalMessage()">Send</button>
                 </div>
@@ -4080,14 +4081,12 @@
         let viewRequestData = null;
         
         function openViewRequestModal(requestId){
-            console.log('openViewRequestModal called with:', requestId);
             const request = window.nearbySOSRequests?.find(r => r.id === requestId);
             if(!request){
                 alert('Request not found');
                 return;
             }
             viewRequestData = request;
-            console.log('viewRequestData set to:', viewRequestData);
             
             const av = generateAvatarData(request.user_id);
             const name = generateAnonymousName(request.user_id);
@@ -4153,29 +4152,20 @@
         }
         
         function messageFromViewRequest(){
-            if(!viewRequestData){
-                console.log('messageFromViewRequest: No viewRequestData');
-                return;
-            }
+            if(!viewRequestData) return;
+            
             // Capture data before closing modal
             const userId = viewRequestData.user_id;
             const sosId = viewRequestData.id;
             const alertType = viewRequestData.alert_type;
             const name = generateAnonymousName(userId);
             
-            console.log('messageFromViewRequest:', {userId, sosId, alertType, name});
-            
             // Close the view modal first
             document.getElementById('viewRequestModal').classList.remove('active');
             viewRequestData = null;
             
             // Then open chat
-            try {
-                openUniversalChat(userId, name, {type: 'sos', id: sosId, label: alertType});
-            } catch(e) {
-                console.error('Error opening chat:', e);
-                alert('Error opening chat: ' + e.message);
-            }
+            openUniversalChat(userId, name, {type: 'sos', id: sosId, label: alertType});
         }
         
         function helpFromViewRequest(){
