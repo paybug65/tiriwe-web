@@ -3401,6 +3401,7 @@
         async function sendContactRequest(){if(!currentUser||!selectedHelper)return;const{error}=await db.from('interactions').insert({requester_id:currentUser.id,helper_id:selectedHelper.profiles.id,interaction_type:document.getElementById('contactType').value,status:'pending',notes:document.getElementById('contactMessage').value});if(error)alert('Error: '+error.message);else{alert('✅ Sent!');closeContactModal();document.getElementById('contactMessage').value=''}}
         
         function openRespondModal(id,name,type,requesterId){
+            console.log('openRespondModal: SOS ID =', id, 'Name =', name, 'Type =', type);
             currentRespondRequest={id,name,type,requesterId};
             document.getElementById('respondRequestInfo').innerHTML=`<div style="background:var(--bg);padding:20px;border-radius:12px;margin-bottom:20px"><h4 style="margin:0 0 8px;border:none;padding:0">Helping: ${name}</h4><p style="margin:0;color:var(--text-light)">${type}</p></div>`;
             // Reset modal state
@@ -3423,6 +3424,9 @@
         async function sendResponse(){
             if(!currentRespondRequest) return;
             
+            console.log('sendResponse: currentRespondRequest =', currentRespondRequest);
+            console.log('sendResponse: Using SOS ID =', currentRespondRequest.id);
+            
             // Get requester's user_id and location from the SOS alert
             const {data: sosData} = await db.from('sos_alerts').select('user_id, status, latitude, longitude, alert_type').eq('id', currentRespondRequest.id).single();
             if(!sosData){
@@ -3430,8 +3434,12 @@
                 return;
             }
             
+            console.log('sendResponse: Found SOS data =', sosData);
+            
             const responseMessage = document.getElementById('respondMessage').value.trim();
             const eta = document.getElementById('respondETA').value.trim();
+            
+            console.log('sendResponse: Creating interaction with sos_alert_id =', currentRespondRequest.id);
             
             const {data: insertData, error} = await db.from('interactions').insert({
                 requester_id: sosData.user_id,
@@ -3442,6 +3450,8 @@
                 notes: responseMessage,
                 eta: eta
             }).select().single();
+            
+            console.log('sendResponse: Interaction created =', insertData, error ? 'Error: ' + error.message : '');
             
             if(error){
                 alert('Error: '+error.message);
