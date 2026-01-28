@@ -4152,16 +4152,35 @@
         
         function messageFromViewRequest(){
             if(!viewRequestData) return;
-            const name = generateAnonymousName(viewRequestData.user_id);
-            closeViewRequestModal();
-            openUniversalChat(viewRequestData.user_id, name, {type: 'sos', id: viewRequestData.id, label: viewRequestData.alert_type});
+            // Capture data before closing modal
+            const userId = viewRequestData.user_id;
+            const sosId = viewRequestData.id;
+            const alertType = viewRequestData.alert_type;
+            const name = generateAnonymousName(userId);
+            
+            // Close the view modal first
+            document.getElementById('viewRequestModal').classList.remove('active');
+            
+            // Then open chat (don't clear viewRequestData until after)
+            openUniversalChat(userId, name, {type: 'sos', id: sosId, label: alertType});
+            
+            // Now clear it
+            viewRequestData = null;
         }
         
         function helpFromViewRequest(){
             if(!viewRequestData) return;
+            // Capture data before closing modal
+            const sosId = viewRequestData.id;
+            const alertType = viewRequestData.alert_type;
             const name = generateAnonymousName(viewRequestData.user_id);
-            closeViewRequestModal();
-            openRespondModal(viewRequestData.id, name, viewRequestData.alert_type);
+            
+            // Close and open respond modal
+            document.getElementById('viewRequestModal').classList.remove('active');
+            openRespondModal(sosId, name, alertType);
+            
+            // Now clear it
+            viewRequestData = null;
         }
         
         // Universal Chat
