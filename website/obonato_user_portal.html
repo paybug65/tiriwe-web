@@ -338,17 +338,69 @@
                     <div class="map-container"><div id="homeMap"></div></div>
                 </div>
                 
-                <h4>🚗 Traveler Type</h4>
-                <div class="checkbox-group">
-                    <div class="checkbox-item"><input type="checkbox" id="typeMoto"><label for="typeMoto">🏍️ Motorcyclist</label></div>
-                    <div class="checkbox-item"><input type="checkbox" id="typeCyclist"><label for="typeCyclist">🚴 Cyclist</label></div>
-                    <div class="checkbox-item"><input type="checkbox" id="type4wd"><label for="type4wd">🚙 4WD</label></div>
-                    <div class="checkbox-item"><input type="checkbox" id="typeYacht"><label for="typeYacht">⛵ Sailor</label></div>
-                    <div class="checkbox-item"><input type="checkbox" id="typeHiker"><label for="typeHiker">🥾 Hiker</label></div>
-                    <div class="checkbox-item"><input type="checkbox" id="typeTrucker"><label for="typeTrucker">🚛 Trucker</label></div>
-                    <div class="checkbox-item"><input type="checkbox" id="typeRV"><label for="typeRV">🚐 RV</label></div>
-                    <div class="checkbox-item"><input type="checkbox" id="typeHitchhiker"><label for="typeHitchhiker">👍 Hitchhiker</label></div>
-                    <div class="checkbox-item"><input type="checkbox" id="typeBackpacker"><label for="typeBackpacker">🎒 Backpacker</label></div>
+                <h4>👤 How I Use Obonato</h4>
+                <div class="radio-group" style="margin-bottom: 20px;">
+                    <div class="radio-item" onclick="setUserType('local')">
+                        <input type="radio" name="userType" value="local" id="userTypeLocal">
+                        <label for="userTypeLocal">🏠 Local Helper - I help travelers in my area</label>
+                    </div>
+                    <div class="radio-item" onclick="setUserType('traveler')">
+                        <input type="radio" name="userType" value="traveler" id="userTypeTraveler">
+                        <label for="userTypeTraveler">🌍 Traveler - I travel and may need/offer help</label>
+                    </div>
+                    <div class="radio-item" onclick="setUserType('both')">
+                        <input type="radio" name="userType" value="both" id="userTypeBoth">
+                        <label for="userTypeBoth">🔄 Both - I'm a local AND a traveler</label>
+                    </div>
+                </div>
+                
+                <div id="localHelperDates" class="hidden" style="background: var(--bg); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                    <h5 style="margin: 0 0 12px; color: var(--primary);">📅 When are you available to help?</h5>
+                    <p style="font-size: 13px; color: var(--text-light); margin-bottom: 12px;">Leave blank if always available</p>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Available From (optional)</label>
+                            <input type="date" class="form-control" id="availableFrom">
+                        </div>
+                        <div class="form-group">
+                            <label>Available Until (optional)</label>
+                            <input type="date" class="form-control" id="availableUntil">
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="travelerSection" class="hidden">
+                    <div style="background: var(--bg); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                        <h5 style="margin: 0 0 12px; color: var(--primary);">📅 Travel Dates</h5>
+                        <p style="font-size: 13px; color: var(--text-light); margin-bottom: 12px;">When are you traveling? (From date optional)</p>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>Traveling From (optional)</label>
+                                <input type="date" class="form-control" id="travelingFrom" placeholder="Leave blank if already traveling">
+                            </div>
+                            <div class="form-group">
+                                <label>Traveling Until</label>
+                                <input type="date" class="form-control" id="travelingUntil">
+                            </div>
+                        </div>
+                        <div class="checkbox-item" style="margin-top: 8px;">
+                            <input type="checkbox" id="travelingOpenEnded" onchange="toggleOpenEndedTravel()">
+                            <label for="travelingOpenEnded">Open-ended travel (no fixed return)</label>
+                        </div>
+                    </div>
+                    
+                    <h5 style="margin: 0 0 12px; color: var(--primary);">🚗 Traveler Type</h5>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item"><input type="checkbox" id="typeMoto"><label for="typeMoto">🏍️ Motorcyclist</label></div>
+                        <div class="checkbox-item"><input type="checkbox" id="typeCyclist"><label for="typeCyclist">🚴 Cyclist</label></div>
+                        <div class="checkbox-item"><input type="checkbox" id="type4wd"><label for="type4wd">🚙 4WD</label></div>
+                        <div class="checkbox-item"><input type="checkbox" id="typeYacht"><label for="typeYacht">⛵ Sailor</label></div>
+                        <div class="checkbox-item"><input type="checkbox" id="typeHiker"><label for="typeHiker">🥾 Hiker</label></div>
+                        <div class="checkbox-item"><input type="checkbox" id="typeTrucker"><label for="typeTrucker">🚛 Trucker</label></div>
+                        <div class="checkbox-item"><input type="checkbox" id="typeRV"><label for="typeRV">🚐 RV</label></div>
+                        <div class="checkbox-item"><input type="checkbox" id="typeHitchhiker"><label for="typeHitchhiker">👍 Hitchhiker</label></div>
+                        <div class="checkbox-item"><input type="checkbox" id="typeBackpacker"><label for="typeBackpacker">🎒 Backpacker</label></div>
+                    </div>
                 </div>
                 
                 <h4>🚙 My Vehicles</h4>
@@ -1007,6 +1059,19 @@
                 }
                 if(data.unit_distance)selectRadio('unitDistance',data.unit_distance);
                 if(data.unit_temperature)selectRadio('unitTemp',data.unit_temperature);
+                
+                // Load user type and dates
+                if(data.user_type){
+                    setUserType(data.user_type);
+                }
+                if(data.available_from) document.getElementById('availableFrom').value = data.available_from;
+                if(data.available_until) document.getElementById('availableUntil').value = data.available_until;
+                if(data.traveling_from) document.getElementById('travelingFrom').value = data.traveling_from;
+                if(data.traveling_until) document.getElementById('travelingUntil').value = data.traveling_until;
+                if(data.traveling_open_ended){
+                    document.getElementById('travelingOpenEnded').checked = true;
+                    document.getElementById('travelingUntil').disabled = true;
+                }
             }
         }
         async function handleSaveProfile(){
@@ -1025,6 +1090,12 @@
                 pref_meetup_gender:document.getElementById('prefMeetupGender').value,
                 pref_sos_gender:document.getElementById('prefSOSGender').value,
                 pref_hitch_gender:document.getElementById('prefHitchGender').value,
+                user_type:document.querySelector('input[name="userType"]:checked')?.value||null,
+                available_from:document.getElementById('availableFrom').value||null,
+                available_until:document.getElementById('availableUntil').value||null,
+                traveling_from:document.getElementById('travelingFrom').value||null,
+                traveling_until:document.getElementById('travelingUntil').value||null,
+                traveling_open_ended:document.getElementById('travelingOpenEnded').checked,
                 country:document.getElementById('profileCountry').value,
                 suburb:document.getElementById('profileSuburb').value,
                 city:document.getElementById('profileCity').value,
@@ -1043,6 +1114,39 @@
             r.innerHTML=error?'<div class="alert alert-danger">❌ '+error.message+'</div>':'<div class="alert alert-success">✅ Saved!</div>';
         }
         function selectRadio(name,val){document.querySelectorAll(`input[name="${name}"]`).forEach(r=>{r.checked=r.value===val;r.closest('.radio-item').classList.toggle('selected',r.checked)})}
+        
+        // User Type (Local/Traveler)
+        function setUserType(type){
+            document.querySelectorAll('input[name="userType"]').forEach(r=>{
+                r.checked = r.value === type;
+                r.closest('.radio-item').classList.toggle('selected', r.checked);
+            });
+            
+            const localSection = document.getElementById('localHelperDates');
+            const travelerSection = document.getElementById('travelerSection');
+            
+            if(type === 'local'){
+                localSection.classList.remove('hidden');
+                travelerSection.classList.add('hidden');
+            } else if(type === 'traveler'){
+                localSection.classList.add('hidden');
+                travelerSection.classList.remove('hidden');
+            } else if(type === 'both'){
+                localSection.classList.remove('hidden');
+                travelerSection.classList.remove('hidden');
+            }
+        }
+        
+        function toggleOpenEndedTravel(){
+            const checkbox = document.getElementById('travelingOpenEnded');
+            const untilField = document.getElementById('travelingUntil');
+            if(checkbox.checked){
+                untilField.value = '';
+                untilField.disabled = true;
+            } else {
+                untilField.disabled = false;
+            }
+        }
         
         // Vehicles
         async function loadVehicles(){if(!currentUser)return;const{data}=await db.from('user_vehicles').select('*').eq('user_id',currentUser.id).order('is_active',{ascending:false});userVehicles=data||[];renderVehicles();populateVehicleDropdown()}
