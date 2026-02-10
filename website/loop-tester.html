@@ -446,12 +446,12 @@ console.log('🟢 SCRIPT BLOCK STARTED');
 const SUPABASE_URL = 'https://mozbpccxzfcoswvxjuym.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vemJwY2N4emZjb3N3dnhqdXltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwODY4NTQsImV4cCI6MjA4NDY2Mjg1NH0.lfOM5ojN2B1MV6wMsntGWmI7OWL7fhUJV5E8b6I48N0';
 
-let supabase;
+let sb;
 try {
     if (!window.supabase || !window.supabase.createClient) {
         throw new Error('Supabase library not loaded from CDN');
     }
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     console.log('✅ Supabase client initialized');
 } catch(e) {
     console.error('❌ Supabase init failed:', e.message);
@@ -486,12 +486,12 @@ function showAuthError(msg) {
 }
 
 async function doLogin() {
-    if (!supabase) return showAuthError('Supabase failed to load. Try refreshing the page.');
+    if (!sb) return showAuthError('Supabase failed to load. Try refreshing the page.');
     const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
     if (!email || !password) return showAuthError('Enter email and password');
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
     if (error) return showAuthError(error.message);
 
     currentAuthUser = data.user;
@@ -500,13 +500,13 @@ async function doLogin() {
 }
 
 async function doSignup() {
-    if (!supabase) return showAuthError('Supabase failed to load. Try refreshing the page.');
+    if (!sb) return showAuthError('Supabase failed to load. Try refreshing the page.');
     const email = document.getElementById('signup-email').value.trim();
     const password = document.getElementById('signup-password').value;
     if (!email || !password) return showAuthError('Enter email and password');
     if (password.length < 6) return showAuthError('Password must be at least 6 characters');
 
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await sb.auth.signUp({ email, password });
     if (error) return showAuthError(error.message);
 
     if (data.user && !data.user.email_confirmed_at) {
@@ -520,7 +520,7 @@ async function doSignup() {
 }
 
 async function doLogout() {
-    await supabase.auth.signOut();
+    await sb.auth.signOut();
     currentUser = null;
     currentAuthUser = null;
     document.getElementById('auth-screen').classList.remove('hidden');
@@ -530,10 +530,10 @@ async function doLogout() {
 }
 
 async function loadCurrentUser() {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await sb.auth.getUser();
     if (!user) return;
 
-    const { data, error } = await supabase
+    const { data, error } = await sb
         .from('users')
         .select('*')
         .eq('auth_id', user.id)
@@ -561,8 +561,8 @@ function showApp() {
 
 // Check for existing session on load
 async function checkSession() {
-    if (!supabase) { console.warn('Supabase not initialized, skipping session check'); return; }
-    const { data: { session } } = await supabase.auth.getSession();
+    if (!sb) { console.warn('Supabase not initialized, skipping session check'); return; }
+    const { data: { session } } = await sb.auth.getSession();
     if (session?.user) {
         currentAuthUser = session.user;
         await loadCurrentUser();
@@ -588,7 +588,7 @@ async function createSOS() {
 
     log(`Creating SOS: ${alertType} / ${severity} / "${title}"`, 'info');
 
-    const { data, error } = await supabase
+    const { data, error } = await sb
         .from('sos_alerts')
         .insert({
             user_id: currentUser.id,
@@ -622,7 +622,7 @@ async function createSOS() {
 async function loadActiveAlerts() {
     log('Loading active SOS alerts...', 'info');
 
-    const { data, error } = await supabase
+    const { data, error } = await sb
         .from('sos_alerts')
         .select('*, users!sos_alerts_user_id_fkey(display_name, avatar_emoji)')
         .eq('status', 'active')
@@ -666,7 +666,7 @@ async function respondToSOS(sosId, requesterId, alertType) {
     log(`Responding to SOS ${sosId.substring(0,8)}... as helper`, 'info');
 
     // Step 2a: Create the interaction
-    const { data: interaction, error: intError } = await supabase
+    const { data: interaction, error: intError } = await sb
         .from('interactions')
         .insert({
             requester_id: requesterId,
@@ -690,7 +690,7 @@ async function respondToSOS(sosId, requesterId, alertType) {
     log(`Interaction created! ID: ${interaction.id}, sos_alert_id: ${interaction.sos_alert_id}`, 'ok');
 
     // Step 2b: Update SOS status to 'help_coming'
-    const { error: sosError } = await supabase
+    const { error: sosError } = await sb
         .from('sos_alerts')
         .update({ status: 'help_coming', helper_count: 1 })
         .eq('id', sosId);
@@ -713,7 +713,7 @@ async function loadMyAlerts() {
     if (!currentUser) return;
     log('Loading my active/help_coming alerts...', 'info');
 
-    const { data, error } = await supabase
+    const { data, error } = await sb
         .from('sos_alerts')
         .select('*')
         .eq('user_id', currentUser.id)
@@ -750,7 +750,7 @@ async function resolveSOS(sosId) {
     log(`Resolving SOS ${sosId.substring(0,8)}...`, 'info');
 
     // Step 3a: Update SOS to resolved
-    const { error: sosErr } = await supabase
+    const { error: sosErr } = await sb
         .from('sos_alerts')
         .update({
             status: 'resolved',
@@ -770,7 +770,7 @@ async function resolveSOS(sosId) {
 
     // Step 3b: Find and complete the matching interaction
     // THIS IS THE CRITICAL STEP — the app must do this, no trigger exists
-    const { data: interactions, error: intErr } = await supabase
+    const { data: interactions, error: intErr } = await sb
         .from('interactions')
         .select('*')
         .eq('sos_alert_id', sosId)
@@ -795,7 +795,7 @@ async function resolveSOS(sosId) {
     // Complete each interaction
     let completedCount = 0;
     for (const interaction of interactions) {
-        const { error: updateErr } = await supabase
+        const { error: updateErr } = await sb
             .from('interactions')
             .update({
                 status: 'completed',
@@ -825,14 +825,14 @@ async function loadMyInteractions() {
     log('Loading my completed interactions...', 'info');
 
     // Load interactions where I'm requester OR helper
-    const { data: asRequester, error: e1 } = await supabase
+    const { data: asRequester, error: e1 } = await sb
         .from('interactions')
         .select('*, helper:users!interactions_helper_id_fkey(display_name, avatar_emoji), requester:users!interactions_requester_id_fkey(display_name, avatar_emoji)')
         .eq('requester_id', currentUser.id)
         .eq('status', 'completed')
         .is('deleted_at', null);
 
-    const { data: asHelper, error: e2 } = await supabase
+    const { data: asHelper, error: e2 } = await sb
         .from('interactions')
         .select('*, helper:users!interactions_helper_id_fkey(display_name, avatar_emoji), requester:users!interactions_requester_id_fkey(display_name, avatar_emoji)')
         .eq('helper_id', currentUser.id)
@@ -906,7 +906,7 @@ async function submitFeedback() {
 
     log(`Submitting feedback: ${selectedRating} for interaction ${selectedInteractionId.substring(0,8)}`, 'info');
 
-    const { data, error } = await supabase
+    const { data, error } = await sb
         .from('feedback')
         .insert({
             interaction_id: selectedInteractionId,
@@ -943,7 +943,7 @@ async function runVerification() {
     let allGood = true;
 
     // 1. Check user counters
-    const { data: userData } = await supabase
+    const { data: userData } = await sb
         .from('users')
         .select('display_name, interactions_helped, interactions_received, positive_feedback_count, neutral_feedback_count, negative_feedback_count, verification_level')
         .eq('id', currentUser.id)
@@ -960,7 +960,7 @@ async function runVerification() {
     }
 
     // 2. Check activity log
-    const { data: activities } = await supabase
+    const { data: activities } = await sb
         .from('activity_log')
         .select('event_type, summary, created_at')
         .eq('user_id', currentUser.id)
@@ -978,7 +978,7 @@ async function runVerification() {
     }
 
     // 3. Check interactions
-    const { data: ints } = await supabase
+    const { data: ints } = await sb
         .from('interactions')
         .select('id, sos_alert_id, status, requester_feedback_given, helper_feedback_given, activity_status, completed_at')
         .or(`requester_id.eq.${currentUser.id},helper_id.eq.${currentUser.id}`)
@@ -1000,7 +1000,7 @@ async function runVerification() {
     }
 
     // 4. Check feedback
-    const { data: fbs } = await supabase
+    const { data: fbs } = await sb
         .from('feedback')
         .select('id, interaction_id, rating, from_user_id, to_user_id')
         .or(`from_user_id.eq.${currentUser.id},to_user_id.eq.${currentUser.id}`)
@@ -1031,32 +1031,32 @@ async function refreshDebug() {
     if (!currentUser) return;
 
     // User data
-    const { data: userData } = await supabase.from('users').select('id, display_name, avatar_emoji, avatar_color, verification_level, interactions_helped, interactions_received, positive_feedback_count, negative_feedback_count, is_available').eq('id', currentUser.id).single();
+    const { data: userData } = await sb.from('users').select('id, display_name, avatar_emoji, avatar_color, verification_level, interactions_helped, interactions_received, positive_feedback_count, negative_feedback_count, is_available').eq('id', currentUser.id).single();
     if (userData) {
         document.getElementById('user-count').textContent = '1';
         document.getElementById('debug-user-data').innerHTML = renderDebugRow(userData, ['id','display_name','avatar_emoji','verification_level','interactions_helped','interactions_received','positive_feedback_count','negative_feedback_count','is_available']);
     }
 
     // SOS alerts (my alerts)
-    const { data: sosData } = await supabase.from('sos_alerts').select('id, user_id, alert_type, severity, status, title, helper_count, created_at, resolved_at').eq('user_id', currentUser.id).is('deleted_at', null).order('created_at', { ascending: false }).limit(5);
+    const { data: sosData } = await sb.from('sos_alerts').select('id, user_id, alert_type, severity, status, title, helper_count, created_at, resolved_at').eq('user_id', currentUser.id).is('deleted_at', null).order('created_at', { ascending: false }).limit(5);
     document.getElementById('sos-count').textContent = sosData?.length || 0;
     document.getElementById('debug-sos-data').innerHTML = sosData?.length ? sosData.map(r => renderDebugRow(r, ['id','alert_type','severity','status','title','helper_count','created_at','resolved_at'])).join('') : '<div class="debug-empty">No alerts for this user</div>';
 
     // Interactions (as requester or helper)
-    const { data: intReq } = await supabase.from('interactions').select('id, requester_id, helper_id, sos_alert_id, interaction_type, status, completed_at, activity_status, requester_feedback_given, helper_feedback_given, created_at').eq('requester_id', currentUser.id).is('deleted_at', null).order('created_at', { ascending: false }).limit(5);
-    const { data: intHlp } = await supabase.from('interactions').select('id, requester_id, helper_id, sos_alert_id, interaction_type, status, completed_at, activity_status, requester_feedback_given, helper_feedback_given, created_at').eq('helper_id', currentUser.id).is('deleted_at', null).order('created_at', { ascending: false }).limit(5);
+    const { data: intReq } = await sb.from('interactions').select('id, requester_id, helper_id, sos_alert_id, interaction_type, status, completed_at, activity_status, requester_feedback_given, helper_feedback_given, created_at').eq('requester_id', currentUser.id).is('deleted_at', null).order('created_at', { ascending: false }).limit(5);
+    const { data: intHlp } = await sb.from('interactions').select('id, requester_id, helper_id, sos_alert_id, interaction_type, status, completed_at, activity_status, requester_feedback_given, helper_feedback_given, created_at').eq('helper_id', currentUser.id).is('deleted_at', null).order('created_at', { ascending: false }).limit(5);
     const allInts = [...(intReq||[]), ...(intHlp||[])];
     const uniqueInts = [...new Map(allInts.map(i => [i.id, i])).values()].sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0,5);
     document.getElementById('int-count').textContent = uniqueInts.length;
     document.getElementById('debug-int-data').innerHTML = uniqueInts.length ? uniqueInts.map(r => renderDebugRow(r, ['id','sos_alert_id','status','activity_status','requester_feedback_given','helper_feedback_given','completed_at'])).join('') : '<div class="debug-empty">No interactions</div>';
 
     // Feedback
-    const { data: fbData } = await supabase.from('feedback').select('id, interaction_id, from_user_id, to_user_id, rating, would_interact_again, created_at').or(`from_user_id.eq.${currentUser.id},to_user_id.eq.${currentUser.id}`).order('created_at', { ascending: false }).limit(5);
+    const { data: fbData } = await sb.from('feedback').select('id, interaction_id, from_user_id, to_user_id, rating, would_interact_again, created_at').or(`from_user_id.eq.${currentUser.id},to_user_id.eq.${currentUser.id}`).order('created_at', { ascending: false }).limit(5);
     document.getElementById('fb-count').textContent = fbData?.length || 0;
     document.getElementById('debug-fb-data').innerHTML = fbData?.length ? fbData.map(r => renderDebugRow(r, ['id','interaction_id','rating','would_interact_again','from_user_id','to_user_id'])).join('') : '<div class="debug-empty">No feedback</div>';
 
     // Activity log
-    const { data: actData } = await supabase.from('activity_log').select('id, event_type, summary, created_at').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(10);
+    const { data: actData } = await sb.from('activity_log').select('id, event_type, summary, created_at').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(10);
     document.getElementById('act-count').textContent = actData?.length || 0;
     document.getElementById('debug-act-data').innerHTML = actData?.length ? actData.map(r => renderDebugRow(r, ['event_type','summary','created_at'])).join('') : '<div class="debug-empty">No activity log entries</div>';
 }
