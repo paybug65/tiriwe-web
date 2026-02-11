@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help — Tiriwe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --blue: #1F4788; --blue-dark: #162f5c; --blue-light: #2a5ba8; --blue-pale: #e8effa;
+            --green: #2E7D32; --green-light: #43A047; --green-pale: #E8F5E9;
+            --orange: #F59E0B; --orange-pale: #FFF8E1;
+            --red: #DC2626; --red-pale: #FEF2F2;
+            --purple: #7B1FA2; --purple-pale: #F3E5F5;
+            --white: #ffffff; --off-white: #d5dfe9;
+            --grey-50: #f8fafc; --grey-100: #f1f5f9; --grey-200: #e2e8f0;
+            --grey-300: #cbd5e1; --grey-400: #94a3b8; --grey-500: #64748b;
+            --grey-600: #475569; --grey-700: #334155; --grey-800: #1e293b;
+            --text: #1e293b; --text-mid: #475569; --text-muted: #94a3b8;
+            --border: #e2e8f0; --radius: 14px; --radius-sm: 8px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text); background: var(--off-white); line-height: 1.6; min-height: 100vh;
+        }
+
+        /* TOP BAR */
+        .top-bar { background: #e8edf3; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); }
+        .top-bar-upper { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 56px; }
+        .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--blue); font-family: 'Fraunces', serif; font-weight: 700; font-size: 22px; letter-spacing: -0.5px; }
+        .nav-brand svg { width: 30px; height: 30px; }
+        .nav-right { display: flex; align-items: center; gap: 12px; }
+        .nav-user { display: flex; align-items: center; gap: 8px; }
+        .nav-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), var(--blue-light)); display: flex; align-items: center; justify-content: center; font-size: 15px; color: white; }
+        .nav-display-name { font-weight: 600; font-size: 13px; color: var(--text); }
+        .nav-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border); background: var(--white); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: var(--grey-500); font-size: 16px; position: relative; }
+        .nav-btn:hover { background: var(--grey-100); color: var(--blue); }
+        .notif-badge { position: absolute; top: -2px; right: -2px; width: 16px; height: 16px; background: var(--red); color: white; font-size: 9px; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
+        .tab-nav { display: flex; align-items: center; padding: 0 24px; overflow-x: auto; scrollbar-width: none; }
+        .tab-nav::-webkit-scrollbar { display: none; }
+        .tab-item { display: flex; align-items: center; gap: 6px; padding: 12px 18px; font-size: 13px; font-weight: 600; color: var(--text-muted); text-decoration: none; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; cursor: pointer; }
+        .tab-item:hover { color: var(--blue); background: var(--blue-pale); }
+        .tab-item.active { color: var(--blue); border-bottom-color: var(--blue); }
+        .tab-icon { font-size: 16px; }
+        .tab-badge { background: var(--red); color: white; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px; min-width: 18px; text-align: center; }
+
+        /* PAGE HEADER */
+        .page-header {
+            background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 50%, var(--blue-light) 100%);
+            padding: 28px 24px; color: white; position: relative; overflow: hidden;
+        }
+        .page-header::before {
+            content: ''; position: absolute; top: -50%; right: -20%;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .page-header-content { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+        .page-header h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.3px; }
+        .page-header p { font-size: 14px; opacity: 0.8; margin-top: 4px; }
+
+        /* MAIN */
+        .main { max-width: 1100px; margin: 24px auto; padding: 0 24px 40px; }
+        .card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--border); overflow: hidden; transition: box-shadow 0.2s; }
+        .card:hover { box-shadow: var(--shadow-md); }
+        .card + .card { margin-top: 18px; }
+        .card-hd { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--grey-100); }
+        .card-title { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 7px; }
+        .card-link { font-size: 12px; color: var(--blue); cursor: pointer; font-weight: 600; text-decoration: none; }
+        .card-link:hover { text-decoration: underline; }
+        .card-body { padding: 16px 18px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+
+        /* LIST ITEMS */
+        .list-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--grey-100); cursor: pointer; }
+        .list-item:last-child { border-bottom: none; }
+        .list-icon { width: 42px; height: 42px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; color: white; }
+        .list-info { flex: 1; min-width: 0; }
+        .list-title { font-weight: 600; font-size: 13px; }
+        .list-meta { font-size: 11px; color: var(--text-muted); }
+        .list-right { text-align: right; flex-shrink: 0; }
+        .list-action { padding: 6px 14px; background: var(--blue); color: white; border: none; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
+        .list-action:hover { background: var(--blue-light); }
+
+        /* SEARCH BAR */
+        .search-bar { display: flex; align-items: center; gap: 10px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 18px; }
+        .search-bar input { border: none; outline: none; flex: 1; font-size: 14px; font-family: inherit; background: transparent; }
+        .search-icon { font-size: 18px; color: var(--grey-400); }
+
+        /* FILTER TABS */
+        .filter-tabs { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+        .filter-tab { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); background: var(--white); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; color: var(--text-mid); }
+        .filter-tab:hover { border-color: var(--blue); color: var(--blue); }
+        .filter-tab.active { background: var(--blue); color: white; border-color: var(--blue); }
+
+        /* CATEGORY GRID */
+        .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+        .cat-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 16px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .cat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--blue); }
+        .cat-icon { font-size: 28px; margin-bottom: 6px; }
+        .cat-name { font-weight: 700; font-size: 13px; }
+
+        /* BADGES */
+        .badge-v { color: var(--green); font-size: 11px; margin-left: 3px; }
+        .badge-s { color: var(--orange); font-size: 11px; margin-left: 3px; }
+        .online-dot { width: 9px; height: 9px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 6px rgba(74,222,128,0.5); flex-shrink: 0; }
+        .unread-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--blue); flex-shrink: 0; }
+        .sev { display: inline-flex; padding: 1px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; margin-left: 4px; }
+        .sev-1 { background: var(--orange-pale); color: #b45309; }
+        .sev-2 { background: #FEF3C7; color: #92400e; }
+        .sev-3 { background: var(--red-pale); color: var(--red); }
+
+        /* MAP */
+        .map-box { width: 100%; height: 280px; background: linear-gradient(145deg, #dce6f5, #c5d4ea); display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--blue); font-size: 13px; font-weight: 500; gap: 6px; border-radius: var(--radius); }
+        .map-box svg { opacity: 0.4; }
+
+        /* SOS */
+        .sos-section { text-align: center; padding: 40px 20px; }
+        .sos-hold-btn {
+            width: 160px; height: 160px; border-radius: 50%;
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            border: 6px solid rgba(220,38,38,0.3);
+            color: white; font-size: 28px; font-weight: 800; font-family: inherit;
+            cursor: pointer; display: inline-flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 4px;
+            animation: sos-pulse 2s ease-in-out infinite;
+            transition: transform 0.2s;
+        }
+        .sos-hold-btn span { font-size: 11px; font-weight: 500; opacity: 0.8; }
+        .sos-hold-btn:hover { transform: scale(1.05); }
+        @keyframes sos-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(220,38,38,0); }
+        }
+        .sos-warning { background: var(--red-pale); border: 1px solid #fca5a5; border-radius: var(--radius); padding: 14px 18px; margin-bottom: 20px; font-size: 13px; color: #991b1b; display: flex; align-items: center; gap: 8px; }
+
+        /* TIER CARDS */
+        .tier-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 24px; }
+        .tier-card { background: var(--white); border: 2px solid var(--border); border-radius: var(--radius); padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .tier-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+        .tier-card.t1 { border-color: var(--orange); }
+        .tier-card.t2 { border-color: #f59e0b; }
+        .tier-card.t3 { border-color: var(--red); }
+        .tier-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .tier-icon { font-size: 32px; margin-bottom: 8px; }
+        .tier-name { font-weight: 700; font-size: 15px; }
+        .tier-desc { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+        /* TIMELINE */
+        .timeline-item { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--grey-100); }
+        .timeline-item:last-child { border-bottom: none; }
+        .timeline-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+        .timeline-dot.g { background: var(--green); }
+        .timeline-dot.o { background: var(--orange); }
+        .timeline-dot.b { background: var(--blue); }
+        .timeline-dot.r { background: var(--red); }
+        .timeline-content { flex: 1; }
+        .timeline-title { font-weight: 600; font-size: 13px; }
+        .timeline-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+        /* TRAVEL PLAN CARD */
+        .plan-card { background: linear-gradient(135deg, var(--green-pale), #c8e6c9); border: 1px solid #a5d6a7; border-radius: var(--radius); padding: 18px; margin-bottom: 18px; }
+        .plan-badge { display: inline-flex; padding: 2px 10px; background: var(--green); color: white; border-radius: 12px; font-size: 11px; font-weight: 600; margin-bottom: 8px; }
+        .plan-title { font-weight: 700; font-size: 16px; color: var(--text); }
+        .plan-meta { font-size: 12px; color: var(--text-mid); margin-top: 4px; }
+        .plan-progress { height: 6px; background: rgba(0,0,0,0.1); border-radius: 3px; margin-top: 12px; }
+        .plan-progress-bar { height: 100%; background: var(--green); border-radius: 3px; width: 35%; }
+        .plan-checkin { margin-top: 12px; padding: 10px 20px; background: var(--green); color: white; border: none; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+        .plan-checkin:hover { background: var(--green-light); }
+
+        /* SETTINGS PANEL */
+        .settings-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; opacity: 0; transition: opacity 0.3s; }
+        .settings-overlay.open { display: block; opacity: 1; }
+        .settings-panel { position: fixed; top: 0; right: -380px; width: 360px; max-width: 90vw; height: 100vh; background: var(--white); box-shadow: var(--shadow-lg); z-index: 201; transition: right 0.3s ease; overflow-y: auto; }
+        .settings-panel.open { right: 0; }
+        .settings-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--white); z-index: 1; }
+        .settings-header h2 { font-size: 16px; font-weight: 700; }
+        .settings-close { width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--grey-100); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--grey-500); }
+        .settings-section { padding: 12px 20px; }
+        .settings-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 6px; }
+        .settings-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; cursor: pointer; border-bottom: 1px solid var(--grey-100); text-decoration: none; color: var(--text); font-size: 13px; font-weight: 500; transition: color 0.15s; }
+        .settings-item:last-child { border-bottom: none; }
+        .settings-item:hover { color: var(--blue); }
+        .si-icon { width: 32px; height: 32px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+        .si-icon.green { background: var(--green-pale); }
+        .si-icon.red { background: var(--red-pale); }
+        .si-icon.blue { background: var(--blue-pale); }
+        .si-icon.orange { background: var(--orange-pale); }
+        .si-icon.purple { background: var(--purple-pale); }
+        .si-icon.grey { background: var(--grey-100); }
+        .si-arrow { margin-left: auto; color: var(--grey-300); }
+        .si-badge { background: var(--orange); color: white; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 10px; margin-left: auto; }
+        .settings-logout { display: flex; align-items: center; justify-content: center; gap: 6px; width: calc(100% - 40px); margin: 12px 20px 20px; padding: 12px; background: var(--red-pale); color: var(--red); border: none; border-radius: var(--radius); font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; }
+        .settings-logout:hover { background: #fecaca; }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            .tier-grid { grid-template-columns: 1fr; }
+            .cat-grid { grid-template-columns: repeat(2, 1fr); }
+            .main { padding: 0 16px 40px; }
+            .nav-display-name { display: none; }
+            .tab-item { padding: 10px 12px; font-size: 12px; }
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .main { animation: fadeUp 0.5s ease-out; }
+
+        
+    </style>
+</head>
+<body>
+<header class="top-bar">
+    <div class="top-bar-upper">
+        <a href="dashboard.html" class="nav-brand">
+            <svg viewBox="0 0 32 32" fill="none">
+                <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="2.5"/>
+                <circle cx="11" cy="13" r="3" fill="currentColor"/>
+                <circle cx="21" cy="13" r="3" fill="currentColor"/>
+                <path d="M11 16 L16 22 L21 16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
+            Tiriwe
+        </a>
+        <div class="nav-right">
+            <div class="nav-user">
+                <div class="nav-avatar">🏍️</div>
+                <span class="nav-display-name">BraveRiver472</span>
+            </div>
+            <button class="nav-btn" title="Notifications">🔔<span class="notif-badge">3</span></button>
+            <button class="nav-btn" title="Settings" onclick="openSettings()">⚙️</button>
+        </div>
+    </div>
+    <nav class="tab-nav">
+        <a class="tab-item" href="dashboard.html"><span class="tab-icon">🏠</span><span class="tab-text">Dashboard</span></a>
+        <a class="tab-item" href="messages.html"><span class="tab-icon">💬</span><span class="tab-text">Messages</span><span class="tab-badge">2</span></a>
+        <a class="tab-item" href="diary.html"><span class="tab-icon">📔</span><span class="tab-text">Diary</span></a>
+        <a class="tab-item" href="findit.html"><span class="tab-icon">🔍</span><span class="tab-text">Find It</span></a>
+        <a class="tab-item" href="logit.html"><span class="tab-icon">📍</span><span class="tab-text">Log It</span></a>
+        <a class="tab-item active" href="help.html"><span class="tab-icon">🆘</span><span class="tab-text">Help</span></a>
+    </nav>
+</header>
+
+<section class="page-header">
+    <div class="page-header-content">
+        <h1>🆘 Help</h1>
+        <p>Request help or respond to others in need</p>
+    </div>
+</section>
+
+<main class="main">
+    <div class="sos-warning">⚠️ <strong>Life-threatening emergency?</strong> &nbsp;Call 111 (NZ) / 000 (AU) / 911 (US) first!</div>
+
+    <div class="sos-section">
+        <button class="sos-hold-btn" id="sosBtn">
+            🚨 SOS
+            <span>Hold 3 seconds</span>
+        </button>
+        <p style="margin-top:16px; font-size:13px; color:var(--text-muted);">Press and hold for emergency broadcast to all nearby helpers</p>
+    </div>
+
+    <div class="tier-grid">
+        <div class="tier-card t1">
+            <div class="tier-label" style="color:var(--orange);">Tier 1</div>
+            <div class="tier-icon">🔧</div>
+            <div class="tier-name">Request Help</div>
+            <div class="tier-desc">Breakdown, flat tyre, out of fuel, directions</div>
+        </div>
+        <div class="tier-card t2">
+            <div class="tier-label" style="color:#d97706;">Tier 2</div>
+            <div class="tier-icon">🆘</div>
+            <div class="tier-name">SOS</div>
+            <div class="tier-desc">Injury, stranded, vehicle accident, urgent need</div>
+        </div>
+        <div class="tier-card t3">
+            <div class="tier-label" style="color:var(--red);">Tier 3</div>
+            <div class="tier-icon">🚨</div>
+            <div class="tier-name">Emergency</div>
+            <div class="tier-desc">Life-threatening, serious injury, immediate danger</div>
+        </div>
+    </div>
+
+    <div class="grid-2" style="margin-top: 24px;">
+        <div>
+            <div class="card">
+                <div class="card-hd">
+                    <div class="card-title">🚨 Your Active Alerts</div>
+                </div>
+                <div class="card-body">
+                    <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">
+                        No active alerts. You're all good! ✅
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="card">
+                <div class="card-hd">
+                    <div class="card-title">🤝 Nearby Requests</div>
+                    <a class="card-link" href="#">View All →</a>
+                </div>
+                <div class="card-body">
+                    <div class="list-item">
+                        <div class="list-icon" style="background: var(--orange);">🔧</div>
+                        <div class="list-info">
+                            <div class="list-title">Breakdown <span class="sev sev-1">Tier 1</span></div>
+                            <div class="list-meta">Chain issue · BraveMountain156 · 8 km</div>
+                        </div>
+                        <button class="list-action">Respond</button>
+                    </div>
+                    <div class="list-item">
+                        <div class="list-icon" style="background: var(--red);">⛽</div>
+                        <div class="list-info">
+                            <div class="list-title">Out of Fuel <span class="sev sev-1">Tier 1</span></div>
+                            <div class="list-meta">SH1 near Kaikoura · CalmOcean483 · 15 km</div>
+                        </div>
+                        <button class="list-action">Respond</button>
+                    </div>
+                    <div class="list-item">
+                        <div class="list-icon" style="background: var(--red);">🩹</div>
+                        <div class="list-info">
+                            <div class="list-title">Minor Injury <span class="sev sev-2">Tier 2</span></div>
+                            <div class="list-meta">Sprained ankle · WildStar221 · 22 km</div>
+                        </div>
+                        <button class="list-action" style="background:var(--red);">Respond</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div class="settings-overlay" id="settings-overlay" onclick="closeSettings()"></div>
+<aside class="settings-panel" id="settings-panel">
+    <div class="settings-header">
+        <h2>⚙️ Settings</h2>
+        <button class="settings-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="settings-section">
+        <div class="settings-section-title">Profile</div>
+        <a class="settings-item" href="profile.html"><div class="si-icon green">👤</div> My Profile <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="friends.html"><div class="si-icon blue">👥</div> My Friends <span class="si-badge">4</span></a>
+        <a class="settings-item" href="groups.html"><div class="si-icon purple">👪</div> My Groups <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="vehicles.html"><div class="si-icon orange">🏍️</div> My Vehicles <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="emergency.html"><div class="si-icon red">❤️</div> Emergency Contacts <span class="si-arrow">›</span></a>
+    </div>
+    <div class="settings-section">
+        <div class="settings-section-title">Account</div>
+        <a class="settings-item" href="subscription.html"><div class="si-icon orange">⭐</div> Subscription & Plan <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon grey">🔑</div> Change Password <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon blue">🔒</div> Two-Factor Auth <span class="si-arrow">›</span></a>
+    </div>
+    <div class="settings-section">
+        <div class="settings-section-title">Availability</div>
+        <a class="settings-item" href="#"><div class="si-icon green">📡</div> Availability Settings <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon blue">🎯</div> Help Preferences <span class="si-arrow">›</span></a>
+    </div>
+    <div class="settings-section">
+        <div class="settings-section-title">Activity</div>
+        <a class="settings-item" href="#"><div class="si-icon blue">📋</div> Activity History <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon orange">⏳</div> Pending Feedback <span class="si-badge">2</span></a>
+        <a class="settings-item" href="#"><div class="si-icon grey">📊</div> Interactions History <span class="si-arrow">›</span></a>
+    </div>
+    <div class="settings-section">
+        <div class="settings-section-title">Privacy & Data</div>
+        <a class="settings-item" href="#"><div class="si-icon purple">📍</div> Location Privacy <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon grey">🗂️</div> Data Retention <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon blue">⬇️</div> Download My Data <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon red">🚫</div> Blocked Users <span class="si-arrow">›</span></a>
+    </div>
+    <div class="settings-section">
+        <div class="settings-section-title">App</div>
+        <a class="settings-item" href="#"><div class="si-icon grey">🌐</div> Language & Region <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon blue">ℹ️</div> About Tiriwe <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon green">💬</div> Help & Support <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon grey">📄</div> Terms & Privacy <span class="si-arrow">›</span></a>
+    </div>
+    <button class="settings-logout" onclick="alert('Logged out')">🚪 Log Out</button>
+</aside>
+
+<script>
+    function openSettings() {
+        document.getElementById('settings-overlay').classList.add('open');
+        document.getElementById('settings-panel').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeSettings() {
+        document.getElementById('settings-overlay').classList.remove('open');
+        document.getElementById('settings-panel').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+</script>
+</body>
+</html>
