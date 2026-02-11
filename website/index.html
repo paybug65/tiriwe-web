@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <style>
         :root {
             --primary: #1F4788;
@@ -699,6 +700,85 @@
             flex-direction: column;
             gap: 12px;
         }
+
+        /* Auth Modal */
+        .auth-overlay {
+            display: none; position: fixed; inset: 0; z-index: 2000;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+            align-items: center; justify-content: center; padding: 24px;
+        }
+        .auth-overlay.active { display: flex; }
+        .auth-modal {
+            background: white; border-radius: 16px; width: 100%; max-width: 420px;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.2); overflow: hidden;
+            animation: modalIn 0.25s ease;
+        }
+        @keyframes modalIn { from { opacity: 0; transform: translateY(20px); } }
+        .auth-modal-header {
+            padding: 24px 24px 0; text-align: center;
+        }
+        .auth-modal-header h2 {
+            font-size: 24px; font-weight: 800; color: var(--primary);
+            margin-bottom: 4px;
+        }
+        .auth-modal-header p {
+            font-size: 14px; color: var(--text-light);
+        }
+        .auth-modal-close {
+            position: absolute; top: 16px; right: 16px; background: none;
+            border: none; font-size: 24px; cursor: pointer; color: var(--text-light);
+            width: 36px; height: 36px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center;
+        }
+        .auth-modal-close:hover { background: #f1f5f9; }
+        .auth-tabs {
+            display: flex; margin: 20px 24px 0; border-bottom: 2px solid var(--border);
+        }
+        .auth-tab {
+            flex: 1; padding: 12px; text-align: center; font-size: 14px;
+            font-weight: 600; cursor: pointer; color: var(--text-light);
+            border-bottom: 2px solid transparent; margin-bottom: -2px;
+            transition: all 0.2s; background: none; border-top: none;
+            border-left: none; border-right: none; font-family: inherit;
+        }
+        .auth-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .auth-tab:hover { color: var(--primary); }
+        .auth-form { padding: 24px; }
+        .auth-form-group { margin-bottom: 16px; }
+        .auth-form-group label {
+            display: block; font-size: 13px; font-weight: 600;
+            color: #475569; margin-bottom: 6px;
+        }
+        .auth-form-group input {
+            width: 100%; padding: 12px 14px; border: 1.5px solid var(--border);
+            border-radius: 8px; font-family: inherit; font-size: 14px;
+            transition: all 0.2s;
+        }
+        .auth-form-group input:focus {
+            outline: none; border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(31,71,136,0.1);
+        }
+        .auth-btn {
+            width: 100%; padding: 14px; border-radius: 8px; border: none;
+            background: var(--primary); color: white; font-family: inherit;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .auth-btn:hover { background: var(--primary-dark); }
+        .auth-btn:disabled { background: #94a3b8; cursor: not-allowed; }
+        .auth-message {
+            padding: 10px 14px; border-radius: 8px; font-size: 13px;
+            margin-bottom: 16px; display: none;
+        }
+        .auth-message.error { display: block; background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; }
+        .auth-message.success { display: block; background: #F0FDF4; color: #16A34A; border: 1px solid #BBF7D0; }
+        .auth-forgot {
+            text-align: center; margin-top: 12px; font-size: 13px;
+        }
+        .auth-forgot a {
+            color: var(--primary); text-decoration: none; font-weight: 500;
+        }
+        .auth-forgot a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -721,8 +801,8 @@
             </div>
             
             <div class="nav-buttons">
-                <a href="dashboard.html" class="btn btn-outline">Sign In</a>
-                <a href="dashboard.html" class="btn btn-primary">Get Started</a>
+                <a href="#" onclick="openAuthModal('signin'); return false;" class="btn btn-outline">Sign In</a>
+                <a href="#" onclick="openAuthModal('signup'); return false;" class="btn btn-primary">Get Started</a>
             </div>
             
             <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
@@ -742,8 +822,8 @@
             <a href="#about" onclick="toggleMobileMenu()">About</a>
         </div>
         <div class="mobile-menu-buttons">
-            <a href="dashboard.html" class="btn btn-outline btn-large" style="justify-content: center;">Sign In</a>
-            <a href="dashboard.html" class="btn btn-primary btn-large" style="justify-content: center;">Get Started Free</a>
+            <a href="#" onclick="openAuthModal('signin'); toggleMobileMenu(); return false;" class="btn btn-outline btn-large" style="justify-content: center;">Sign In</a>
+            <a href="#" onclick="openAuthModal('signup'); toggleMobileMenu(); return false;" class="btn btn-primary btn-large" style="justify-content: center;">Get Started Free</a>
         </div>
     </div>
     
@@ -758,7 +838,7 @@
                     need a place to stay, or just want to meet fellow travelers — Tiriwe has your back.
                 </p>
                 <div class="hero-buttons">
-                    <a href="dashboard.html" class="btn btn-accent btn-large">Get Started Free →</a>
+                    <a href="#" onclick="openAuthModal('signup'); return false;" class="btn btn-accent btn-large">Get Started Free →</a>
                     <a href="#how-it-works" class="btn btn-outline btn-large" style="border-color: white; color: white;">See How It Works</a>
                 </div>
                 <div class="hero-stats">
@@ -942,8 +1022,8 @@
             <h2>Ready to Join the Community?</h2>
             <p>Start connecting with fellow travelers and local helpers today. It's free to join and free to use for all safety features.</p>
             <div class="cta-buttons">
-                <a href="dashboard.html" class="btn btn-white btn-large">Get Started Free →</a>
-                <a href="dashboard.html" class="btn btn-outline btn-large" style="border-color: white; color: white;">Sign In</a>
+                <a href="#" onclick="openAuthModal('signup'); return false;" class="btn btn-white btn-large">Get Started Free →</a>
+                <a href="#" onclick="openAuthModal('signin'); return false;" class="btn btn-outline btn-large" style="border-color: white; color: white;">Sign In</a>
             </div>
         </div>
     </section>
@@ -991,7 +1071,7 @@
                     <a href="#features">Features</a>
                     <a href="#how-it-works">How It Works</a>
                     <a href="#travelers">For Travelers</a>
-                    <a href="dashboard.html">Sign Up</a>
+                    <a href="#" onclick="openAuthModal('signup'); return false;">Sign Up</a>
                 </div>
                 
                 <div class="footer-column">
@@ -1017,20 +1097,250 @@
         </div>
     </footer>
     
+    <!-- Auth Modal -->
+    <div class="auth-overlay" id="authOverlay" onclick="if(event.target===this)closeAuthModal()">
+        <div class="auth-modal" style="position:relative;">
+            <button class="auth-modal-close" onclick="closeAuthModal()">×</button>
+            <div class="auth-modal-header">
+                <h2>🌍 Tiriwe</h2>
+                <p>I exist because we exist</p>
+            </div>
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="tab-signin" onclick="switchTab('signin')">Sign In</button>
+                <button class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Create Account</button>
+            </div>
+
+            <!-- Sign In Form -->
+            <div class="auth-form" id="form-signin">
+                <div class="auth-message" id="signin-message"></div>
+                <div class="auth-form-group">
+                    <label>Email</label>
+                    <input type="email" id="signin-email" placeholder="you@email.com" 
+                           onkeydown="if(event.key==='Enter')doSignIn()">
+                </div>
+                <div class="auth-form-group">
+                    <label>Password</label>
+                    <input type="password" id="signin-password" placeholder="Your password"
+                           onkeydown="if(event.key==='Enter')doSignIn()">
+                </div>
+                <button class="auth-btn" id="btn-signin" onclick="doSignIn()">Sign In</button>
+                <div class="auth-forgot">
+                    <a href="#" onclick="doForgotPassword(); return false;">Forgot password?</a>
+                </div>
+            </div>
+
+            <!-- Sign Up Form -->
+            <div class="auth-form" id="form-signup" style="display:none;">
+                <div class="auth-message" id="signup-message"></div>
+                <div class="auth-form-group">
+                    <label>Email</label>
+                    <input type="email" id="signup-email" placeholder="you@email.com"
+                           onkeydown="if(event.key==='Enter')doSignUp()">
+                </div>
+                <div class="auth-form-group">
+                    <label>Password <span style="font-weight:400;color:#94a3b8;">(min 8 characters)</span></label>
+                    <input type="password" id="signup-password" placeholder="Choose a password"
+                           onkeydown="if(event.key==='Enter')doSignUp()">
+                </div>
+                <div class="auth-form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="signup-confirm" placeholder="Confirm your password"
+                           onkeydown="if(event.key==='Enter')doSignUp()">
+                </div>
+                <button class="auth-btn" id="btn-signup" onclick="doSignUp()">Create Account</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/tiriwe-core.js"></script>
     <script>
+        // ================================================================
+        // LANDING PAGE SCRIPTS
+        // ================================================================
+
         function toggleMobileMenu() {
             document.getElementById('mobileMenu').classList.toggle('active');
         }
-        
+
         // Smooth scroll for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href === '#') return; // skip modal trigger links
                 e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
+                const target = document.querySelector(href);
                 if (target) {
                     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             });
+        });
+
+        // ================================================================
+        // AUTH MODAL
+        // ================================================================
+
+        function openAuthModal(mode) {
+            document.getElementById('authOverlay').classList.add('active');
+            switchTab(mode || 'signin');
+            document.body.style.overflow = 'hidden';
+
+            // Auto-focus email field
+            setTimeout(() => {
+                const emailField = document.getElementById(mode === 'signup' ? 'signup-email' : 'signin-email');
+                if (emailField) emailField.focus();
+            }, 100);
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+            clearMessages();
+        }
+
+        function switchTab(tab) {
+            document.getElementById('tab-signin').classList.toggle('active', tab === 'signin');
+            document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
+            document.getElementById('form-signin').style.display = tab === 'signin' ? 'block' : 'none';
+            document.getElementById('form-signup').style.display = tab === 'signup' ? 'block' : 'none';
+            clearMessages();
+        }
+
+        function showMessage(formId, text, type) {
+            const el = document.getElementById(formId + '-message');
+            el.textContent = text;
+            el.className = 'auth-message ' + type;
+        }
+
+        function clearMessages() {
+            document.querySelectorAll('.auth-message').forEach(el => {
+                el.className = 'auth-message';
+                el.textContent = '';
+            });
+        }
+
+        // ================================================================
+        // SIGN IN
+        // ================================================================
+
+        async function doSignIn() {
+            const email = document.getElementById('signin-email').value.trim();
+            const password = document.getElementById('signin-password').value;
+            const btn = document.getElementById('btn-signin');
+
+            if (!email || !password) {
+                showMessage('signin', 'Please enter your email and password.', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Signing in...';
+            clearMessages();
+
+            const { error, user } = await Tiriwe.logIn(email, password);
+
+            if (error) {
+                showMessage('signin', error.message, 'error');
+                btn.disabled = false;
+                btn.textContent = 'Sign In';
+                return;
+            }
+
+            showMessage('signin', 'Welcome back! Redirecting...', 'success');
+
+            // Check profile completeness and redirect
+            setTimeout(() => {
+                if (user && Tiriwe.isProfileComplete(user)) {
+                    Tiriwe.navigateTo(Tiriwe.config.PAGE_DASHBOARD);
+                } else {
+                    Tiriwe.navigateTo(Tiriwe.config.PAGE_SETTINGS);
+                }
+            }, 800);
+        }
+
+        // ================================================================
+        // SIGN UP
+        // ================================================================
+
+        async function doSignUp() {
+            const email = document.getElementById('signup-email').value.trim();
+            const password = document.getElementById('signup-password').value;
+            const confirm = document.getElementById('signup-confirm').value;
+            const btn = document.getElementById('btn-signup');
+
+            if (!email || !password) {
+                showMessage('signup', 'Please enter your email and password.', 'error');
+                return;
+            }
+
+            if (password.length < 8) {
+                showMessage('signup', 'Password must be at least 8 characters.', 'error');
+                return;
+            }
+
+            if (password !== confirm) {
+                showMessage('signup', 'Passwords do not match.', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Creating account...';
+            clearMessages();
+
+            const { data, error } = await Tiriwe.signUp(email, password);
+
+            if (error) {
+                showMessage('signup', error.message, 'error');
+                btn.disabled = false;
+                btn.textContent = 'Create Account';
+                return;
+            }
+
+            // Check if email confirmation is required
+            if (data.user && data.user.identities && data.user.identities.length === 0) {
+                showMessage('signup', 'An account with this email already exists. Try signing in.', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Create Account';
+                return;
+            }
+
+            showMessage('signup', 'Account created! Check your email to verify, then sign in.', 'success');
+            btn.disabled = false;
+            btn.textContent = 'Create Account';
+        }
+
+        // ================================================================
+        // FORGOT PASSWORD
+        // ================================================================
+
+        async function doForgotPassword() {
+            const email = document.getElementById('signin-email').value.trim();
+
+            if (!email) {
+                showMessage('signin', 'Enter your email address above, then click forgot password.', 'error');
+                return;
+            }
+
+            const { error } = await Tiriwe.resetPassword(email);
+
+            if (error) {
+                showMessage('signin', error.message, 'error');
+                return;
+            }
+
+            showMessage('signin', 'Password reset email sent. Check your inbox.', 'success');
+        }
+
+        // ================================================================
+        // AUTO-REDIRECT IF ALREADY LOGGED IN
+        // ================================================================
+
+        // tiriwe-core.js handles this automatically on init —
+        // if user has a session, they get redirected to dashboard/settings.
+        // We don't need to do anything extra here.
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeAuthModal();
         });
     </script>
 </body>
