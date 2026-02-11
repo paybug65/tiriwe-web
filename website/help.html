@@ -44,7 +44,7 @@
         .notif-badge { position: absolute; top: -2px; right: -2px; width: 16px; height: 16px; background: var(--red); color: white; font-size: 9px; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
         .tab-nav { display: flex; align-items: center; padding: 0 24px; overflow-x: auto; scrollbar-width: none; }
         .tab-nav::-webkit-scrollbar { display: none; }
-        .tab-item { display: flex; align-items: center; gap: 6px; padding: 12px 18px; font-size: 13px; font-weight: 600; color: var(--text-muted); text-decoration: none; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; cursor: pointer; }
+        .tab-item { display: flex; align-items: center; gap: 6px; padding: 12px 18px; font-size: 13px; font-weight: 600; color: var(--grey-600); text-decoration: none; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; cursor: pointer; }
         .tab-item:hover { color: var(--blue); background: var(--blue-pale); }
         .tab-item.active { color: var(--blue); border-bottom-color: var(--blue); }
         .tab-icon { font-size: 16px; }
@@ -341,10 +341,7 @@
 
 <div class="settings-overlay" id="settings-overlay" onclick="closeSettings()"></div>
 <aside class="settings-panel" id="settings-panel">
-    <div class="settings-header">
-        <h2>⚙️ Settings</h2>
-        <button class="settings-close" onclick="closeSettings()">✕</button>
-    </div>
+    <div class="settings-header"><h2>⚙️ Settings</h2><button class="settings-close" onclick="closeSettings()">✕</button></div>
     <div class="settings-section">
         <div class="settings-section-title">Profile</div>
         <a class="settings-item" href="profile.html"><div class="si-icon green">👤</div> My Profile <span class="si-arrow">›</span></a>
@@ -356,33 +353,26 @@
     <div class="settings-section">
         <div class="settings-section-title">Account</div>
         <a class="settings-item" href="subscription.html"><div class="si-icon orange">⭐</div> Subscription & Plan <span class="si-arrow">›</span></a>
-        <a class="settings-item" href="#"><div class="si-icon grey">🔑</div> Change Password <span class="si-arrow">›</span></a>
-        <a class="settings-item" href="#"><div class="si-icon blue">🔒</div> Two-Factor Auth <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="password.html"><div class="si-icon grey">🔑</div> Change Password <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="twofactor.html"><div class="si-icon blue">🔒</div> Two-Factor Auth <span class="si-arrow">›</span></a>
     </div>
     <div class="settings-section">
         <div class="settings-section-title">Availability</div>
-        <a class="settings-item" href="#"><div class="si-icon green">📡</div> Availability Settings <span class="si-arrow">›</span></a>
-        <a class="settings-item" href="#"><div class="si-icon blue">🎯</div> Help Preferences <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="availability.html"><div class="si-icon green">📡</div> Availability Settings <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="helpprefs.html"><div class="si-icon blue">🎯</div> Help Preferences <span class="si-arrow">›</span></a>
     </div>
     <div class="settings-section">
         <div class="settings-section-title">Activity</div>
-        <a class="settings-item" href="#"><div class="si-icon blue">📋</div> Activity History <span class="si-arrow">›</span></a>
-        <a class="settings-item" href="#"><div class="si-icon orange">⏳</div> Pending Feedback <span class="si-badge">2</span></a>
-        <a class="settings-item" href="#"><div class="si-icon grey">📊</div> Interactions History <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="activity.html"><div class="si-icon blue">📋</div> Activity History <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="feedback.html"><div class="si-icon orange">⏳</div> Pending Feedback <span class="si-badge">2</span></a>
+        <a class="settings-item" href="interactions.html"><div class="si-icon grey">📊</div> Interactions History <span class="si-arrow">›</span></a>
     </div>
     <div class="settings-section">
         <div class="settings-section-title">Privacy & Data</div>
-        <a class="settings-item" href="#"><div class="si-icon purple">📍</div> Location Privacy <span class="si-arrow">›</span></a>
-        <a class="settings-item" href="#"><div class="si-icon grey">🗂️</div> Data Retention <span class="si-arrow">›</span></a>
-        <a class="settings-item" href="#"><div class="si-icon blue">⬇️</div> Download My Data <span class="si-arrow">›</span></a>
-        <a class="settings-item" href="#"><div class="si-icon red">🚫</div> Blocked Users <span class="si-arrow">›</span></a>
-    </div>
-    <div class="settings-section">
-        <div class="settings-section-title">App</div>
-        <a class="settings-item" href="#"><div class="si-icon grey">🌐</div> Language & Region <span class="si-arrow">›</span></a>
-        <a class="settings-item" href="#"><div class="si-icon blue">ℹ️</div> About Tiriwe <span class="si-arrow">›</span></a>
-        <a class="settings-item" href="#"><div class="si-icon green">💬</div> Help & Support <span class="si-arrow">›</span></a>
-        <a class="settings-item" href="#"><div class="si-icon grey">📄</div> Terms & Privacy <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="privacy.html"><div class="si-icon purple">📍</div> Location Privacy <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="retention.html"><div class="si-icon grey">🗂️</div> Data Retention <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="download.html"><div class="si-icon blue">⬇️</div> Download My Data <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="blocked.html"><div class="si-icon red">🚫</div> Blocked Users <span class="si-arrow">›</span></a>
     </div>
     <button class="settings-logout" onclick="alert('Logged out')">🚪 Log Out</button>
 </aside>
