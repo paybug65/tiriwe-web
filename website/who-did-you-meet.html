@@ -70,15 +70,6 @@
     .event-card-title { font-size: 13px; font-weight: 700; }
     .event-card-details { font-size: 11px; color: var(--text-mid); margin-top: 4px; }
 
-    /* Nudge bar */
-    .nudge-bar {
-        margin: 12px 16px 0; padding: 8px 12px;
-        background: var(--purple-pale); border-radius: var(--radius-sm);
-        border: 1px solid rgba(124,58,237,0.15);
-        font-size: 11px; color: var(--purple); font-weight: 600;
-        display: flex; align-items: center; gap: 6px;
-    }
-
     /* Attendee grid */
     .attendee-grid {
         padding: 14px 16px; display: grid;
@@ -95,19 +86,15 @@
     .attendee:hover { border-color: var(--grey-300); background: var(--grey-50); }
     .attendee.selected { border-color: var(--green); background: var(--green-pale); }
     .attendee.selected .attendee-check { display: flex; }
-    .attendee.mutual-hint { border-color: var(--purple); }
-    .attendee.mutual-hint::before {
-        content: "They confirmed you! 🤝"; position: absolute; top: -8px; left: 50%;
-        transform: translateX(-50%); font-size: 8px; font-weight: 700;
-        background: var(--purple); color: white; padding: 1px 6px;
-        border-radius: 6px; white-space: nowrap; z-index: 2;
-    }
 
     .attendee-avatar {
         width: 52px; height: 52px; border-radius: 50%;
         margin: 0 auto 6px; display: flex; align-items: center;
         justify-content: center; font-size: 24px; color: white;
-        position: relative;
+        position: relative; overflow: hidden;
+    }
+    .attendee-avatar img {
+        width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
     }
     .attendee-check {
         display: none; position: absolute; bottom: -2px; right: -2px;
@@ -147,23 +134,6 @@
     .confirm-title { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
     .confirm-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5; }
 
-    /* Mutual celebration */
-    .mutual-card {
-        padding: 12px; background: var(--purple-pale); border-radius: var(--radius-sm);
-        border: 1px solid rgba(124,58,237,0.2); margin-bottom: 12px;
-    }
-    .mutual-card-title { font-size: 12px; font-weight: 700; color: var(--purple); margin-bottom: 4px; }
-    .mutual-card-text { font-size: 11px; color: var(--text-mid); }
-    .mutual-avatars {
-        display: flex; align-items: center; justify-content: center; gap: 8px; margin: 10px 0;
-    }
-    .mutual-avatars .a {
-        width: 40px; height: 40px; border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 18px; color: white;
-    }
-    .mutual-arrow { font-size: 18px; color: var(--purple); }
-
     /* Action buttons after confirm */
     .post-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
     .action-row { display: flex; gap: 8px; }
@@ -195,7 +165,7 @@
 <div class="trigger-bar" onclick="openModal()">
     <div>
         <div class="trigger-bar-text">🎉 Community BBQ — Kaikoura has ended!</div>
-        <div class="trigger-bar-sub">Tell us who you met · 2 people already confirmed meeting you</div>
+        <div class="trigger-bar-sub">Tell us who you met in person</div>
     </div>
     <div class="trigger-badge">Tap to open</div>
 </div>
@@ -227,10 +197,6 @@
                 <div class="event-card-details">📅 Saturday 15 Feb, 3:00 PM · 📍 Kaikoura Peninsula · 👥 12 attended</div>
             </div>
 
-            <div class="nudge-bar">
-                <span>🤝</span> 2 people already confirmed meeting you — confirm back to verify!
-            </div>
-
             <div style="padding:12px 16px 4px;">
                 <div class="select-counter">
                     <span id="select-count">0 selected</span>
@@ -239,66 +205,73 @@
             </div>
 
             <div class="attendee-grid" id="attendee-grid">
-                <!-- Organiser (mutual hint - they confirmed you) -->
-                <div class="attendee mutual-hint" onclick="toggleAttendee(this)" data-id="brave">
-                    <div class="attendee-avatar" style="background:#8D6E63;">🏔️
+                <!-- Organiser -->
+                <div class="attendee" onclick="toggleAttendee(this)" data-id="brave">
+                    <div class="attendee-avatar" style="background:#8D6E63;">
+                        <img src="https://i.pravatar.cc/104?img=12" alt="">
                         <div class="attendee-check">✓</div>
                     </div>
                     <div class="attendee-name">BraveMountain156</div>
                     <div class="attendee-badge">★ Organiser</div>
                 </div>
 
-                <!-- Mutual hint - they confirmed you -->
-                <div class="attendee mutual-hint" onclick="toggleAttendee(this)" data-id="kind">
-                    <div class="attendee-avatar" style="background:#26A69A;">🐨
+                <div class="attendee" onclick="toggleAttendee(this)" data-id="kind">
+                    <div class="attendee-avatar" style="background:#26A69A;">
+                        <img src="https://i.pravatar.cc/104?img=32" alt="">
                         <div class="attendee-check">✓</div>
                     </div>
                     <div class="attendee-name">KindValley891</div>
                 </div>
 
-                <!-- Regular attendees -->
                 <div class="attendee" onclick="toggleAttendee(this)" data-id="calm">
-                    <div class="attendee-avatar" style="background:#AB47BC;">🚴
+                    <div class="attendee-avatar" style="background:#AB47BC;">
+                        <img src="https://i.pravatar.cc/104?img=53" alt="">
                         <div class="attendee-check">✓</div>
                     </div>
                     <div class="attendee-name">CalmOcean483</div>
                 </div>
 
                 <div class="attendee" onclick="toggleAttendee(this)" data-id="strong">
-                    <div class="attendee-avatar" style="background:#2E7D32;">🧗
+                    <div class="attendee-avatar" style="background:#2E7D32;">
+                        <img src="https://i.pravatar.cc/104?img=59" alt="">
                         <div class="attendee-check">✓</div>
                     </div>
                     <div class="attendee-name">StrongPeak321</div>
                 </div>
 
                 <div class="attendee" onclick="toggleAttendee(this)" data-id="quiet">
-                    <div class="attendee-avatar" style="background:#FF7043;">🏍️
+                    <div class="attendee-avatar" style="background:#FF7043;">
+                        <img src="https://i.pravatar.cc/104?img=14" alt="">
                         <div class="attendee-check">✓</div>
                     </div>
                     <div class="attendee-name">QuietRiver778</div>
                 </div>
 
                 <div class="attendee" onclick="toggleAttendee(this)" data-id="trail">
-                    <div class="attendee-avatar" style="background:#5C6BC0;">🛶
+                    <div class="attendee-avatar" style="background:#5C6BC0;">
+                        <img src="https://i.pravatar.cc/104?img=68" alt="">
                         <div class="attendee-check">✓</div>
                     </div>
                     <div class="attendee-name">TrailDust114</div>
                 </div>
 
                 <div class="attendee" onclick="toggleAttendee(this)" data-id="gear">
-                    <div class="attendee-avatar" style="background:#8D6E63;">🔧
+                    <div class="attendee-avatar" style="background:#8D6E63;">
+                        <img src="https://i.pravatar.cc/104?img=7" alt="">
                         <div class="attendee-check">✓</div>
                     </div>
                     <div class="attendee-name">GearHead007</div>
                 </div>
 
                 <div class="attendee" onclick="toggleAttendee(this)" data-id="swift">
-                    <div class="attendee-avatar" style="background:#F44336;">🦊
+                    <div class="attendee-avatar" style="background:#F44336;">
+                        <img src="https://i.pravatar.cc/104?img=22" alt="">
                         <div class="attendee-check">✓</div>
                     </div>
                     <div class="attendee-name">SwiftTrail099</div>
                 </div>
 
+                <!-- No profile photo — falls back to emoji on background colour -->
                 <div class="attendee" onclick="toggleAttendee(this)" data-id="bold">
                     <div class="attendee-avatar" style="background:#00796B;">🦅
                         <div class="attendee-check">✓</div>
@@ -307,14 +280,16 @@
                 </div>
 
                 <div class="attendee" onclick="toggleAttendee(this)" data-id="wild">
-                    <div class="attendee-avatar" style="background:#5C6BC0;">🦁
+                    <div class="attendee-avatar" style="background:#5C6BC0;">
+                        <img src="https://i.pravatar.cc/104?img=47" alt="">
                         <div class="attendee-check">✓</div>
                     </div>
                     <div class="attendee-name">WildMeadow234</div>
                 </div>
 
                 <div class="attendee" onclick="toggleAttendee(this)" data-id="free">
-                    <div class="attendee-avatar" style="background:#E91E63;">🦋
+                    <div class="attendee-avatar" style="background:#E91E63;">
+                        <img src="https://i.pravatar.cc/104?img=44" alt="">
                         <div class="attendee-check">✓</div>
                     </div>
                     <div class="attendee-name">FreeSpirit901</div>
@@ -332,50 +307,26 @@
             </div>
         </div>
 
-        <!-- SCREEN 2: Confirmation + mutual celebrations + actions -->
+        <!-- SCREEN 2: Confirmation + actions -->
         <div class="confirm-screen" id="screen-confirm">
             <div class="confirm-emoji">🎉</div>
             <div class="confirm-title">Meetings confirmed!</div>
             <div class="confirm-sub" id="confirm-summary">You confirmed meeting 6 people at Community BBQ — Kaikoura</div>
 
-            <!-- Mutual confirmations -->
-            <div class="mutual-card" id="mutual-section">
-                <div class="mutual-card-title">🤝 2 Mutual Confirmations!</div>
-                <div class="mutual-card-text">Both sides confirmed — these are verified in-person meetings</div>
-                <div class="mutual-avatars">
-                    <div class="a" style="background:#8D6E63;">🏔️</div>
-                    <div class="mutual-arrow">⟷</div>
-                    <div class="a" style="background:var(--blue);">🏍️</div>
-                </div>
-                <div style="font-size:10px;font-weight:600;">BraveMountain156 <span style="color:var(--green);">✓ Verified meeting</span></div>
-                <div class="mutual-avatars" style="margin-top:8px;">
-                    <div class="a" style="background:#26A69A;">🐨</div>
-                    <div class="mutual-arrow">⟷</div>
-                    <div class="a" style="background:var(--blue);">🏍️</div>
-                </div>
-                <div style="font-size:10px;font-weight:600;">KindValley891 <span style="color:var(--green);">✓ Verified meeting</span></div>
-            </div>
-
-            <!-- Waiting for confirmation -->
-            <div style="padding:10px;background:var(--grey-50);border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:14px;">
-                <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:6px;">⏳ Waiting for confirmation from 4 others</div>
-                <div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;">
-                    <span style="padding:2px 8px;background:var(--orange-pale);border-radius:10px;font-size:9px;font-weight:600;">🚴 CalmOcean483</span>
-                    <span style="padding:2px 8px;background:var(--orange-pale);border-radius:10px;font-size:9px;font-weight:600;">🧗 StrongPeak321</span>
-                    <span style="padding:2px 8px;background:var(--orange-pale);border-radius:10px;font-size:9px;font-weight:600;">🏍️ QuietRiver778</span>
-                    <span style="padding:2px 8px;background:var(--orange-pale);border-radius:10px;font-size:9px;font-weight:600;">🛶 TrailDust114</span>
-                </div>
-                <div style="font-size:9px;color:var(--text-muted);margin-top:6px;">They'll be prompted to confirm — you'll get notified when they do</div>
+            <!-- Summary -->
+            <div style="padding:12px;background:var(--green-pale);border-radius:var(--radius-sm);border:1px solid rgba(46,125,50,0.15);margin-bottom:14px;">
+                <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:4px;">✅ Confirmations sent</div>
+                <div style="font-size:11px;color:var(--text-mid);line-height:1.5;">We'll notify the people you selected. When they confirm meeting you too, it becomes a <strong>verified in-person meeting</strong> — building trust for both of you.</div>
             </div>
 
             <!-- Post-meeting actions -->
             <div style="font-size:12px;font-weight:700;margin-bottom:8px;text-align:left;">What would you like to do?</div>
             <div class="post-actions">
                 <div class="action-row">
-                    <div class="action-btn" onclick="showToast('Friend requests sent to 2 verified meetings')">
+                    <div class="action-btn" onclick="showToast('Friend requests sent to people you met')">
                         <div class="action-btn-icon">🤝</div>
                         <div class="action-btn-label">Add Friends</div>
-                        <div class="action-btn-sub">Send friend requests to verified meetings</div>
+                        <div class="action-btn-sub">Send friend requests to people you met</div>
                     </div>
                     <div class="action-btn" onclick="showToast('Opening conversation with BraveMountain156')">
                         <div class="action-btn-icon">💬</div>
@@ -446,14 +397,9 @@
     function showConfirmation() {
         var selected = document.querySelectorAll('.attendee.selected');
         var count = selected.length;
-        var mutuals = 0;
-        selected.forEach(function(a) { if (a.classList.contains('mutual-hint')) mutuals++; });
 
         document.getElementById('confirm-summary').textContent =
             'You confirmed meeting ' + count + ' people at Community BBQ — Kaikoura';
-
-        // Show/hide mutual section
-        document.getElementById('mutual-section').style.display = mutuals > 0 ? 'block' : 'none';
 
         document.getElementById('screen-select').style.display = 'none';
         document.getElementById('screen-confirm').classList.add('show');

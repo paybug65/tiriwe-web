@@ -252,7 +252,7 @@
 <section class="page-header">
     <div class="page-header-content">
         <h1>📍 Log It</h1>
-        <p>Share places & experiences with the community</p>
+        <p>Share places, experiences & events with the community</p>
     </div>
 </section>
 
@@ -281,6 +281,11 @@
         <div class="cat-card">
             <div class="cat-icon">⭐</div>
             <div class="cat-name">Highlight</div>
+        </div>
+        <div class="cat-card" style="border-color:var(--purple);background:var(--purple-pale);" onclick="document.getElementById('events-section').scrollIntoView({behavior:'smooth'})">
+            <div class="cat-icon">📅</div>
+            <div class="cat-name">Event</div>
+            <div style="font-size:8px;color:var(--purple);font-weight:700;margin-top:2px;">EXPLORER+</div>
         </div>
     </div>
 
@@ -330,6 +335,129 @@
                     <div style="font-size:11px; color:var(--text-muted);">1 week ago</div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- ═══ NEARBY EVENTS ═══ -->
+    <div id="events-section">
+        <div class="card" style="overflow:visible;">
+            <div class="card-hd">
+                <div class="card-title">📅 Nearby Events</div>
+                <a class="card-link" href="#">View All →</a>
+            </div>
+            <div class="card-body" style="padding:0;">
+
+                <!-- Create Event button (Explorer+ only) -->
+                <div style="padding:12px 16px;border-bottom:1px solid var(--border);">
+                    <button onclick="alert('Create Event form — Explorer+ feature')" style="width:100%;padding:10px;border:2px dashed var(--purple);border-radius:var(--radius-sm);background:var(--purple-pale);color:var(--purple);font-size:12px;font-weight:700;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:6px;">
+                        ＋ Create Event <span style="font-size:9px;background:var(--purple);color:white;padding:1px 6px;border-radius:6px;">EXPLORER+</span>
+                    </button>
+                </div>
+
+                <!-- Event 1: BBQ (matches messages page) -->
+                <div class="list-item" style="align-items:flex-start;padding:14px 16px;cursor:pointer;" onclick="alert('Open event detail: Community BBQ')">
+                    <div style="min-width:46px;text-align:center;">
+                        <div style="background:var(--green);color:white;border-radius:10px;padding:4px 0;font-size:9px;font-weight:700;text-transform:uppercase;">SAT</div>
+                        <div style="font-size:20px;font-weight:800;margin-top:2px;">15</div>
+                        <div style="font-size:9px;color:var(--text-muted);font-weight:600;">FEB</div>
+                    </div>
+                    <div class="list-info" style="min-width:0;flex:1;">
+                        <div class="list-title" style="display:flex;align-items:center;gap:6px;">
+                            🍖 Community BBQ — Kaikoura
+                        </div>
+                        <div class="list-meta" style="margin-top:3px;">📍 Kaikoura Peninsula Lookout · 3:00 PM</div>
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;">
+                            <span style="font-size:10px;font-weight:600;color:var(--green);">✅ 12 going</span>
+                            <span style="font-size:10px;color:var(--text-muted);">🤔 2 maybe</span>
+                            <span style="font-size:10px;color:var(--text-muted);">💬 5</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:4px;margin-top:6px;">
+                            <div style="width:18px;height:18px;border-radius:50%;background:#8D6E63;display:flex;align-items:center;justify-content:center;font-size:9px;color:white;">🏔️</div>
+                            <span style="font-size:10px;color:var(--text-mid);">BraveMountain156</span>
+                            <span style="font-size:8px;color:var(--orange);font-weight:700;">★ Organiser</span>
+                        </div>
+                    </div>
+                    <div style="text-align:right;min-width:50px;">
+                        <div style="font-size:10px;color:var(--text-muted);font-weight:600;">12 km</div>
+                        <div style="margin-top:6px;padding:3px 8px;background:var(--green-pale);border-radius:8px;font-size:9px;font-weight:700;color:var(--green);">✅ Going</div>
+                    </div>
+                </div>
+
+                <!-- Event 2: Group Ride -->
+                <div class="list-item" style="align-items:flex-start;padding:14px 16px;cursor:pointer;border-top:1px solid var(--border);" onclick="alert('Open event detail: Group Ride')">
+                    <div style="min-width:46px;text-align:center;">
+                        <div style="background:var(--blue);color:white;border-radius:10px;padding:4px 0;font-size:9px;font-weight:700;text-transform:uppercase;">SUN</div>
+                        <div style="font-size:20px;font-weight:800;margin-top:2px;">16</div>
+                        <div style="font-size:9px;color:var(--text-muted);font-weight:600;">FEB</div>
+                    </div>
+                    <div class="list-info" style="min-width:0;flex:1;">
+                        <div class="list-title" style="display:flex;align-items:center;gap:6px;">
+                            🏍️ Molesworth Station Ride
+                        </div>
+                        <div class="list-meta" style="margin-top:3px;">📍 Blenheim i-SITE, start 8:00 AM · Full day</div>
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;">
+                            <span style="font-size:10px;font-weight:600;color:var(--green);">✅ 7 going</span>
+                            <span style="font-size:10px;color:var(--text-muted);">🤔 4 maybe</span>
+                            <span style="font-size:10px;color:var(--text-muted);">💬 12</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:4px;margin-top:6px;">
+                            <div style="width:18px;height:18px;border-radius:50%;background:#5C6BC0;display:flex;align-items:center;justify-content:center;font-size:9px;color:white;">🦁</div>
+                            <span style="font-size:10px;color:var(--text-mid);">WildMeadow234</span>
+                            <span style="font-size:8px;color:var(--orange);font-weight:700;">★ Organiser</span>
+                        </div>
+                    </div>
+                    <div style="text-align:right;min-width:50px;">
+                        <div style="font-size:10px;color:var(--text-muted);font-weight:600;">48 km</div>
+                        <button onclick="event.stopPropagation();this.textContent='✅ Going';this.style.background='var(--green-pale)';this.style.color='var(--green)';this.style.borderColor='var(--green)'" style="margin-top:6px;padding:3px 8px;background:var(--white);border:1px solid var(--border);border-radius:8px;font-size:9px;font-weight:700;color:var(--text-mid);cursor:pointer;">RSVP</button>
+                    </div>
+                </div>
+
+                <!-- Event 3: Safety Briefing -->
+                <div class="list-item" style="align-items:flex-start;padding:14px 16px;cursor:pointer;border-top:1px solid var(--border);" onclick="alert('Open event detail: Safety Briefing')">
+                    <div style="min-width:46px;text-align:center;">
+                        <div style="background:var(--orange);color:white;border-radius:10px;padding:4px 0;font-size:9px;font-weight:700;text-transform:uppercase;">THU</div>
+                        <div style="font-size:20px;font-weight:800;margin-top:2px;">20</div>
+                        <div style="font-size:9px;color:var(--text-muted);font-weight:600;">FEB</div>
+                    </div>
+                    <div class="list-info" style="min-width:0;flex:1;">
+                        <div class="list-title" style="display:flex;align-items:center;gap:6px;">
+                            🛡️ Te Araroa Trail Safety Briefing
+                        </div>
+                        <div class="list-meta" style="margin-top:3px;">📍 Kaikoura DOC Office · 5:30 PM</div>
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;">
+                            <span style="font-size:10px;font-weight:600;color:var(--green);">✅ 4 going</span>
+                            <span style="font-size:10px;color:var(--text-muted);">🤔 8 maybe</span>
+                            <span style="font-size:10px;color:var(--text-muted);">💬 2</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:4px;margin-top:6px;">
+                            <div style="width:18px;height:18px;border-radius:50%;background:#26A69A;display:flex;align-items:center;justify-content:center;font-size:9px;color:white;">🐨</div>
+                            <span style="font-size:10px;color:var(--text-mid);">KindValley891</span>
+                            <span style="font-size:8px;color:var(--orange);font-weight:700;">★ Organiser</span>
+                        </div>
+                    </div>
+                    <div style="text-align:right;min-width:50px;">
+                        <div style="font-size:10px;color:var(--text-muted);font-weight:600;">3 km</div>
+                        <button onclick="event.stopPropagation();this.textContent='✅ Going';this.style.background='var(--green-pale)';this.style.color='var(--green)';this.style.borderColor='var(--green)'" style="margin-top:6px;padding:3px 8px;background:var(--white);border:1px solid var(--border);border-radius:8px;font-size:9px;font-weight:700;color:var(--text-mid);cursor:pointer;">RSVP</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Who did you meet prompt -->
+        <div class="card" style="border:2px solid var(--purple);overflow:visible;">
+            <div class="card-body" style="padding:14px 16px;display:flex;align-items:center;gap:12px;">
+                <div style="font-size:28px;">🤝</div>
+                <div style="flex:1;">
+                    <div style="font-size:13px;font-weight:700;color:var(--purple);">Who did you meet?</div>
+                    <div style="font-size:11px;color:var(--text-mid);margin-top:2px;">Community BBQ ended — confirm who you met in person</div>
+                </div>
+                <button onclick="window.open('who-did-you-meet.html','_blank')" style="padding:8px 14px;background:var(--purple);color:white;border:none;border-radius:var(--radius-sm);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">Open</button>
+            </div>
+        </div>
+
+        <div style="text-align:center;padding:8px 0 20px;">
+            <span style="font-size:10px;color:var(--text-muted);">Showing events within 50 km · Explorer+ subscribers can create events</span>
         </div>
     </div>
 </main>
