@@ -355,11 +355,6 @@
                         <div class="action-btn-label">Add Notes</div>
                         <div class="action-btn-sub">Private notes about people you met</div>
                     </div>
-                    <div class="action-btn" id="act-diary" onclick="saveToDiary()">
-                        <div class="action-btn-icon">📔</div>
-                        <div class="action-btn-label">Save to Diary</div>
-                        <div class="action-btn-sub">Record this event in your travel diary</div>
-                    </div>
                 </div>
 
                 <!-- Notes panel (hidden) -->
@@ -531,17 +526,6 @@
         document.getElementById('note-' + id).style.borderColor = 'var(--green)';
         document.getElementById('note-' + id).style.background = 'var(--green-pale)';
         showToast('Note saved for ' + attendeeData[id].name);
-    }
-
-    function saveToDiary() {
-        var btn = document.getElementById('act-diary');
-        btn.style.borderColor = 'var(--green)';
-        btn.style.background = 'var(--green-pale)';
-        btn.querySelector('.action-btn-icon').textContent = '✅';
-        btn.querySelector('.action-btn-label').textContent = 'Saved!';
-        btn.querySelector('.action-btn-sub').textContent = 'Community BBQ added to your diary';
-        btn.onclick = null;
-        showToast('Event added to diary with ' + selectedIds.length + ' people you met');
     }
 
     function toggleAction(type) {
