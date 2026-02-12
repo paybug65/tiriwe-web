@@ -126,8 +126,71 @@
         .settings-logout { display: flex; align-items: center; justify-content: center; gap: 6px; width: calc(100% - 40px); margin: 12px 20px 20px; padding: 12px; background: var(--red-pale); color: var(--red); border: none; border-radius: var(--radius); font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; }
         .settings-logout:hover { background: #fecaca; }
 
+        /* Tier cards */
+        .tier-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;}
+        .tier-card{background:var(--white);border:2px solid var(--border);border-radius:var(--radius);padding:24px 20px;text-align:center;position:relative;transition:all 0.2s;}
+        .tier-card.current{border-color:var(--green);box-shadow:0 0 0 3px rgba(46,125,50,0.15);}
+        .tier-card.popular{border-color:var(--blue);box-shadow:0 0 0 3px rgba(31,71,136,0.15);}
+        .tier-card .tier-badge{position:absolute;top:-10px;left:50%;transform:translateX(-50%);padding:3px 14px;border-radius:10px;font-size:10px;font-weight:700;white-space:nowrap;}
+        .tier-card .tier-icon{font-size:36px;margin-bottom:8px;}
+        .tier-card .tier-name{font-size:18px;font-weight:800;font-family:'Fraunces',serif;letter-spacing:-0.3px;}
+        .tier-card .tier-tagline{font-size:11px;color:var(--text-muted);margin-top:2px;margin-bottom:14px;}
+        .tier-card .tier-price{font-size:28px;font-weight:800;color:var(--text);}
+        .tier-card .tier-price span{font-size:13px;font-weight:500;color:var(--text-muted);}
+        .tier-card .tier-period{font-size:11px;color:var(--text-muted);margin-bottom:16px;}
+        .tier-features{text-align:left;margin:16px 0;}
+        .tier-feature{display:flex;align-items:flex-start;gap:8px;padding:6px 0;font-size:12px;line-height:1.4;}
+        .tier-feature .tf-icon{flex-shrink:0;width:18px;text-align:center;}
+        .tier-feature.included{color:var(--text);}
+        .tier-feature.locked{color:var(--text-muted);opacity:0.5;}
+        .tier-divider{border:none;border-top:1px solid var(--grey-100);margin:8px 0;}
+
+        /* Duration selector */
+        .duration-grid{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;}
+        .dur-pill{padding:8px 16px;border:2px solid var(--border);border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;text-align:center;background:var(--white);}
+        .dur-pill:hover{border-color:var(--blue);}
+        .dur-pill.active{background:var(--blue);color:white;border-color:var(--blue);}
+        .dur-pill .dur-save{display:block;font-size:10px;font-weight:500;opacity:0.8;}
+
+        /* Feature comparison table */
+        .compare-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px;}
+        .compare-table th{text-align:center;padding:10px 8px;font-size:11px;font-weight:700;border-bottom:2px solid var(--border);}
+        .compare-table th:first-child{text-align:left;}
+        .compare-table td{padding:8px;border-bottom:1px solid var(--grey-100);text-align:center;}
+        .compare-table td:first-child{text-align:left;font-weight:500;}
+        .compare-table .cat-row td{background:var(--grey-50);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-mid);}
+
+        /* Milestones */
+        .milestone-track{position:relative;margin:20px 0 10px;}
+        .milestone-bar{height:8px;background:var(--grey-200);border-radius:4px;overflow:hidden;}
+        .milestone-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--blue));border-radius:4px;transition:width 0.6s ease;}
+        .milestone-markers{display:flex;justify-content:space-between;margin-top:-4px;position:relative;z-index:1;}
+        .milestone-marker{text-align:center;flex:0 0 auto;}
+        .milestone-dot{width:24px;height:24px;border-radius:50%;border:3px solid var(--white);display:flex;align-items:center;justify-content:center;font-size:12px;margin:0 auto;box-shadow:var(--shadow-sm);}
+        .milestone-dot.reached{background:var(--green);}
+        .milestone-dot.next{background:var(--orange-pale);border-color:var(--orange);}
+        .milestone-dot.locked{background:var(--grey-200);}
+        .milestone-label{font-size:9px;font-weight:600;color:var(--text-muted);margin-top:4px;white-space:nowrap;}
+        .milestone-label.reached{color:var(--green);}
+        .milestone-label.next{color:var(--orange);}
+
+        .milestone-card{display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:var(--radius-sm);margin-bottom:8px;border:1px solid var(--border);}
+        .milestone-card:last-child{margin-bottom:0;}
+        .milestone-card.reached{background:var(--green-pale);border-color:rgba(46,125,50,0.2);}
+        .milestone-card.next{background:var(--orange-pale);border-color:rgba(245,158,11,0.3);}
+        .milestone-card.locked{background:var(--grey-50);opacity:0.6;}
+        .milestone-card .ms-icon{font-size:28px;flex-shrink:0;}
+        .milestone-card .ms-info{flex:1;}
+        .milestone-card .ms-name{font-size:13px;font-weight:700;}
+        .milestone-card .ms-detail{font-size:11px;color:var(--text-muted);margin-top:2px;}
+        .milestone-card .ms-reward{font-size:11px;font-weight:600;padding:3px 10px;border-radius:10px;white-space:nowrap;flex-shrink:0;}
+        .milestone-card.reached .ms-reward{background:var(--green);color:white;}
+        .milestone-card.next .ms-reward{background:var(--orange);color:white;}
+        .milestone-card.locked .ms-reward{background:var(--grey-200);color:var(--text-muted);}
+
         @media (max-width: 768px) {
             .form-grid { grid-template-columns: 1fr; }
+            .tier-grid { grid-template-columns: 1fr; }
             .nav-display-name { display: none; }
             .tab-item { padding: 10px 12px; font-size: 12px; }
             .breadcrumb { flex-wrap: wrap; }
@@ -161,8 +224,8 @@
 
 <section class="page-header">
     <div class="page-header-content">
-        <h1>⭐ Subscription & Plan</h1>
-        <p>Your current plan and billing</p>
+        <h1>⭐ Choose Your Journey</h1>
+        <p>Safety is always free. Unlock more as your adventure grows.</p>
     </div>
 </section>
 <div class="breadcrumb">
@@ -171,24 +234,328 @@
 </div>
 <main class="main">
 
+    <!-- ═══ YOUR CURRENT PLAN ═══ -->
     <div class="section">
-        <div class="section-hd"><div class="section-title">Current Plan</div></div>
+        <div class="section-hd">
+            <div class="section-title">📍 Your Current Plan</div>
+        </div>
+        <div class="section-body" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            <div style="background:var(--green-pale);padding:8px 18px;border-radius:20px;font-weight:700;color:var(--green);font-size:14px;">🧭 Traveller</div>
+            <div style="font-size:13px;color:var(--text-mid);">Free forever · Core safety features included</div>
+        </div>
+    </div>
+
+    <!-- ═══ TIER CARDS ═══ -->
+    <div class="tier-grid">
+
+        <!-- TRAVELLER -->
+        <div class="tier-card current">
+            <span class="tier-badge" style="background:var(--green-pale);color:var(--green);">✓ Current Plan</span>
+            <div class="tier-icon">🧭</div>
+            <div class="tier-name">Traveller</div>
+            <div class="tier-tagline">Stay safe, stay connected</div>
+            <div class="tier-price">Free</div>
+            <div class="tier-period">Always · No card required</div>
+            <div class="tier-features">
+                <div class="tier-feature included"><span class="tf-icon">✅</span> SOS alerts (all 3 tiers)</div>
+                <div class="tier-feature included"><span class="tf-icon">✅</span> Help requests & responses</div>
+                <div class="tier-feature included"><span class="tf-icon">✅</span> Emergency contacts & ICE card</div>
+                <div class="tier-feature included"><span class="tf-icon">✅</span> Messaging (1-to-1)</div>
+                <div class="tier-feature included"><span class="tf-icon">✅</span> Find It — search places & helpers</div>
+                <div class="tier-feature included"><span class="tf-icon">✅</span> Log It — record places & stays</div>
+                <div class="tier-feature included"><span class="tf-icon">✅</span> Feedback & verification</div>
+                <div class="tier-feature included"><span class="tf-icon">✅</span> Register transport (basic)</div>
+                <div class="tier-feature included"><span class="tf-icon">✅</span> Items carried tags</div>
+                <div class="tier-feature included"><span class="tf-icon">✅</span> 1 profile photo</div>
+                <div class="tier-feature included"><span class="tf-icon">✅</span> Join up to 5 groups</div>
+                <hr class="tier-divider">
+                <div class="tier-feature locked"><span class="tf-icon">🔒</span> Service log & compliance</div>
+                <div class="tier-feature locked"><span class="tf-icon">🔒</span> Ride sharing</div>
+                <div class="tier-feature locked"><span class="tf-icon">🔒</span> Route planning</div>
+            </div>
+        </div>
+
+        <!-- EXPLORER -->
+        <div class="tier-card popular">
+            <span class="tier-badge" style="background:var(--blue);color:white;">⭐ Most Popular</span>
+            <div class="tier-icon">🗺️</div>
+            <div class="tier-name">Explorer</div>
+            <div class="tier-tagline">Go further, share more</div>
+            <div class="tier-price">$5 <span>/ month</span></div>
+            <div class="tier-period">From $15 (3 month minimum)</div>
+            <div class="tier-features">
+                <div class="tier-feature included"><span class="tf-icon">✅</span> <strong>Everything in Traveller, plus:</strong></div>
+                <hr class="tier-divider">
+                <div class="tier-feature included"><span class="tf-icon">🗺️</span> Ride & journey sharing</div>
+                <div class="tier-feature included"><span class="tf-icon">🗺️</span> Route planning & saving</div>
+                <div class="tier-feature included"><span class="tf-icon">🗺️</span> Service log & odometer tracking</div>
+                <div class="tier-feature included"><span class="tf-icon">🗺️</span> Compliance tracking & reminders</div>
+                <div class="tier-feature included"><span class="tf-icon">🗺️</span> 3 profile photos</div>
+                <div class="tier-feature included"><span class="tf-icon">🗺️</span> Transport multi-photos</div>
+                <div class="tier-feature included"><span class="tf-icon">🗺️</span> Join up to 20 groups</div>
+                <div class="tier-feature included"><span class="tf-icon">🗺️</span> Group messaging</div>
+                <div class="tier-feature included"><span class="tf-icon">🗺️</span> Travel buddy matching</div>
+                <div class="tier-feature included"><span class="tf-icon">🗺️</span> Location sharing (friends)</div>
+                <hr class="tier-divider">
+                <div class="tier-feature locked"><span class="tf-icon">🔒</span> Offline maps</div>
+                <div class="tier-feature locked"><span class="tf-icon">🔒</span> AI wildlife ID</div>
+                <div class="tier-feature locked"><span class="tf-icon">🔒</span> Priority helper visibility</div>
+            </div>
+            <button class="btn btn-primary" style="width:100%;margin-top:12px;" onclick="showToast('Upgrade flow would start here','success')">⭐ Upgrade to Explorer</button>
+        </div>
+
+        <!-- PIONEER -->
+        <div class="tier-card">
+            <div class="tier-icon">🏔️</div>
+            <div class="tier-name">Pioneer</div>
+            <div class="tier-tagline">Lead the community</div>
+            <div class="tier-price">$10 <span>/ month</span></div>
+            <div class="tier-period">From $30 (3 month minimum)</div>
+            <div class="tier-features">
+                <div class="tier-feature included"><span class="tf-icon">✅</span> <strong>Everything in Explorer, plus:</strong></div>
+                <hr class="tier-divider">
+                <div class="tier-feature included"><span class="tf-icon">🏔️</span> Offline maps & download regions</div>
+                <div class="tier-feature included"><span class="tf-icon">🏔️</span> AI wildlife identification</div>
+                <div class="tier-feature included"><span class="tf-icon">🏔️</span> Priority helper visibility</div>
+                <div class="tier-feature included"><span class="tf-icon">🏔️</span> Advanced analytics & stats</div>
+                <div class="tier-feature included"><span class="tf-icon">🏔️</span> Unlimited groups</div>
+                <div class="tier-feature included"><span class="tf-icon">🏔️</span> Create & manage groups</div>
+                <div class="tier-feature included"><span class="tf-icon">🏔️</span> Satellite integration (Garmin/Starlink)</div>
+                <div class="tier-feature included"><span class="tf-icon">🏔️</span> Export data (CSV/PDF)</div>
+                <div class="tier-feature included"><span class="tf-icon">🏔️</span> Priority support</div>
+                <div class="tier-feature included"><span class="tf-icon">🏔️</span> Pioneer badge on profile</div>
+                <div class="tier-feature included"><span class="tf-icon">🏔️</span> Early access to new features</div>
+            </div>
+            <button class="btn btn-secondary" style="width:100%;margin-top:12px;" onclick="showToast('Upgrade flow would start here','success')">🏔️ Upgrade to Pioneer</button>
+        </div>
+
+    </div>
+
+    <!-- ═══ DURATION & PRICING ═══ -->
+    <div class="section">
+        <div class="section-hd">
+            <div class="section-title">⏱️ Choose Your Duration</div>
+        </div>
         <div class="section-body">
-            <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
-                <div style="background:var(--green-pale); padding:8px 16px; border-radius:20px; font-weight:700; color:var(--green); font-size:14px;">🆓 Free Plan</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">No auto-renewal. No surprise charges. Pay once, use until it expires. We'll remind you before it runs out.</div>
+
+            <div style="font-size:13px;font-weight:700;margin-bottom:8px;">Explorer pricing:</div>
+            <div class="duration-grid">
+                <div class="dur-pill active" onclick="selectDuration(this)">3 months<br><strong>$15</strong><span class="dur-save">$5/mo</span></div>
+                <div class="dur-pill" onclick="selectDuration(this)">6 months<br><strong>$27</strong><span class="dur-save">$4.50/mo · Save 10%</span></div>
+                <div class="dur-pill" onclick="selectDuration(this)">12 months<br><strong>$48</strong><span class="dur-save">$4/mo · Save 20%</span></div>
+                <div class="dur-pill" onclick="selectDuration(this)">Lifetime<br><strong>$120</strong><span class="dur-save">Pay once, forever</span></div>
             </div>
-            <p style="font-size:13px; color:var(--text-mid); margin-bottom:12px;">Core safety features are always free. Premium unlocks enhanced features.</p>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                <div style="padding:14px; background:var(--grey-50); border-radius:var(--radius-sm);">
-                    <div style="font-weight:700; font-size:13px;">✅ Included</div>
-                    <div style="font-size:12px; color:var(--text-mid); margin-top:4px;">SOS alerts, Help requests, Messages, Find It, Log It, Feedback, 5 groups</div>
+
+            <div style="font-size:13px;font-weight:700;margin-top:16px;margin-bottom:8px;">Pioneer pricing:</div>
+            <div class="duration-grid">
+                <div class="dur-pill" onclick="selectDuration(this)">3 months<br><strong>$30</strong><span class="dur-save">$10/mo</span></div>
+                <div class="dur-pill" onclick="selectDuration(this)">6 months<br><strong>$51</strong><span class="dur-save">$8.50/mo · Save 15%</span></div>
+                <div class="dur-pill" onclick="selectDuration(this)">12 months<br><strong>$84</strong><span class="dur-save">$7/mo · Save 30%</span></div>
+                <div class="dur-pill" onclick="selectDuration(this)">Lifetime<br><strong>$200</strong><span class="dur-save">Pay once, forever</span></div>
+            </div>
+
+            <div style="margin-top:16px;padding:12px 16px;background:var(--green-pale);border-radius:var(--radius-sm);font-size:12px;color:var(--green);">
+                <strong>💚 Lifetime via Wise:</strong> Save on fees by paying lifetime memberships via Wise direct transfer. <a href="#" style="color:var(--green);font-weight:600;">Learn more →</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ FEATURE COMPARISON ═══ -->
+    <div class="section">
+        <div class="section-hd">
+            <div class="section-title">📊 Full Feature Comparison</div>
+            <button class="btn btn-secondary" style="font-size:11px;padding:6px 14px;" onclick="document.getElementById('compare-body').style.display = document.getElementById('compare-body').style.display === 'none' ? 'block' : 'none'">Show / Hide</button>
+        </div>
+        <div class="section-body" id="compare-body" style="display:none;overflow-x:auto;">
+            <table class="compare-table">
+                <thead>
+                    <tr><th style="width:40%;">Feature</th><th>🧭 Traveller</th><th>🗺️ Explorer</th><th>🏔️ Pioneer</th></tr>
+                </thead>
+                <tbody>
+                    <tr class="cat-row"><td colspan="4">Safety & Emergency</td></tr>
+                    <tr><td>SOS alerts (3 tiers)</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>Help requests & responses</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>Emergency contacts & ICE card</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>Printable ICE wallet card</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>Medical info & medication expiry</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>Feedback & verification</td><td>✅</td><td>✅</td><td>✅</td></tr>
+
+                    <tr class="cat-row"><td colspan="4">Community & Social</td></tr>
+                    <tr><td>1-to-1 messaging</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>Group messaging</td><td>—</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>Join groups</td><td>5 max</td><td>20 max</td><td>Unlimited</td></tr>
+                    <tr><td>Create & manage groups</td><td>—</td><td>—</td><td>✅</td></tr>
+                    <tr><td>Friends & travel buddies</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>Travel buddy matching</td><td>—</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>Location sharing (friends)</td><td>—</td><td>✅</td><td>✅</td></tr>
+
+                    <tr class="cat-row"><td colspan="4">Discovery & Navigation</td></tr>
+                    <tr><td>Find It — search places</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>Log It — record places</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>Ride & journey sharing</td><td>—</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>Route planning & saving</td><td>—</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>Offline maps</td><td>—</td><td>—</td><td>✅</td></tr>
+
+                    <tr class="cat-row"><td colspan="4">Transport</td></tr>
+                    <tr><td>Register transport</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>Items carried tags</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>Rego / VIN storage</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>1 transport photo</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>Multi-photos (3 per vehicle)</td><td>—</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>Service log & cost history</td><td>—</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>Compliance tracking & reminders</td><td>—</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>Odometer / engine hours</td><td>—</td><td>✅</td><td>✅</td></tr>
+
+                    <tr class="cat-row"><td colspan="4">Profile & Photos</td></tr>
+                    <tr><td>Profile photos</td><td>1</td><td>3</td><td>3</td></tr>
+                    <tr><td>Passports, visas, insurance</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                    <tr><td>Languages</td><td>✅</td><td>✅</td><td>✅</td></tr>
+
+                    <tr class="cat-row"><td colspan="4">Premium Features</td></tr>
+                    <tr><td>AI wildlife identification</td><td>—</td><td>—</td><td>✅</td></tr>
+                    <tr><td>Satellite integration</td><td>—</td><td>—</td><td>✅</td></tr>
+                    <tr><td>Priority helper visibility</td><td>—</td><td>—</td><td>✅</td></tr>
+                    <tr><td>Advanced analytics & stats</td><td>—</td><td>—</td><td>✅</td></tr>
+                    <tr><td>Export data (CSV/PDF)</td><td>—</td><td>—</td><td>✅</td></tr>
+                    <tr><td>Priority support</td><td>—</td><td>—</td><td>✅</td></tr>
+                    <tr><td>Pioneer badge</td><td>—</td><td>—</td><td>✅</td></tr>
+                    <tr><td>Early access to new features</td><td>—</td><td>—</td><td>✅</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ═══ HOW IT WORKS ═══ -->
+    <div class="section">
+        <div class="section-hd">
+            <div class="section-title">💡 How Subscriptions Work</div>
+        </div>
+        <div class="section-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                <div style="padding:14px;background:var(--grey-50);border-radius:var(--radius-sm);">
+                    <div style="font-size:13px;font-weight:700;margin-bottom:6px;">🚫 No Auto-Renewal</div>
+                    <div style="font-size:12px;color:var(--text-mid);">You pay once for your chosen duration. No surprise charges, ever. We respect your wallet like we respect our community.</div>
                 </div>
-                <div style="padding:14px; background:var(--orange-pale); border-radius:var(--radius-sm);">
-                    <div style="font-weight:700; font-size:13px;">⭐ Premium</div>
-                    <div style="font-size:12px; color:var(--text-mid); margin-top:4px;">Unlimited groups, route planning, offline maps, priority support, analytics</div>
+                <div style="padding:14px;background:var(--grey-50);border-radius:var(--radius-sm);">
+                    <div style="font-size:13px;font-weight:700;margin-bottom:6px;">🔔 Friendly Reminders</div>
+                    <div style="font-size:12px;color:var(--text-mid);">We'll remind you at 30 days, 7 days, and on expiry. Plus a 7-day grace period where everything still works.</div>
+                </div>
+                <div style="padding:14px;background:var(--grey-50);border-radius:var(--radius-sm);">
+                    <div style="font-size:13px;font-weight:700;margin-bottom:6px;">💾 Your Data is Safe</div>
+                    <div style="font-size:12px;color:var(--text-mid);">If your subscription lapses, you return to Traveller. All your data, places logged, feedback, and verification status are preserved.</div>
+                </div>
+                <div style="padding:14px;background:var(--grey-50);border-radius:var(--radius-sm);">
+                    <div style="font-size:13px;font-weight:700;margin-bottom:6px;">🔓 Safety is Always Free</div>
+                    <div style="font-size:12px;color:var(--text-mid);">SOS alerts, emergency contacts, help requests, and the ICE card will never sit behind a paywall. Tiriwe exists because we exist.</div>
                 </div>
             </div>
-            <div class="btn-row"><button class="btn btn-primary">⭐ Upgrade to Premium</button></div>
+        </div>
+    </div>
+
+    <!-- ═══ HELPER CREDITS ═══ -->
+    <div class="section">
+        <div class="section-hd">
+            <div class="section-title">🏅 Helper Credits</div>
+        </div>
+        <div class="section-body">
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;line-height:1.5;">Help the community, earn your way up. Every verified help (positive feedback received) counts towards milestones that unlock free subscription time. Because on Tiriwe, giving <em>is</em> getting.</div>
+
+            <div style="display:flex;align-items:center;gap:14px;padding:16px;background:var(--blue-pale);border-radius:var(--radius-sm);margin-bottom:18px;">
+                <div style="font-size:36px;">👼</div>
+                <div style="flex:1;">
+                    <div style="font-size:16px;font-weight:800;color:var(--blue);">Road Angel</div>
+                    <div style="font-size:12px;color:var(--text-mid);margin-top:2px;">You've completed <strong>12 verified helps</strong> — next milestone at 25</div>
+                </div>
+                <div style="text-align:center;">
+                    <div style="font-size:24px;font-weight:800;color:var(--blue);">12</div>
+                    <div style="font-size:10px;color:var(--text-muted);">Verified Helps</div>
+                </div>
+            </div>
+
+            <!-- Progress bar -->
+            <div class="milestone-track">
+                <div class="milestone-bar">
+                    <div class="milestone-fill" style="width:36%;"></div>
+                </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:20px;">
+                <span style="font-size:10px;color:var(--text-muted);">0</span>
+                <span style="font-size:10px;color:var(--text-muted);">12 / 25 to next milestone</span>
+                <span style="font-size:10px;color:var(--text-muted);">100</span>
+            </div>
+
+            <!-- Milestone cards -->
+            <div class="milestone-card reached">
+                <div class="ms-icon">🤝</div>
+                <div class="ms-info">
+                    <div class="ms-name">First Hand</div>
+                    <div class="ms-detail">1 verified help · Achieved 14 Oct 2025</div>
+                </div>
+                <div class="ms-reward">✓ Earned</div>
+            </div>
+
+            <div class="milestone-card reached">
+                <div class="ms-icon">🙌</div>
+                <div class="ms-info">
+                    <div class="ms-name">Good Samaritan</div>
+                    <div class="ms-detail">5 verified helps · Achieved 3 Dec 2025</div>
+                </div>
+                <div class="ms-reward">✓ 1 month Explorer</div>
+            </div>
+
+            <div class="milestone-card reached">
+                <div class="ms-icon">👼</div>
+                <div class="ms-info">
+                    <div class="ms-name">Road Angel</div>
+                    <div class="ms-detail">10 verified helps · Achieved 28 Jan 2026</div>
+                </div>
+                <div class="ms-reward">✓ 3 months Explorer</div>
+            </div>
+
+            <div class="milestone-card next">
+                <div class="ms-icon">🛡️</div>
+                <div class="ms-info">
+                    <div class="ms-name">Guardian</div>
+                    <div class="ms-detail">25 verified helps · 13 more to go</div>
+                </div>
+                <div class="ms-reward">6 months Explorer</div>
+            </div>
+
+            <div class="milestone-card locked">
+                <div class="ms-icon">🌟</div>
+                <div class="ms-info">
+                    <div class="ms-name">Legend</div>
+                    <div class="ms-detail">50 verified helps</div>
+                </div>
+                <div class="ms-reward">12 months Pioneer</div>
+            </div>
+
+            <div class="milestone-card locked">
+                <div class="ms-icon">🏆</div>
+                <div class="ms-info">
+                    <div class="ms-name">Tiriwe Hero</div>
+                    <div class="ms-detail">100 verified helps</div>
+                </div>
+                <div class="ms-reward">Lifetime Pioneer</div>
+            </div>
+
+            <div style="margin-top:14px;padding:12px 16px;background:var(--grey-50);border-radius:var(--radius-sm);font-size:11px;color:var(--text-mid);line-height:1.5;">
+                <strong>How it works:</strong> Only helps where you received positive feedback count. Credits are automatically applied to your subscription — no action needed. Milestone badges appear on your profile for all to see. Rewards stack with paid subscriptions (e.g. earned 3 months + bought 3 months = 6 months).
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ BILLING HISTORY ═══ -->
+    <div class="section">
+        <div class="section-hd">
+            <div class="section-title">🧾 Billing History</div>
+        </div>
+        <div class="section-body">
+            <div class="empty-state">
+                <div class="empty-icon">🧾</div>
+                <p>No billing history yet — you're on the free Traveller plan.</p>
+            </div>
         </div>
     </div>
 
@@ -203,7 +570,7 @@
         <a class="settings-item" href="friends.html"><div class="si-icon blue">👥</div> My Friends <span class="si-badge">4</span></a>
         <a class="settings-item" href="groups.html"><div class="si-icon purple">👪</div> My Groups <span class="si-arrow">›</span></a>
         <a class="settings-item" href="transport.html"><div class="si-icon orange">🏍️</div> My Transport <span class="si-arrow">›</span></a>
-        <a class="settings-item" href="emergency.html"><div class="si-icon red">❤️</div> Emergency Contacts <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="emergency.html"><div class="si-icon red">❤️</div> In Case of Emergency <span class="si-arrow">›</span></a>
     </div>
     <div class="settings-section">
         <div class="settings-section-title">Account</div>
@@ -220,7 +587,6 @@
         <div class="settings-section-title">Activity</div>
         <a class="settings-item" href="activity.html"><div class="si-icon blue">📋</div> Activity History <span class="si-arrow">›</span></a>
         <a class="settings-item" href="feedback.html"><div class="si-icon orange">⏳</div> Pending Feedback <span class="si-badge">2</span></a>
-        <a class="settings-item" href="interactions.html"><div class="si-icon grey">📊</div> Interactions History <span class="si-arrow">›</span></a>
     </div>
     <div class="settings-section">
         <div class="settings-section-title">Privacy & Data</div>
@@ -234,6 +600,13 @@
 
 <div class="toast" id="toast"></div>
 <script>
+    function selectDuration(pill) {
+        // Deselect siblings in same duration-grid
+        pill.parentElement.querySelectorAll('.dur-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        showToast('Duration selected', 'success');
+    }
+
     function openSettings() {
         document.getElementById('settings-overlay').classList.add('open');
         document.getElementById('settings-panel').classList.add('open');

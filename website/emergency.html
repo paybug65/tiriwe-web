@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Emergency Contacts — Tiriwe</title>
+    <title>In Case of Emergency — Tiriwe</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
@@ -126,6 +126,75 @@
         .settings-logout { display: flex; align-items: center; justify-content: center; gap: 6px; width: calc(100% - 40px); margin: 12px 20px 20px; padding: 12px; background: var(--red-pale); color: var(--red); border: none; border-radius: var(--radius); font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; }
         .settings-logout:hover { background: #fecaca; }
 
+        /* ICE Card */
+        .ice-card{background:linear-gradient(135deg, #DC2626 0%, #991B1B 100%);border-radius:var(--radius);padding:24px;color:white;position:relative;overflow:hidden;}
+        .ice-card::before{content:'';position:absolute;top:-30%;right:-15%;width:300px;height:300px;background:radial-gradient(circle,rgba(255,255,255,0.08) 0%,transparent 70%);border-radius:50%;}
+        .ice-card-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;position:relative;z-index:1;}
+        .ice-card-header h3{font-size:18px;font-weight:800;letter-spacing:-0.3px;}
+        .ice-card-header .ice-cross{font-size:28px;}
+        .ice-card-photo{width:72px;height:72px;border-radius:50%;border:3px solid rgba(255,255,255,0.5);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:28px;background:rgba(255,255,255,0.15);}
+        .ice-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px;position:relative;z-index:1;}
+        .ice-field{display:flex;flex-direction:column;gap:2px;}
+        .ice-field-label{font-size:10px;text-transform:uppercase;letter-spacing:0.5px;opacity:0.7;}
+        .ice-field-value{font-size:14px;font-weight:600;}
+        .ice-field-full{grid-column:1/-1;}
+        .ice-divider{grid-column:1/-1;border-top:1px solid rgba(255,255,255,0.2);margin:4px 0;}
+        .ice-contacts-row{display:flex;flex-direction:column;gap:6px;grid-column:1/-1;}
+        .ice-contact-line{display:flex;align-items:center;gap:8px;font-size:13px;}
+        .ice-contact-line .ic-name{font-weight:600;}
+        .ice-contact-line .ic-phone{opacity:0.85;font-family:monospace;}
+
+        /* Medical tags */
+        .med-tag{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid var(--border);background:var(--white);}
+        .med-tag.allergy{border-color:var(--red);color:var(--red);background:var(--red-pale);}
+        .med-tag.condition{border-color:var(--orange);color:#92400e;background:var(--orange-pale);}
+        .med-tag.medication{border-color:var(--blue);color:var(--blue);background:var(--blue-pale);}
+        .med-tag .med-remove{cursor:pointer;font-size:10px;margin-left:2px;}
+        .med-add-row{display:flex;gap:8px;margin-top:10px;}
+        .med-add-row input{flex:1;}
+        .med-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+
+        /* Contact cards */
+        .contact-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;display:flex;align-items:center;gap:14px;margin-bottom:10px;}
+        .contact-card:last-child{margin-bottom:0;}
+        .contact-avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+        .contact-info{flex:1;min-width:0;}
+        .contact-name{font-weight:700;font-size:14px;}
+        .contact-meta{font-size:11px;color:var(--text-muted);margin-top:2px;}
+        .contact-badges{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
+        .contact-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;}
+        .contact-badge.notify{background:var(--green-pale);color:var(--green);}
+        .contact-badge.linked{background:var(--blue-pale);color:var(--blue);}
+        .contact-badge.primary{background:var(--orange-pale);color:#92400e;}
+        .contact-actions{display:flex;gap:6px;flex-shrink:0;}
+
+        /* Visibility row */
+        .vis-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-muted);margin-bottom:12px;}
+        .vis-row select{font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:4px;font-family:inherit;}
+
+        /* Toggle */
+        .add-doc-form{display:none;margin-top:12px;padding:16px;background:var(--grey-50);border:1px solid var(--border);border-radius:var(--radius-sm);}
+        .add-doc-form.open{display:block;}
+        .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--grey-100);}
+        .toggle-row:last-child{border-bottom:none;}
+        .toggle-left{flex:1;}
+        .toggle-label{font-size:13px;font-weight:600;}
+        .toggle-hint{font-size:11px;color:var(--text-muted);}
+        .toggle{position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0;}
+        .toggle input{opacity:0;width:0;height:0;}
+        .toggle-track{position:absolute;inset:0;background:var(--grey-300);border-radius:12px;transition:0.2s;cursor:pointer;}
+        .toggle-track::before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.2s;}
+        .toggle input:checked+.toggle-track{background:var(--green);}
+        .toggle input:checked+.toggle-track::before{transform:translateX(20px);}
+
+        /* Instructions */
+        .instruction-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--grey-100);}
+        .instruction-item:last-child{border-bottom:none;}
+        .instruction-icon{font-size:20px;width:36px;text-align:center;flex-shrink:0;}
+        .instruction-info{flex:1;}
+        .instruction-label{font-size:13px;font-weight:600;}
+        .instruction-hint{font-size:11px;color:var(--text-muted);}
+
         @media (max-width: 768px) {
             .form-grid { grid-template-columns: 1fr; }
             .nav-display-name { display: none; }
@@ -161,8 +230,8 @@
 
 <section class="page-header">
     <div class="page-header-content">
-        <h1>❤️ Emergency Contacts</h1>
-        <p>People to notify in an emergency</p>
+        <h1>❤️ In Case of Emergency</h1>
+        <p>Medical info, emergency contacts & instructions for helpers</p>
     </div>
 </section>
 <div class="breadcrumb">
@@ -171,44 +240,487 @@
 </div>
 <main class="main">
 
+    <!-- ═══ ICE CARD PREVIEW ═══ -->
     <div class="section">
         <div class="section-hd">
-            <div class="section-title">Your Emergency Contacts (1)</div>
-            <button class="btn btn-primary" style="padding:6px 16px;" onclick="document.getElementById('addContact').style.display='block'">+ Add Contact</button>
+            <div class="section-title">🪪 ICE Card Preview</div>
         </div>
         <div class="section-body">
-            <div class="list-item">
-                <div class="list-icon" style="background:var(--red);">❤️</div>
-                <div class="list-info">
-                    <div class="list-title">Mum</div>
-                    <div class="list-meta">+64 21 555 1234 · Home contact · Auto-notify: On</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.5;">This is what a helper or paramedic sees during an active SOS. Only information you've allowed to be shared is shown.</div>
+
+            <div class="ice-card">
+                <div class="ice-card-header">
+                    <div class="ice-card-photo">🏍️</div>
+                    <div>
+                        <div style="display:flex;align-items:center;gap:8px;"><span class="ice-cross">✚</span><h3>IN CASE OF EMERGENCY</h3></div>
+                        <div style="font-size:11px;opacity:0.7;margin-top:2px;">Tiriwe Safety Card · Updated 12 Feb 2026</div>
+                    </div>
                 </div>
-                <div style="display:flex;gap:6px;">
-                    <button class="list-action">Edit</button>
-                    <button class="list-action" style="background:var(--red);">Remove</button>
+                <div class="ice-card-grid">
+                    <div class="ice-field">
+                        <span class="ice-field-label">Full Name</span>
+                        <span class="ice-field-value">Justin Michael Thompson</span>
+                    </div>
+                    <div class="ice-field">
+                        <span class="ice-field-label">Date of Birth</span>
+                        <span class="ice-field-value">14 Jul 1988 (age 37)</span>
+                    </div>
+                    <div class="ice-field">
+                        <span class="ice-field-label">Blood Type</span>
+                        <span class="ice-field-value">O+</span>
+                    </div>
+                    <div class="ice-field">
+                        <span class="ice-field-label">Allergies</span>
+                        <span class="ice-field-value">⚠️ Penicillin, Bee stings</span>
+                    </div>
+                    <div class="ice-field">
+                        <span class="ice-field-label">Conditions</span>
+                        <span class="ice-field-value">Asthma</span>
+                    </div>
+                    <div class="ice-field ice-field-full">
+                        <span class="ice-field-label">Medications</span>
+                        <span class="ice-field-value">Ventolin inhaler (as needed) · EpiPen ⚠️ expires 28 Mar · <span style="text-decoration:line-through;opacity:0.6;">Antihistamine — EXPIRED</span></span>
+                    </div>
+                    <div class="ice-divider"></div>
+                    <div class="ice-field">
+                        <span class="ice-field-label">Organ Donor</span>
+                        <span class="ice-field-value">Yes</span>
+                    </div>
+                    <div class="ice-field">
+                        <span class="ice-field-label">Special Instructions</span>
+                        <span class="ice-field-value">Check inhaler in left pannier</span>
+                    </div>
+                    <div class="ice-divider"></div>
+                    <div class="ice-contacts-row">
+                        <span class="ice-field-label">Emergency Contacts</span>
+                        <div class="ice-contact-line">
+                            <span>📞</span>
+                            <span class="ic-name">Margaret Thompson (Mum) — Primary</span>
+                            <span class="ic-phone">+64 21 555 1234</span>
+                        </div>
+                        <div class="ice-contact-line">
+                            <span>📞</span>
+                            <span class="ic-name">Sarah Jane Mitchell (Sarah) — Partner</span>
+                            <span class="ic-phone">+64 22 987 6543</span>
+                        </div>
+                    </div>
+                    <div class="ice-divider"></div>
+                    <div class="ice-field ice-field-full">
+                        <span class="ice-field-label">Insurance</span>
+                        <span class="ice-field-value">World Nomads · WN-7829341 · Emergency: +64 800 123 456</span>
+                    </div>
                 </div>
+            </div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:8px;text-align:center;">This card is assembled from the sections below. Update your info and it updates here automatically.</div>
+            <div style="display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap;">
+                <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px;" onclick="printICECard()">🖨️ Print Wallet Card</button>
+                <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px;" onclick="showToast('PDF download started','success')">📄 Download PDF</button>
+                <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px;" onclick="showToast('Screenshot saved to photos','success')">📱 Save as Image</button>
+            </div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:6px;text-align:center;">Print on credit-card sized stock, laminate, and keep in your wallet. Works when your phone can't.</div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:4px;text-align:center;">📷 Your profile photo appears on the card — another reason to use a clear, recognisable face photo.</div>
+        </div>
+    </div>
+
+    <!-- ═══ MEDICAL INFO ═══ -->
+    <div class="section">
+        <div class="section-hd">
+            <div class="section-title">🏥 Medical Information</div>
+        </div>
+        <div class="section-body">
+            <div class="vis-row">
+                <span>🔒 Who can see:</span>
+                <select>
+                    <option value="only_me">Only Me</option>
+                    <option value="emergency_contacts">Emergency Contacts</option>
+                    <option value="confirmed_helpers" selected>Confirmed Helpers (during SOS)</option>
+                    <option value="all_verified">All Verified Users</option>
+                </select>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Blood Type</label>
+                    <select class="form-select" id="blood-type">
+                        <option value="">Unknown / Prefer not to say</option>
+                        <option value="a+">A+</option>
+                        <option value="a-">A−</option>
+                        <option value="b+">B+</option>
+                        <option value="b-">B−</option>
+                        <option value="ab+">AB+</option>
+                        <option value="ab-">AB−</option>
+                        <option selected value="o+">O+</option>
+                        <option value="o-">O−</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Height / Weight</label>
+                    <input class="form-input" placeholder="e.g. 178cm / 82kg (optional)">
+                </div>
+            </div>
+
+            <div style="margin-top:16px;">
+                <label class="form-label" style="margin-bottom:4px;">⚠️ Allergies</label>
+                <div class="med-grid" id="allergy-grid">
+                    <span class="med-tag allergy">⚠️ Penicillin <span class="med-remove" onclick="this.closest('.med-tag').remove()">✕</span></span>
+                    <span class="med-tag allergy">⚠️ Bee stings <span class="med-remove" onclick="this.closest('.med-tag').remove()">✕</span></span>
+                </div>
+                <div class="med-add-row">
+                    <input class="form-input" id="allergy-input" placeholder="Add an allergy..." onkeydown="if(event.key==='Enter') addMedTag('allergy')">
+                    <button class="btn btn-secondary" style="font-size:12px;" onclick="addMedTag('allergy')">+ Add</button>
+                </div>
+            </div>
+
+            <div style="margin-top:16px;">
+                <label class="form-label" style="margin-bottom:4px;">🩺 Medical Conditions</label>
+                <div class="med-grid" id="condition-grid">
+                    <span class="med-tag condition">🩺 Asthma <span class="med-remove" onclick="this.closest('.med-tag').remove()">✕</span></span>
+                </div>
+                <div class="med-add-row">
+                    <input class="form-input" id="condition-input" placeholder="Add a condition..." onkeydown="if(event.key==='Enter') addMedTag('condition')">
+                    <button class="btn btn-secondary" style="font-size:12px;" onclick="addMedTag('condition')">+ Add</button>
+                </div>
+            </div>
+
+            <div style="margin-top:16px;">
+                <label class="form-label" style="margin-bottom:4px;">💊 Current Medications</label>
+                <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;" id="medication-grid">
+                    <div class="med-item" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--blue-pale);border:1px solid rgba(31,71,136,0.2);border-radius:var(--radius-sm);">
+                        <div style="flex:1;">
+                            <div style="font-size:13px;font-weight:600;color:var(--blue);">💊 Ventolin inhaler (as needed)</div>
+                            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Expires: 15 Nov 2026 · <span style="color:var(--green);font-weight:600;">✓ Valid</span></div>
+                        </div>
+                        <button class="doc-btn-remove" onclick="this.closest('.med-item').remove(); showToast('Medication removed','error')">🗑️</button>
+                    </div>
+                    <div class="med-item" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--orange-pale);border:1px solid rgba(245,158,11,0.3);border-radius:var(--radius-sm);">
+                        <div style="flex:1;">
+                            <div style="font-size:13px;font-weight:600;color:#92400e;">💊 EpiPen (anaphylaxis)</div>
+                            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Expires: 28 Mar 2026 · <span style="color:#92400e;font-weight:600;">⚠️ 44 days</span></div>
+                        </div>
+                        <button class="doc-btn-remove" onclick="this.closest('.med-item').remove(); showToast('Medication removed','error')">🗑️</button>
+                    </div>
+                    <div class="med-item" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--red-pale);border:1px solid rgba(220,38,38,0.2);border-radius:var(--radius-sm);">
+                        <div style="flex:1;">
+                            <div style="font-size:13px;font-weight:600;color:var(--red);">💊 Antihistamine tablets</div>
+                            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Expires: 3 Jan 2026 · <span style="color:var(--red);font-weight:600;">⛔ Expired 40 days ago</span></div>
+                        </div>
+                        <button class="doc-btn-remove" onclick="this.closest('.med-item').remove(); showToast('Medication removed','error')">🗑️</button>
+                    </div>
+                </div>
+                <div class="add-doc-form" id="medication-form" style="margin-top:10px;">
+                    <div class="add-doc-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <div class="form-group">
+                            <label class="form-label">Medication Name *</label>
+                            <input class="form-input" id="medication-input" placeholder="e.g. Ventolin inhaler, EpiPen">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Expiry Date</label>
+                            <input class="form-input" type="date" id="medication-expiry">
+                        </div>
+                        <div class="form-group" style="grid-column:1/-1;">
+                            <label class="form-label">Dosage / Instructions</label>
+                            <input class="form-input" placeholder="e.g. As needed, 10mg daily, 2 puffs morning & night">
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:10px;">
+                        <button class="btn btn-primary btn-sm" onclick="showToast('Medication added!','success'); toggleDocForm('medication-form');">✓ Add Medication</button>
+                        <button class="btn btn-secondary btn-sm" onclick="toggleDocForm('medication-form')">Cancel</button>
+                    </div>
+                </div>
+                <button class="btn btn-secondary" style="font-size:11px;margin-top:10px;" onclick="toggleDocForm('medication-form')">+ Add Medication</button>
+                <div style="font-size:10px;color:var(--text-muted);margin-top:6px;">🔔 Reminders at 30, 14, and 7 days before medication expiry. Expired medications are flagged on your ICE card.</div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="showToast('Medical info saved!','success')">💾 Save Medical Info</button>
             </div>
         </div>
     </div>
-    <div class="section" id="addContact" style="display:none;">
-        <div class="section-hd"><div class="section-title">Add Emergency Contact</div></div>
+
+    <!-- ═══ EMERGENCY CONTACTS ═══ -->
+    <div class="section">
+        <div class="section-hd">
+            <div class="section-title">📞 Emergency Contacts (2)</div>
+            <button class="btn btn-secondary" style="padding:6px 16px;font-size:12px;" onclick="toggleDocForm('add-contact-form')">+ Add Contact</button>
+        </div>
         <div class="section-body">
-            <div class="form-grid">
-                <div class="form-group"><label class="form-label">Name</label><input class="form-input" placeholder="Contact name"></div>
-                <div class="form-group"><label class="form-label">Relationship</label>
-                    <select class="form-select"><option>Family</option><option>Friend</option><option>Travel Buddy</option><option>Partner</option><option>Other</option></select>
+            <div class="vis-row">
+                <span>🔒 Who can see:</span>
+                <select>
+                    <option value="only_me">Only Me</option>
+                    <option value="confirmed_helpers" selected>Confirmed Helpers (during SOS)</option>
+                    <option value="all_verified">All Verified Users</option>
+                </select>
+            </div>
+
+            <!-- Contact 1 - Primary -->
+            <div class="contact-card" id="contact-1-view">
+                <div class="contact-avatar" style="background:var(--red-pale);">❤️</div>
+                <div class="contact-info">
+                    <div class="contact-name">Mum</div>
+                    <div class="contact-meta">Margaret Thompson · +64 21 555 1234 · mum@email.co.nz</div>
+                    <div class="contact-badges">
+                        <span class="contact-badge primary">⭐ Primary</span>
+                        <span class="contact-badge notify">🔔 Auto-notify</span>
+                    </div>
                 </div>
-                <div class="form-group"><label class="form-label">Phone</label><input class="form-input" type="tel" placeholder="+64..."></div>
-                <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" placeholder="email@example.com"></div>
-                <div class="form-group form-full">
-                    <label class="form-label">Link to Tiriwe User</label>
-                    <input class="form-input" placeholder="Search display name (optional)">
-                    <div class="form-hint">If this person is on Tiriwe, link them for faster notification.</div>
+                <div class="contact-actions">
+                    <button class="list-action" onclick="editContact('contact-1')">Edit</button>
+                    <button class="list-action" style="background:var(--red);" onclick="if(confirm('Remove Mum as emergency contact?')){document.getElementById('contact-1-view').remove();document.getElementById('contact-1-edit').remove();showToast('Contact removed','error')}">Remove</button>
                 </div>
             </div>
+            <div class="add-doc-form" id="contact-1-edit">
+                <div style="font-size:13px;font-weight:700;margin-bottom:12px;">✏️ Edit Contact — Mum</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Full Name *</label>
+                        <input class="form-input" value="Margaret Thompson">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Display Name *</label>
+                        <input class="form-input" value="Mum">
+                        <div class="form-hint">How you'll see this contact (e.g. Mum, Dad, Bro)</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Relationship</label>
+                        <select class="form-select">
+                            <option selected>Parent</option>
+                            <option>Partner / Spouse</option>
+                            <option>Sibling</option>
+                            <option>Child</option>
+                            <option>Friend</option>
+                            <option>Travel Buddy</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone *</label>
+                        <input class="form-input" type="tel" value="+64 21 555 1234">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input class="form-input" type="email" value="mum@email.co.nz">
+                    </div>
+                    <div class="form-group form-full">
+                        <label class="form-label">Link to Tiriwe User</label>
+                        <input class="form-input" placeholder="Search by display name (optional)">
+                    </div>
+                    <div class="form-group form-full">
+                        <div class="toggle-row" style="border:none;padding:4px 0;">
+                            <div class="toggle-left">
+                                <div class="toggle-label">⭐ Set as Primary Contact</div>
+                                <div class="toggle-hint">First person contacted during an emergency</div>
+                            </div>
+                            <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label>
+                        </div>
+                        <div class="toggle-row" style="border:none;padding:4px 0;">
+                            <div class="toggle-left">
+                                <div class="toggle-label">🔔 Auto-Notify on SOS</div>
+                                <div class="toggle-hint">Automatically send SMS and email when you trigger an SOS</div>
+                            </div>
+                            <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label>
+                        </div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:12px;">
+                    <button class="btn btn-primary" onclick="showToast('Contact updated!','success'); editContact('contact-1');">✓ Save Changes</button>
+                    <button class="btn btn-secondary" onclick="editContact('contact-1')">Cancel</button>
+                </div>
+            </div>
+
+            <!-- Contact 2 -->
+            <div class="contact-card" id="contact-2-view">
+                <div class="contact-avatar" style="background:var(--blue-pale);">👩</div>
+                <div class="contact-info">
+                    <div class="contact-name">Sarah <span class="badge-v">✓ on Tiriwe</span></div>
+                    <div class="contact-meta">Sarah Jane Mitchell · +64 22 987 6543 · sarah@email.co.nz · Partner</div>
+                    <div class="contact-badges">
+                        <span class="contact-badge linked">🔗 Linked User</span>
+                        <span class="contact-badge notify">🔔 Auto-notify</span>
+                    </div>
+                </div>
+                <div class="contact-actions">
+                    <button class="list-action" onclick="editContact('contact-2')">Edit</button>
+                    <button class="list-action" style="background:var(--red);" onclick="if(confirm('Remove Sarah as emergency contact?')){document.getElementById('contact-2-view').remove();document.getElementById('contact-2-edit').remove();showToast('Contact removed','error')}">Remove</button>
+                </div>
+            </div>
+            <div class="add-doc-form" id="contact-2-edit">
+                <div style="font-size:13px;font-weight:700;margin-bottom:12px;">✏️ Edit Contact — Sarah</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Full Name *</label>
+                        <input class="form-input" value="Sarah Jane Mitchell">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Display Name *</label>
+                        <input class="form-input" value="Sarah">
+                        <div class="form-hint">How you'll see this contact (e.g. Mum, Dad, Bro)</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Relationship</label>
+                        <select class="form-select">
+                            <option>Parent</option>
+                            <option selected>Partner / Spouse</option>
+                            <option>Sibling</option>
+                            <option>Child</option>
+                            <option>Friend</option>
+                            <option>Travel Buddy</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone *</label>
+                        <input class="form-input" type="tel" value="+64 22 987 6543">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input class="form-input" type="email" value="sarah@email.co.nz">
+                    </div>
+                    <div class="form-group form-full">
+                        <label class="form-label">Link to Tiriwe User</label>
+                        <input class="form-input" value="@SarahAdventures" style="color:var(--blue);font-weight:600;">
+                        <div class="form-hint">✓ Linked to Tiriwe user SarahAdventures</div>
+                    </div>
+                    <div class="form-group form-full">
+                        <div class="toggle-row" style="border:none;padding:4px 0;">
+                            <div class="toggle-left">
+                                <div class="toggle-label">⭐ Set as Primary Contact</div>
+                                <div class="toggle-hint">First person contacted during an emergency</div>
+                            </div>
+                            <label class="toggle"><input type="checkbox"><span class="toggle-track"></span></label>
+                        </div>
+                        <div class="toggle-row" style="border:none;padding:4px 0;">
+                            <div class="toggle-left">
+                                <div class="toggle-label">🔔 Auto-Notify on SOS</div>
+                                <div class="toggle-hint">Automatically send SMS and email when you trigger an SOS</div>
+                            </div>
+                            <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label>
+                        </div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:12px;">
+                    <button class="btn btn-primary" onclick="showToast('Contact updated!','success'); editContact('contact-2');">✓ Save Changes</button>
+                    <button class="btn btn-secondary" onclick="editContact('contact-2')">Cancel</button>
+                </div>
+            </div>
+
+            <!-- Add Contact Form -->
+            <div class="add-doc-form" id="add-contact-form">
+                <div style="font-size:13px;font-weight:700;margin-bottom:12px;">➕ Add Emergency Contact</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Full Name *</label>
+                        <input class="form-input" placeholder="e.g. Margaret Thompson">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Display Name *</label>
+                        <input class="form-input" placeholder="e.g. Mum, Dad, Bro">
+                        <div class="form-hint">How you'll see this contact in your list</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Relationship</label>
+                        <select class="form-select" onchange="this.nextElementSibling.style.display = this.value==='other' ? 'block' : 'none'">
+                            <option value="">Select...</option>
+                            <option>Parent</option>
+                            <option>Partner / Spouse</option>
+                            <option>Sibling</option>
+                            <option>Child</option>
+                            <option>Friend</option>
+                            <option>Travel Buddy</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <input class="form-input" placeholder="Please specify..." style="display:none;margin-top:6px;font-size:12px;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone *</label>
+                        <input class="form-input" type="tel" placeholder="+64 21 ...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input class="form-input" type="email" placeholder="email@example.com">
+                    </div>
+                    <div class="form-group form-full">
+                        <label class="form-label">Link to Tiriwe User</label>
+                        <input class="form-input" placeholder="Search by display name (optional)">
+                        <div class="form-hint">If this person is on Tiriwe, linking enables faster SOS notification and in-app messaging.</div>
+                    </div>
+                    <div class="form-group form-full">
+                        <div class="toggle-row" style="border:none;padding:4px 0;">
+                            <div class="toggle-left">
+                                <div class="toggle-label">⭐ Set as Primary Contact</div>
+                                <div class="toggle-hint">First person contacted during an emergency</div>
+                            </div>
+                            <label class="toggle"><input type="checkbox"><span class="toggle-track"></span></label>
+                        </div>
+                        <div class="toggle-row" style="border:none;padding:4px 0;">
+                            <div class="toggle-left">
+                                <div class="toggle-label">🔔 Auto-Notify on SOS</div>
+                                <div class="toggle-hint">Automatically send SMS and email when you trigger an SOS alert</div>
+                            </div>
+                            <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label>
+                        </div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:12px;">
+                    <button class="btn btn-primary" onclick="showToast('Contact added!','success'); toggleDocForm('add-contact-form');">✓ Save Contact</button>
+                    <button class="btn btn-secondary" onclick="toggleDocForm('add-contact-form')">Cancel</button>
+                </div>
+            </div>
+
+            <div style="font-size:10px;color:var(--text-muted);margin-top:12px;">💡 We recommend at least 2 contacts — one local and one in your home country. Contacts with 🔔 auto-notify will receive an SMS and email the moment you trigger an SOS.</div>
+        </div>
+    </div>
+
+    <!-- ═══ EMERGENCY INSTRUCTIONS ═══ -->
+    <div class="section">
+        <div class="section-hd">
+            <div class="section-title">📝 Emergency Instructions</div>
+        </div>
+        <div class="section-body">
+            <div class="vis-row">
+                <span>🔒 Who can see:</span>
+                <select>
+                    <option value="only_me">Only Me</option>
+                    <option value="emergency_contacts">Emergency Contacts</option>
+                    <option value="confirmed_helpers" selected>Confirmed Helpers (during SOS)</option>
+                </select>
+            </div>
+
+            <div class="instruction-item">
+                <div class="instruction-icon">🫀</div>
+                <div class="instruction-info">
+                    <div class="instruction-label">Organ Donor</div>
+                    <div class="instruction-hint">Registered organ and tissue donor</div>
+                </div>
+                <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label>
+            </div>
+
+            <div class="instruction-item">
+                <div class="instruction-icon">🩸</div>
+                <div class="instruction-info">
+                    <div class="instruction-label">Blood Transfusion Consent</div>
+                    <div class="instruction-hint">Consent to receive blood transfusions if required</div>
+                </div>
+                <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label>
+            </div>
+
+            <div class="instruction-item">
+                <div class="instruction-icon">⚠️</div>
+                <div class="instruction-info">
+                    <div class="instruction-label">DNR (Do Not Resuscitate)</div>
+                    <div class="instruction-hint">If you hold a valid DNR or advance directive</div>
+                </div>
+                <label class="toggle"><input type="checkbox"><span class="toggle-track"></span></label>
+            </div>
+
+            <div style="margin-top:16px;">
+                <label class="form-label">📋 Special Instructions for Helpers</label>
+                <textarea class="form-textarea" placeholder="Anything a helper or paramedic should know? e.g. 'Inhaler in left pannier', 'EpiPen in backpack top pocket', 'I carry a medical alert bracelet'..." style="min-height:100px;">Check inhaler in left pannier. Medical alert bracelet on left wrist.</textarea>
+                <div class="form-hint" style="margin-top:4px;">This text is shown on your ICE card during an active SOS. Keep it short and actionable.</div>
+            </div>
+
             <div class="btn-row">
-                <button class="btn btn-secondary" onclick="document.getElementById('addContact').style.display='none'">Cancel</button>
-                <button class="btn btn-primary" onclick="showToast('Contact added!','success')">💾 Save Contact</button>
+                <button class="btn btn-primary" onclick="showToast('Instructions saved!','success')">💾 Save Instructions</button>
             </div>
         </div>
     </div>
@@ -224,7 +736,7 @@
         <a class="settings-item" href="friends.html"><div class="si-icon blue">👥</div> My Friends <span class="si-badge">4</span></a>
         <a class="settings-item" href="groups.html"><div class="si-icon purple">👪</div> My Groups <span class="si-arrow">›</span></a>
         <a class="settings-item" href="transport.html"><div class="si-icon orange">🏍️</div> My Transport <span class="si-arrow">›</span></a>
-        <a class="settings-item" href="emergency.html"><div class="si-icon red">❤️</div> Emergency Contacts <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="emergency.html"><div class="si-icon red">❤️</div> In Case of Emergency <span class="si-arrow">›</span></a>
     </div>
     <div class="settings-section">
         <div class="settings-section-title">Account</div>
@@ -241,7 +753,6 @@
         <div class="settings-section-title">Activity</div>
         <a class="settings-item" href="activity.html"><div class="si-icon blue">📋</div> Activity History <span class="si-arrow">›</span></a>
         <a class="settings-item" href="feedback.html"><div class="si-icon orange">⏳</div> Pending Feedback <span class="si-badge">2</span></a>
-        <a class="settings-item" href="interactions.html"><div class="si-icon grey">📊</div> Interactions History <span class="si-arrow">›</span></a>
     </div>
     <div class="settings-section">
         <div class="settings-section-title">Privacy & Data</div>
@@ -282,6 +793,79 @@
         cb.checked = !cb.checked;
         pill.classList.toggle('selected', cb.checked);
     }
+
+    function toggleDocForm(id) {
+        document.getElementById(id).classList.toggle('open');
+    }
+
+    function editContact(id) {
+        const view = document.getElementById(id + '-view');
+        const edit = document.getElementById(id + '-edit');
+        const isOpen = edit.classList.contains('open');
+        edit.classList.toggle('open');
+        if (!isOpen) {
+            view.style.opacity = '0.5';
+            view.style.pointerEvents = 'none';
+        } else {
+            view.style.opacity = '1';
+            view.style.pointerEvents = '';
+        }
+    }
+
+    function printICECard() {
+        var printDiv = document.getElementById('ice-print');
+        if (printDiv) printDiv.remove();
+        
+        printDiv = document.createElement('div');
+        printDiv.id = 'ice-print';
+        
+        var style = document.createElement('style');
+        style.id = 'ice-print-style';
+        style.textContent = '#ice-print{display:none;}@media print{body>*:not(#ice-print):not(#ice-print-style){display:none!important;}#ice-print{display:block!important;margin:0;padding:10mm;}#ice-print .pcard{width:85.6mm;height:53.98mm;background:#DC2626!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;border-radius:8px;padding:10px 12px;color:white!important;box-sizing:border-box;overflow:hidden;font-family:Arial,sans-serif;font-size:7.5px;line-height:1.3;}#ice-print .phdr{display:flex;align-items:center;gap:8px;margin-bottom:6px;}#ice-print .pphoto{width:36px;height:36px;border-radius:50%;border:2px solid rgba(255,255,255,0.5);display:flex;align-items:center;justify-content:center;font-size:16px;background:rgba(255,255,255,0.15);flex-shrink:0;}#ice-print .ptitle{font-size:10px;font-weight:800;}#ice-print .psub{font-size:6px;opacity:0.6;}#ice-print .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:3px 10px;}#ice-print .plbl{font-size:5.5px;text-transform:uppercase;letter-spacing:0.5px;opacity:0.7;}#ice-print .pval{font-size:7.5px;font-weight:600;}#ice-print .pfull{grid-column:1/-1;}#ice-print .pdiv{grid-column:1/-1;border-top:1px solid rgba(255,255,255,0.3);margin:2px 0;}#ice-print .phint{margin-top:8px;font-size:6px;text-align:center;opacity:0.5;color:#666;}}';
+        
+        var oldStyle = document.getElementById('ice-print-style');
+        if (oldStyle) oldStyle.remove();
+        document.head.appendChild(style);
+        
+        printDiv.innerHTML = '<div class="pcard">'
+            + '<div class="phdr"><div class="pphoto">🏍️</div><div><div class="ptitle">✚ IN CASE OF EMERGENCY</div><div class="psub">Tiriwe Safety Card</div></div></div>'
+            + '<div class="pgrid">'
+            + '<div><div class="plbl">Full Name</div><div class="pval">Justin Michael Thompson</div></div>'
+            + '<div><div class="plbl">Date of Birth</div><div class="pval">14 Jul 1988</div></div>'
+            + '<div><div class="plbl">Blood Type</div><div class="pval">O+</div></div>'
+            + '<div><div class="plbl">Allergies</div><div class="pval">Penicillin, Bee stings</div></div>'
+            + '<div class="pfull"><div class="plbl">Conditions</div><div class="pval">Asthma</div></div>'
+            + '<div class="pfull"><div class="plbl">Medications</div><div class="pval">Ventolin inhaler | EpiPen (exp Mar 2026)</div></div>'
+            + '<div class="pdiv"></div>'
+            + '<div><div class="plbl">Organ Donor</div><div class="pval">Yes</div></div>'
+            + '<div><div class="plbl">Instructions</div><div class="pval">Inhaler in left pannier</div></div>'
+            + '<div class="pdiv"></div>'
+            + '<div class="pfull"><div class="plbl">Emergency Contacts</div>'
+            + '<div class="pval">Margaret Thompson (Mum): +64 21 555 1234</div>'
+            + '<div class="pval">Sarah Jane Mitchell: +64 22 987 6543</div></div>'
+            + '<div class="pdiv"></div>'
+            + '<div class="pfull"><div class="plbl">Insurance</div><div class="pval">World Nomads | WN-7829341 | +64 800 123 456</div></div>'
+            + '</div></div>'
+            + '<div class="phint">Credit card size (85.6 x 53.98mm) — cut, laminate, keep in wallet</div>';
+        
+        document.body.appendChild(printDiv);
+        window.print();
+        showToast('Print dialog opened — Save as PDF also works', 'success');
+    }
+
+    function addMedTag(type) {
+        const input = document.getElementById(type + '-input');
+        const grid = document.getElementById(type + '-grid');
+        if (!input.value.trim()) return;
+        const icons = { allergy: '⚠️', condition: '🩺', medication: '💊' };
+        const tag = document.createElement('span');
+        tag.className = 'med-tag ' + type;
+        tag.innerHTML = icons[type] + ' ' + input.value.trim() + ' <span class="med-remove" onclick="this.closest(\'.med-tag\').remove()">✕</span>';
+        grid.appendChild(tag);
+        input.value = '';
+        showToast('Added!', 'success');
+    }
 </script>
+
 </body>
 </html>

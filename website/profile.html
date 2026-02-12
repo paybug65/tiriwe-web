@@ -110,6 +110,18 @@
         .photo-preview { width: 100px; height: 100px; border-radius: 50%; background: var(--grey-100); border: 3px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 40px; overflow: hidden; flex-shrink: 0; }
         .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
         .photo-actions { display: flex; flex-direction: column; gap: 8px; }
+        .profile-photo-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;}
+        .pp-slot{position:relative;padding:20px 12px;border:2px dashed var(--border);border-radius:var(--radius-sm);text-align:center;cursor:pointer;transition:all 0.2s;background:var(--white);min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;}
+        .pp-slot:hover{border-color:var(--blue);background:var(--blue-pale);}
+        .pp-slot.has-photo{border-style:solid;border-color:var(--green);background:var(--green-pale);}
+        .pp-slot.is-profile{border-color:var(--blue);border-width:3px;box-shadow:0 0 0 3px rgba(31,71,136,0.15);}
+        .pp-slot .pp-icon{font-size:28px;}
+        .pp-slot .pp-label{font-size:11px;font-weight:600;color:var(--text-mid);}
+        .pp-slot .pp-hint{font-size:10px;color:var(--text-muted);}
+        .pp-slot .pp-status{font-size:10px;font-weight:600;color:var(--green);}
+        .pp-slot .pp-profile-badge{position:absolute;top:-8px;right:-8px;background:var(--blue);color:white;font-size:9px;font-weight:700;padding:3px 8px;border-radius:10px;white-space:nowrap;}
+        .pp-set-profile{font-size:10px;color:var(--blue);font-weight:600;cursor:pointer;margin-top:2px;text-decoration:underline;}
+        .pp-set-profile:hover{color:var(--blue-dark);}
 
         /* GPS DISPLAY */
         .gps-display { background: var(--blue-pale); border: 1px solid #c5d4ea; border-radius: var(--radius-sm); padding: 12px 16px; margin-top: 12px; }
@@ -173,6 +185,37 @@
         .si-badge { background: var(--orange); color: white; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 10px; margin-left: auto; }
         .settings-logout { display: flex; align-items: center; justify-content: center; gap: 6px; width: calc(100% - 40px); margin: 12px 20px 20px; padding: 12px; background: var(--red-pale); color: var(--red); border: none; border-radius: var(--radius); font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; }
         .settings-logout:hover { background: #fecaca; }
+        /* Language tags */
+        .lang-grid{display:flex;flex-wrap:wrap;gap:8px;}
+        .lang-tag{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s;border:1px solid var(--border);background:var(--white);color:var(--text-mid);user-select:none;}
+        .lang-tag:hover{border-color:var(--blue);}
+        .lang-tag.active{background:var(--blue);color:white;border-color:var(--blue);}
+        .lang-tag .lang-level{font-size:10px;font-weight:600;padding:1px 6px;border-radius:8px;background:rgba(0,0,0,0.08);}
+        .lang-tag.active .lang-level{background:rgba(255,255,255,0.25);}
+        .lang-add-row{display:flex;gap:8px;margin-top:12px;}
+        .lang-add-row select,.lang-add-row input{flex:1;}
+
+        /* Document tables (passports, visas, insurance) */
+        .doc-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;}
+        .doc-table th{text-align:left;padding:8px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);border-bottom:2px solid var(--border);background:var(--grey-50);}
+        .doc-table td{padding:10px;border-bottom:1px solid var(--grey-100);vertical-align:middle;}
+        .doc-table tr:last-child td{border-bottom:none;}
+        .doc-table .mono{font-family:monospace;letter-spacing:1px;}
+        .doc-row-actions{display:flex;gap:6px;}
+        .doc-btn-remove{background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px;}
+        .doc-btn-remove:hover{background:var(--red-pale);}
+        .doc-add-bar{margin-top:10px;}
+        .expiry-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;}
+        .expiry-badge.valid{background:var(--green-pale);color:var(--green);}
+        .expiry-badge.soon{background:var(--orange-pale);color:#92400e;}
+        .expiry-badge.expired{background:var(--red-pale);color:var(--red);}
+        .vis-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-muted);margin-bottom:8px;}
+        .vis-row select{font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:4px;font-family:inherit;}
+        .add-doc-form{display:none;margin-top:12px;padding:14px;background:var(--grey-50);border:1px solid var(--border);border-radius:var(--radius-sm);}
+        .add-doc-form.open{display:block;}
+        .add-doc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+        .add-doc-grid .form-group{margin:0;}
+        .add-doc-full{grid-column:1/-1;}
     </style>
 </head>
 <body>
@@ -225,18 +268,46 @@
             <div class="section-title">📷 Photo & Verification</div>
         </div>
         <div class="section-body">
-            <div class="photo-area">
-                <div class="photo-preview" id="photoPreview">🏍️</div>
-                <div class="photo-actions">
-                    <label class="btn btn-secondary" style="display:inline-flex; align-items: center; gap:6px; cursor:pointer;">
-                        📷 Upload Photo
-                        <input type="file" accept="image/*" id="photoInput" style="display:none;" onchange="previewPhoto(this)">
-                    </label>
-                    <button class="btn btn-danger" style="font-size:12px; padding:6px 12px;" onclick="removePhoto()">Remove Photo</button>
-                    <div class="form-hint">Required for verification upgrade. JPG or PNG, max 5MB.</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.5;">🔒 <strong>Why photos matter:</strong> When someone responds to your SOS on a remote road, they need to recognise you. A clear face photo builds trust and helps helpers find you faster. At least one photo is required.</div>
+
+            <div class="profile-photo-grid">
+                <div class="pp-slot has-photo is-profile" onclick="showToast('Opens camera / file picker','success')">
+                    <span class="pp-profile-badge">👤 Profile Pic</span>
+                    <span class="pp-icon">😊</span>
+                    <span class="pp-label">Photo 1 *</span>
+                    <span class="pp-status">✓ Uploaded</span>
+                    <span class="pp-set-profile" style="color:var(--blue);text-decoration:none;cursor:default;">● Currently set as profile</span>
+                </div>
+                <div class="pp-slot has-photo" onclick="showToast('Opens camera / file picker','success')">
+                    <span class="pp-icon">🏍️</span>
+                    <span class="pp-label">Photo 2</span>
+                    <span class="pp-status">✓ Uploaded</span>
+                    <span class="pp-set-profile" onclick="event.stopPropagation(); setProfilePic(this);">Set as profile pic</span>
+                </div>
+                <div class="pp-slot" onclick="showToast('Opens camera / file picker','success')">
+                    <span class="pp-icon">📸</span>
+                    <span class="pp-label">Photo 3</span>
+                    <span class="pp-hint">Optional</span>
                 </div>
             </div>
-            <div class="profile-stats">
+
+            <div style="padding:12px 16px;background:var(--grey-50);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:11px;line-height:1.6;">
+                <div style="font-weight:700;margin-bottom:4px;">📋 Photo Guidelines</div>
+                <div style="color:var(--text-mid);">
+                    • Photo 1 is <strong>mandatory</strong> — must be a clear photo of your face<br>
+                    • Photos 2 & 3 are optional — can show you with your transport, at a landmark, etc.<br>
+                    • JPG or PNG, max 5MB per photo<br>
+                    • No memes, cartoons, logos, or group photos — these will be rejected
+                </div>
+                <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);color:var(--text-muted);">
+                    🤖 <strong>Auto-verification:</strong> Photos are automatically checked for a visible human face. Images without a detectable face will be flagged for review. The community can also report inappropriate photos through the feedback system.
+                </div>
+                <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);color:var(--red);">
+                    ⚠️ <strong>Re-verification required:</strong> Changing your profile photo will reset your verification level. You'll need to be re-verified by the community through your next in-person interaction. This protects the trust system — your verification confirms <em>you</em> match <em>your photo</em>.
+                </div>
+            </div>
+
+            <div class="profile-stats" style="margin-top:16px;">
                 <div class="profile-stat"><div class="profile-stat-num">27</div><div class="profile-stat-lbl">Help Given</div></div>
                 <div class="profile-stat"><div class="profile-stat-num">5</div><div class="profile-stat-lbl">Received</div></div>
                 <div class="profile-stat"><div class="profile-stat-num">94%</div><div class="profile-stat-lbl">Positive</div></div>
@@ -278,14 +349,16 @@
                     <input class="form-input" id="phone" type="tel" placeholder="+64 21 123 4567">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Gender</label>
-                    <select class="form-select" id="gender">
-                        <option value="">Prefer not to say</option>
+                    <label class="form-label">Gender * <span style="color:var(--red);font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;">Required</span></label>
+                    <select class="form-select" id="gender" required onchange="document.getElementById('gender-other').style.display = this.value==='other' ? 'block' : 'none'">
+                        <option value="" disabled selected>Select gender...</option>
                         <option value="male">Male</option>
                         <option value="female">Female</option>
                         <option value="non_binary">Non-binary</option>
                         <option value="other">Other</option>
                     </select>
+                    <input class="form-input" id="gender-other" placeholder="Please specify..." style="display:none;margin-top:6px;font-size:12px;">
+                    <div style="font-size:11px;color:var(--text-muted);margin-top:4px;line-height:1.4;">🔒 Gender is required because travelers can choose to only receive help from people of a specific gender. Without this, the safety preference system can't work. Your gender is <strong>never shown publicly</strong> — it's only used for matching.</div>
                 </div>
                 <div class="form-group form-full">
                     <label class="form-label">Bio</label>
@@ -295,6 +368,324 @@
             <div class="btn-row">
                 <button class="btn btn-primary" onclick="saveSection('personal')">💾 Save Personal Info</button>
             </div>
+        </div>
+    </div>
+
+    <!-- ═══ LANGUAGES ═══ -->
+    <div class="section">
+        <div class="section-hd">
+            <div class="section-title">🌍 Languages</div>
+        </div>
+        <div class="section-body">
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;line-height:1.5;">Languages you speak help match you with travelers who need help. During an SOS, nearby helpers who speak the same language are prioritised.</div>
+
+            <div class="lang-grid" id="lang-grid">
+                <div class="lang-tag active" onclick="removeLang(this)">
+                    🇬🇧 English <span class="lang-level">Native</span> <span style="margin-left:2px;font-size:10px;">✕</span>
+                </div>
+                <div class="lang-tag active" onclick="removeLang(this)">
+                    🇫🇷 French <span class="lang-level">Conversational</span> <span style="margin-left:2px;font-size:10px;">✕</span>
+                </div>
+                <div class="lang-tag active" onclick="removeLang(this)">
+                    🇪🇸 Spanish <span class="lang-level">Basic</span> <span style="margin-left:2px;font-size:10px;">✕</span>
+                </div>
+            </div>
+
+            <div class="lang-add-row">
+                <select class="form-select" id="lang-select" style="font-size:12px;">
+                    <option value="">Add a language...</option>
+                    <optgroup label="Common">
+                        <option>English</option>
+                        <option>Spanish</option>
+                        <option>French</option>
+                        <option>German</option>
+                        <option>Portuguese</option>
+                        <option>Italian</option>
+                        <option>Dutch</option>
+                        <option>Mandarin Chinese</option>
+                        <option>Japanese</option>
+                        <option>Korean</option>
+                        <option>Arabic</option>
+                        <option>Hindi</option>
+                        <option>Thai</option>
+                        <option>Vietnamese</option>
+                        <option>Bahasa Indonesian</option>
+                        <option>Bahasa Malay</option>
+                        <option>Russian</option>
+                        <option>Turkish</option>
+                        <option>Swahili</option>
+                    </optgroup>
+                    <optgroup label="Pacific / Oceania">
+                        <option>Te Reo Māori</option>
+                        <option>Samoan</option>
+                        <option>Tongan</option>
+                        <option>Fijian</option>
+                        <option>Cook Islands Māori</option>
+                        <option>Hawaiian</option>
+                    </optgroup>
+                    <optgroup label="European">
+                        <option>Polish</option>
+                        <option>Czech</option>
+                        <option>Hungarian</option>
+                        <option>Romanian</option>
+                        <option>Swedish</option>
+                        <option>Norwegian</option>
+                        <option>Danish</option>
+                        <option>Finnish</option>
+                        <option>Greek</option>
+                        <option>Croatian</option>
+                        <option>Serbian</option>
+                        <option>Bulgarian</option>
+                        <option>Ukrainian</option>
+                    </optgroup>
+                    <optgroup label="Other">
+                        <option>Tagalog</option>
+                        <option>Bengali</option>
+                        <option>Urdu</option>
+                        <option>Persian (Farsi)</option>
+                        <option>Hebrew</option>
+                        <option>Nepali</option>
+                        <option>Sinhala</option>
+                        <option>Khmer</option>
+                        <option>Lao</option>
+                        <option>Burmese</option>
+                        <option>Amharic</option>
+                        <option>Yoruba</option>
+                    </optgroup>
+                </select>
+                <select class="form-select" id="lang-level" style="font-size:12px;">
+                    <option value="basic">Basic</option>
+                    <option value="conversational">Conversational</option>
+                    <option value="fluent">Fluent</option>
+                    <option value="native">Native</option>
+                </select>
+                <button class="btn btn-secondary" style="font-size:12px;white-space:nowrap;" onclick="addLanguage()">+ Add</button>
+            </div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:6px;">Full language list managed by admin. Can't find yours? Contact support.</div>
+        </div>
+    </div>
+
+    <!-- ═══ PASSPORTS ═══ -->
+    <div class="section">
+        <div class="section-hd">
+            <div class="section-title">🛂 Passports</div>
+        </div>
+        <div class="section-body">
+            <div class="vis-row">
+                <span>🔒 Who can see:</span>
+                <select>
+                    <option value="only_me" selected>Only Me</option>
+                    <option value="emergency_contacts">Emergency Contacts</option>
+                    <option value="confirmed_helpers">Confirmed Helpers (during SOS)</option>
+                </select>
+            </div>
+            <table class="doc-table" id="passport-table">
+                <thead>
+                    <tr><th>Country</th><th>Number</th><th>Expiry</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>🇳🇿 New Zealand</td>
+                        <td class="mono">LN 893214</td>
+                        <td>18 Mar 2029</td>
+                        <td><span class="expiry-badge valid">✓ Valid</span></td>
+                        <td><button class="doc-btn-remove" onclick="this.closest('tr').remove(); showToast('Passport removed','error')">🗑️</button></td>
+                    </tr>
+                    <tr>
+                        <td>🇬🇧 United Kingdom</td>
+                        <td class="mono">548921763</td>
+                        <td>2 Nov 2026</td>
+                        <td><span class="expiry-badge soon">⚠️ 9 months</span></td>
+                        <td><button class="doc-btn-remove" onclick="this.closest('tr').remove(); showToast('Passport removed','error')">🗑️</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="doc-add-bar">
+                <button class="btn btn-secondary btn-sm" onclick="toggleDocForm('passport-form')" style="font-size:11px;">+ Add Passport</button>
+            </div>
+            <div class="add-doc-form" id="passport-form">
+                <div class="add-doc-grid">
+                    <div class="form-group">
+                        <label class="form-label">Country *</label>
+                        <input class="form-input" placeholder="e.g. New Zealand">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Passport Number *</label>
+                        <input class="form-input" placeholder="e.g. LN 893214" style="font-family:monospace;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Issue Date</label>
+                        <input class="form-input" type="date">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Expiry Date *</label>
+                        <input class="form-input" type="date">
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:10px;">
+                    <button class="btn btn-primary btn-sm" onclick="showToast('Passport added!','success'); toggleDocForm('passport-form');">✓ Save</button>
+                    <button class="btn btn-secondary btn-sm" onclick="toggleDocForm('passport-form')">Cancel</button>
+                </div>
+            </div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:8px;">🔔 You'll receive reminders at 6 months, 3 months, and 30 days before expiry.</div>
+        </div>
+    </div>
+
+    <!-- ═══ VISAS ═══ -->
+    <div class="section">
+        <div class="section-hd">
+            <div class="section-title">📋 Visas</div>
+        </div>
+        <div class="section-body">
+            <div class="vis-row">
+                <span>🔒 Who can see:</span>
+                <select>
+                    <option value="only_me" selected>Only Me</option>
+                    <option value="emergency_contacts">Emergency Contacts</option>
+                    <option value="confirmed_helpers">Confirmed Helpers (during SOS)</option>
+                </select>
+            </div>
+            <table class="doc-table" id="visa-table">
+                <thead>
+                    <tr><th>Country</th><th>Visa Type</th><th>Expiry</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>🇦🇺 Australia</td>
+                        <td>Working Holiday</td>
+                        <td>15 Sep 2026</td>
+                        <td><span class="expiry-badge valid">✓ Valid</span></td>
+                        <td><button class="doc-btn-remove" onclick="this.closest('tr').remove(); showToast('Visa removed','error')">🗑️</button></td>
+                    </tr>
+                    <tr>
+                        <td>🇹🇭 Thailand</td>
+                        <td>Tourist (60 day)</td>
+                        <td>28 Feb 2026</td>
+                        <td><span class="expiry-badge soon">⚠️ 16 days</span></td>
+                        <td><button class="doc-btn-remove" onclick="this.closest('tr').remove(); showToast('Visa removed','error')">🗑️</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="doc-add-bar">
+                <button class="btn btn-secondary btn-sm" onclick="toggleDocForm('visa-form')" style="font-size:11px;">+ Add Visa</button>
+            </div>
+            <div class="add-doc-form" id="visa-form">
+                <div class="add-doc-grid">
+                    <div class="form-group">
+                        <label class="form-label">Country *</label>
+                        <input class="form-input" placeholder="e.g. Australia">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Visa Type *</label>
+                        <select class="form-select" onchange="this.nextElementSibling.style.display = this.value==='other' ? 'block' : 'none'">
+                            <option value="">Select type...</option>
+                            <option>Tourist</option>
+                            <option>Working Holiday</option>
+                            <option>Student</option>
+                            <option>Work Permit</option>
+                            <option>Business</option>
+                            <option>Transit</option>
+                            <option>Residence</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <input class="form-input" placeholder="Please specify visa type..." style="display:none;margin-top:6px;font-size:12px;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Issue / Entry Date</label>
+                        <input class="form-input" type="date">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Expiry Date *</label>
+                        <input class="form-input" type="date">
+                    </div>
+                    <div class="form-group add-doc-full">
+                        <label class="form-label">Visa Number / Reference</label>
+                        <input class="form-input" placeholder="Optional" style="font-family:monospace;">
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:10px;">
+                    <button class="btn btn-primary btn-sm" onclick="showToast('Visa added!','success'); toggleDocForm('visa-form');">✓ Save</button>
+                    <button class="btn btn-secondary btn-sm" onclick="toggleDocForm('visa-form')">Cancel</button>
+                </div>
+            </div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:8px;">🔔 Reminders at 30, 14, and 7 days before expiry. Don't get caught overstaying!</div>
+        </div>
+    </div>
+
+    <!-- ═══ TRAVEL INSURANCE ═══ -->
+    <div class="section">
+        <div class="section-hd">
+            <div class="section-title">🛡️ Travel Insurance</div>
+        </div>
+        <div class="section-body">
+            <div class="vis-row">
+                <span>🔒 Who can see:</span>
+                <select>
+                    <option value="only_me">Only Me</option>
+                    <option value="emergency_contacts" selected>Emergency Contacts</option>
+                    <option value="confirmed_helpers">Confirmed Helpers (during SOS)</option>
+                </select>
+            </div>
+            <table class="doc-table" id="insurance-table">
+                <thead>
+                    <tr><th>Provider</th><th>Policy Number</th><th>Coverage</th><th>Expiry</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>World Nomads</td>
+                        <td class="mono">WN-7829341</td>
+                        <td>Comprehensive</td>
+                        <td>30 Jun 2026</td>
+                        <td><span class="expiry-badge valid">✓ Valid</span></td>
+                        <td><button class="doc-btn-remove" onclick="this.closest('tr').remove(); showToast('Insurance removed','error')">🗑️</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="doc-add-bar">
+                <button class="btn btn-secondary btn-sm" onclick="toggleDocForm('insurance-form')" style="font-size:11px;">+ Add Insurance</button>
+            </div>
+            <div class="add-doc-form" id="insurance-form">
+                <div class="add-doc-grid">
+                    <div class="form-group">
+                        <label class="form-label">Provider *</label>
+                        <input class="form-input" placeholder="e.g. World Nomads, Southern Cross">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Policy Number *</label>
+                        <input class="form-input" placeholder="e.g. WN-7829341" style="font-family:monospace;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Coverage Type</label>
+                        <select class="form-select" onchange="this.nextElementSibling.style.display = this.value==='other' ? 'block' : 'none'">
+                            <option value="">Select...</option>
+                            <option>Comprehensive</option>
+                            <option>Medical Only</option>
+                            <option>Vehicle / Motorcycle</option>
+                            <option>Boat / Marine</option>
+                            <option>Adventure Activities</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <input class="form-input" placeholder="Please specify coverage type..." style="display:none;margin-top:6px;font-size:12px;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Expiry Date *</label>
+                        <input class="form-input" type="date">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Emergency Phone</label>
+                        <input class="form-input" type="tel" placeholder="e.g. +64 800 123 456">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Covered Countries</label>
+                        <input class="form-input" placeholder="e.g. Worldwide, Asia-Pacific, NZ/AU only">
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:10px;">
+                    <button class="btn btn-primary btn-sm" onclick="showToast('Insurance added!','success'); toggleDocForm('insurance-form');">✓ Save</button>
+                    <button class="btn btn-secondary btn-sm" onclick="toggleDocForm('insurance-form')">Cancel</button>
+                </div>
+            </div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:8px;">🔔 Reminders at 30, 14, and 7 days before expiry. Your emergency phone number is shared with confirmed helpers during an active SOS.</div>
         </div>
     </div>
 
@@ -483,7 +874,7 @@
         <a class="settings-item" href="friends.html"><div class="si-icon blue">👥</div> My Friends <span class="si-badge">4</span></a>
         <a class="settings-item" href="groups.html"><div class="si-icon purple">👪</div> My Groups <span class="si-arrow">›</span></a>
         <a class="settings-item" href="transport.html"><div class="si-icon orange">🏍️</div> My Transport <span class="si-arrow">›</span></a>
-        <a class="settings-item" href="emergency.html"><div class="si-icon red">❤️</div> Emergency Contacts <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="emergency.html"><div class="si-icon red">❤️</div> In Case of Emergency <span class="si-arrow">›</span></a>
     </div>
     <div class="settings-section">
         <div class="settings-section-title">Account</div>
@@ -500,7 +891,6 @@
         <div class="settings-section-title">Activity</div>
         <a class="settings-item" href="activity.html"><div class="si-icon blue">📋</div> Activity History <span class="si-arrow">›</span></a>
         <a class="settings-item" href="feedback.html"><div class="si-icon orange">⏳</div> Pending Feedback <span class="si-badge">2</span></a>
-        <a class="settings-item" href="interactions.html"><div class="si-icon grey">📊</div> Interactions History <span class="si-arrow">›</span></a>
     </div>
     <div class="settings-section">
         <div class="settings-section-title">Privacy & Data</div>
@@ -596,6 +986,36 @@
     });
 
     // ═══ PHOTO ═══
+    function setProfilePic(el) {
+        if (!confirm('⚠️ Changing your profile photo will reset your verification level.\n\nYou\'ll need to be re-verified by the community through your next in-person interaction.\n\nAre you sure?')) return;
+        // Remove current profile pic designation
+        document.querySelectorAll('.pp-slot').forEach(slot => {
+            slot.classList.remove('is-profile');
+            const badge = slot.querySelector('.pp-profile-badge');
+            if (badge) badge.remove();
+            const setLink = slot.querySelector('.pp-set-profile');
+            if (setLink && slot.classList.contains('has-photo')) {
+                setLink.textContent = 'Set as profile pic';
+                setLink.style.color = '';
+                setLink.style.textDecoration = '';
+                setLink.style.cursor = '';
+                setLink.onclick = function(e) { e.stopPropagation(); setProfilePic(this); };
+            }
+        });
+        // Set new profile pic
+        const slot = el.closest('.pp-slot');
+        slot.classList.add('is-profile');
+        const badge = document.createElement('span');
+        badge.className = 'pp-profile-badge';
+        badge.textContent = '👤 Profile Pic';
+        slot.prepend(badge);
+        el.textContent = '● Currently set as profile';
+        el.style.color = 'var(--blue)';
+        el.style.textDecoration = 'none';
+        el.style.cursor = 'default';
+        el.onclick = null;
+        showToast('Profile picture updated!', 'success');
+    }
     function previewPhoto(input) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
@@ -639,6 +1059,34 @@
         }
 
         showToast(`${section.charAt(0).toUpperCase() + section.slice(1)} saved successfully!`, 'success');
+    }
+
+    // ═══ LANGUAGES ═══
+    function addLanguage() {
+        const langSel = document.getElementById('lang-select');
+        const levelSel = document.getElementById('lang-level');
+        if (!langSel.value) return;
+        const grid = document.getElementById('lang-grid');
+        const tag = document.createElement('div');
+        tag.className = 'lang-tag active';
+        tag.onclick = function() { removeLang(this); };
+        const levelLabel = levelSel.options[levelSel.selectedIndex].text;
+        tag.innerHTML = langSel.value + ' <span class="lang-level">' + levelLabel + '</span> <span style="margin-left:2px;font-size:10px;">✕</span>';
+        grid.appendChild(tag);
+        langSel.value = '';
+        showToast('Language added!', 'success');
+    }
+
+    function removeLang(el) {
+        if (confirm('Remove ' + el.textContent.trim().split('✕')[0].trim() + '?')) {
+            el.remove();
+            showToast('Language removed', 'error');
+        }
+    }
+
+    // ═══ DOCUMENT FORMS ═══
+    function toggleDocForm(id) {
+        document.getElementById(id).classList.toggle('open');
     }
 
     // ═══ TOAST ═══
